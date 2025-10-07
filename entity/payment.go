@@ -14,8 +14,7 @@ type Payment struct {
 	Amount        float64    `gorm:"type:decimal(10,2);not null" json:"amount"`
 	TransactionID string     `gorm:"type:text" json:"transaction_id"`
 	PaidAt        *time.Time `json:"paid_at"`
-	CreatedAt     time.Time  `gorm:"default:now()" json:"created_at"`
+	CreatedAt     *time.Time `gorm:"default:now()" json:"created_at"`
 	
-	// Relations
 	Order Order `gorm:"foreignKey:OrderID;references:ID" json:"order,omitempty"`
 }
