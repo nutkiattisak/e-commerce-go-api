@@ -3,7 +3,7 @@ package entity
 import "time"
 
 type Role struct {
-	ID        uint      `gorm:"primaryKey;autoIncrement" json:"id"`
-	Name      string    `gorm:"size:50;uniqueIndex" json:"name"` // 'ADMIN', 'USER', 'SELLER'
-	CreatedAt time.Time `json:"created_at"`
+	ID        int        `gorm:"primaryKey;autoIncrement" json:"id"`
+	Name      string     `gorm:"size:50;not null;uniqueIndex" json:"name"` // 'ADMIN', 'USER', 'SHOP'
+	CreatedAt *time.Time `gorm:"default:now()" json:"created_at"`
 }
