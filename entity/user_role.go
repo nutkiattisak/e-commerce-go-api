@@ -1,12 +1,18 @@
 package entity
 
-import "time"
+import (
+	"time"
 
+	"github.com/google/uuid"
+)
+
+// UserRole represents the many-to-many relationship between users and roles
 type UserRole struct {
-	UserID    int        `gorm:"primaryKey" json:"user_id"`
-	RoleID    int        `gorm:"primaryKey" json:"role_id"`
-	CreatedAt *time.Time `gorm:"default:now()" json:"created_at"`
-	
-	User User `gorm:"foreignKey:UserID;references:ID" json:"user,omitempty"`
-	Role Role `gorm:"foreignKey:RoleID;references:ID" json:"role,omitempty"`
+	UserID    uuid.UUID `gorm:"type:uuid;primaryKey;not null" json:"userId"`
+	RoleID    int       `gorm:"primaryKey;not null" json:"roleId"`
+	CreatedAt time.Time `gorm:"default:now()" json:"createdAt"`
+
+	// Relations
+	User User `gorm:"foreignKey:UserID;references:ID" json:"-"`
+	Role Role `gorm:"foreignKey:RoleID;references:ID" json:"-"`
 }
