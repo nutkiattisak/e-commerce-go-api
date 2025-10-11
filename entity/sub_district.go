@@ -13,6 +13,6 @@ type SubDistrict struct {
 	CreatedAt  time.Time  `gorm:"not null;default:now()" json:"createdAt"`
 	UpdatedAt  time.Time  `gorm:"not null;default:now()" json:"updatedAt"`
 	DeletedAt  *time.Time `json:"deletedAt"`
-	
+
 	District District `gorm:"foreignKey:DistrictID;references:ID" json:"district,omitempty"`
 }

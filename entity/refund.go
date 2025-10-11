@@ -20,7 +20,7 @@ type Refund struct {
 	RefundedAt    *time.Time `json:"refundedAt"`
 	CreatedAt     time.Time  `gorm:"not null;default:now()" json:"createdAt"`
 	UpdatedAt     time.Time  `gorm:"not null;default:now()" json:"updatedAt"`
-	
+
 	ShopOrder ShopOrder `gorm:"foreignKey:ShopOrderID;references:ID" json:"shopOrder,omitempty"`
 	Payment   *Payment  `gorm:"foreignKey:PaymentID;references:ID" json:"payment,omitempty"`
 }

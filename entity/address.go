@@ -21,7 +21,7 @@ type Address struct {
 	CreatedAt     time.Time  `gorm:"not null;default:now()" json:"createdAt"`
 	UpdatedAt     time.Time  `gorm:"not null;default:now()" json:"updatedAt"`
 	DeletedAt     *time.Time `json:"deletedAt"`
-	
+
 	User        User        `gorm:"foreignKey:UserID;references:ID" json:"user,omitempty"`
 	SubDistrict SubDistrict `gorm:"foreignKey:SubDistrictID;references:ID" json:"subDistrict,omitempty"`
 	District    District    `gorm:"foreignKey:DistrictID;references:ID" json:"district,omitempty"`

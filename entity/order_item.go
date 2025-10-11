@@ -9,7 +9,7 @@ type OrderItem struct {
 	Qty         int       `gorm:"not null" json:"qty"`
 	UnitPrice   float64   `gorm:"type:decimal(10,2);not null" json:"unitPrice"`
 	Subtotal    float64   `gorm:"type:decimal(10,2);not null" json:"subtotal"`
-	
+
 	ShopOrder ShopOrder `gorm:"foreignKey:ShopOrderID;references:ID" json:"shopOrder,omitempty"`
 	Product   Product   `gorm:"foreignKey:ProductID;references:ID" json:"product,omitempty"`
 }

@@ -2,6 +2,8 @@ package entity
 
 import (
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Product struct {
@@ -12,11 +14,11 @@ type Product struct {
 	Price       float64    `gorm:"type:decimal(10,2);not null" json:"price"`
 	StockQty    int        `gorm:"not null;default:0" json:"stockQty"`
 	Status      string     `gorm:"size:50;default:'ACTIVE';index:idx_products_status" json:"status"`
-	ShopID      int        `gorm:"not null;index:idx_products_shop_id" json:"shopId"`
+	ShopID      uuid.UUID  `gorm:"type:uuid;not null;index:idx_products_shop_id" json:"shopId"`
 	CreatedAt   *time.Time `gorm:"default:now()" json:"createdAt"`
 	UpdatedAt   *time.Time `gorm:"default:now()" json:"updatedAt"`
 	DeletedAt   *time.Time `json:"deletedAt"`
-	
+
 	// Relations
 	Shop Shop `gorm:"foreignKey:ShopID;references:ID" json:"shop,omitempty"`
 }

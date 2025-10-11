@@ -56,7 +56,8 @@ tmp/
 # Documentation generated files
 docs/swagger.json
 docs/swagger.yaml
-docs/docs.go
 
 # Mocks
 mocks/
+
+.github
