@@ -15,8 +15,7 @@ type Shipment struct {
 	CreatedAt   time.Time  `gorm:"not null;default:now()" json:"createdAt"`
 	ShippedAt   *time.Time `json:"shippedAt"`
 	DeliveredAt *time.Time `json:"deliveredAt"`
-	
-	// Relations
+
 	ShopOrder ShopOrder `gorm:"foreignKey:ShopOrderID;references:ID" json:"shopOrder,omitempty"`
 	Courier   Courier   `gorm:"foreignKey:CourierID;references:ID" json:"courier,omitempty"`
 }

@@ -6,7 +6,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// User represents a user in the system
 type User struct {
 	ID          uuid.UUID  `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
 	FirstName   string     `gorm:"type:varchar(255);not null" json:"firstName"`
@@ -26,7 +25,27 @@ type RegisterRequest struct {
 	FirstName   string `json:"firstName" validate:"required"`
 	LastName    string `json:"lastName" validate:"required"`
 	PhoneNumber string `json:"phoneNumber" validate:"required"`
-	ImageURL    string `json:"imageURL"`
+	ImageURL    string `json:"imageUrl"`
+}
+
+type RegisterShopRequest struct {
+	// User information
+	Email       string `json:"email" validate:"required,email"`
+	Password    string `json:"password" validate:"required,min=8"`
+	FirstName   string `json:"firstName" validate:"required"`
+	LastName    string `json:"lastName" validate:"required"`
+	PhoneNumber string `json:"phoneNumber" validate:"required"`
+	ImageURL    string `json:"imageUrl"`
+
+	// Shop information
+	ShopName        string `json:"shopName" validate:"required,max=255"`
+	ShopDescription string `json:"shopDescription"`
+	ShopImageURL    string `json:"shopImageUrl"`
+	ShopAddress     string `json:"shopAddress" validate:"required"`
+}
+
+type RegisterShopResponse struct {
+	Shop         *Shop  `json:"shop"`
 }
 
 type LoginRequest struct {

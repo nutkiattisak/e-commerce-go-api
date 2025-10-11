@@ -4,20 +4,21 @@ import (
 	"ecommerce-go-api/config"
 	"ecommerce-go-api/entity"
 	"ecommerce-go-api/utils"
-	"log"
 	"net/http"
 	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+
+	_ "ecommerce-go-api/docs"
+	authDelivery "ecommerce-go-api/feature/auth/delivery"
+
+	echoSwagger "github.com/swaggo/echo-swagger"
 )
 
 func init() {
 	config.InitialENV()
 	config.ConnectDatabase()
-	
-	// Run database migration
-	// migration.AutoMigrate()
 }
 
 func main() {
@@ -31,6 +32,7 @@ func main() {
 		return c.JSON(http.StatusOK, map[string]string{
 			"message": "Welcome to E-commerce API",
 			"status":  "running",
+			"version": "v1.0.0",
 		})
 	})
 
@@ -42,11 +44,20 @@ func main() {
 			return c.JSON(http.StatusInternalServerError, entity.ResponseError{})
 		}
 
-		return c.String(http.StatusOK, http.StatusText(http.StatusOK))
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"status":   "healthy",
+			"duration": duration.String(),
+			"database": "connected",
+		})
 	})
 
-	log.Printf("Server starting on port %s", config.HTTP_PORT)
-	log.Fatal(e.Start(":" + config.HTTP_PORT))
+	e.GET("/swagger/*", echoSwagger.WrapHandler)
+
+	db := config.DB
+	api := e.Group("/api")
+	{
+		authDelivery.RegisterAuthHandler(api, db)
+	}
 
 	utils.ServeGracefulShutdown(e)
 }

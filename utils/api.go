@@ -13,29 +13,29 @@ import (
 )
 
 func ServeGracefulShutdown(e *echo.Echo) {
-    go func() {
-        port := ":" + config.HTTP_PORT
-        log.Infof("Starting server on port %s", port)
-        
-        if err := e.Start(port); err != nil && err != http.ErrServerClosed {
-            log.Fatalf("Failed to start server: %v", err)
-        }
-    }()
+	go func() {
+		port := ":" + config.HTTP_PORT
+		log.Infof("Starting server on port %s", port)
 
-    ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
-    defer stop()
-    
-    log.Info("Server started. Press Ctrl+C to shutdown.")
-    <-ctx.Done()
-    
-    log.Info("Shutting down server...")
-    
-    shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-    defer cancel()
-    
-    if err := e.Shutdown(shutdownCtx); err != nil {
-        log.Fatalf("Server forced to shutdown: %v", err)
-    }
-    
-    log.Info("Server shutdown complete.")
+		if err := e.Start(port); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("Failed to start server: %v", err)
+		}
+	}()
+
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer stop()
+
+	log.Info("Server started. Press Ctrl+C to shutdown.")
+	<-ctx.Done()
+
+	log.Info("Shutting down server...")
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	if err := e.Shutdown(shutdownCtx); err != nil {
+		log.Fatalf("Server forced to shutdown: %v", err)
+	}
+
+	log.Info("Server shutdown complete.")
 }

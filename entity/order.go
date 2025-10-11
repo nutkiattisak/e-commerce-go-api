@@ -24,7 +24,7 @@ type Order struct {
 	CreatedAt           time.Time  `gorm:"not null;default:now()" json:"createdAt"`
 	UpdatedAt           time.Time  `gorm:"not null;default:now()" json:"updatedAt"`
 	CancelledAt         *time.Time `json:"cancelledAt"`
-	
+
 	User    User     `gorm:"foreignKey:UserID;references:ID" json:"user,omitempty"`
 	Address *Address `gorm:"foreignKey:AddressID;references:ID" json:"address,omitempty"`
 }

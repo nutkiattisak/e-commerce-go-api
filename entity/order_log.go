@@ -14,8 +14,7 @@ type OrderLog struct {
 	Note        string     `gorm:"type:text" json:"note"`
 	CreatedBy   *uuid.UUID `gorm:"type:uuid" json:"createdBy"`
 	CreatedAt   *time.Time `gorm:"default:now();index:idx_order_logs_created_at" json:"createdAt"`
-	
-	
+
 	Order     Order      `gorm:"foreignKey:OrderID;references:ID" json:"order,omitempty"`
 	ShopOrder *ShopOrder `gorm:"foreignKey:ShopOrderID;references:ID" json:"shopOrder,omitempty"`
 	Creator   *User      `gorm:"foreignKey:CreatedBy;references:ID" json:"creator,omitempty"`

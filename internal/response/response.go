@@ -1,4 +1,6 @@
-package entity
+package response
+
+import "github.com/labstack/echo/v4"
 
 type ResponseData struct {
 	Data interface{} `json:"data"`
@@ -18,4 +20,19 @@ type ResponseError struct {
 type ResponsePagination struct {
 	Data  interface{} `json:"data"`
 	Total int         `json:"total"`
+}
+
+func Success(c echo.Context, statusCode int, message string, data interface{}) error {
+	return c.JSON(statusCode, ResponseSuccess{
+		Message: message,
+		Status:  "success",
+		Data:    data,
+	})
+}
+
+func Error(c echo.Context, statusCode int, message string) error {
+	return c.JSON(statusCode, ResponseError{
+		Message: message,
+		Status:  "error",
+	})
 }

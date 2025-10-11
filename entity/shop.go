@@ -7,7 +7,7 @@ import (
 )
 
 type Shop struct {
-	ID          int        `gorm:"primaryKey;autoIncrement" json:"id"`
+	ID          uuid.UUID  `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
 	UserID      uuid.UUID  `gorm:"type:uuid;not null;index:idx_shops_user_id" json:"userId"`
 	Name        string     `gorm:"size:255;not null" json:"name"`
 	Description string     `gorm:"type:text" json:"description"`
