@@ -10,12 +10,13 @@ import (
 )
 
 var (
-	ErrInvalidToken = errors.New("invalid token")
-	ErrExpiredToken = errors.New("token has expired")
+	ErrInvalidToken         = errors.New("invalid token")
+	ErrExpiredToken         = errors.New("token has expired")
+	ErrInvalidSigningMethod = errors.New("invalid signing method")
 )
 
 type Claims struct {
-	UserID uuid.UUID `json:"user_id"`
+	UserID uuid.UUID `json:"userId"`
 	Role   string    `json:"role"`
 	jwt.RegisteredClaims
 }

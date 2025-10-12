@@ -24,3 +24,39 @@ func (u *userUsecase) GetProfile(ctx context.Context, userID uuid.UUID) (*entity
 func (u *userUsecase) GetUserByID(ctx context.Context, id uuid.UUID) (*entity.User, error) {
 	return u.repo.GetByID(ctx, id)
 }
+
+func (u *userUsecase) GetAddresses(ctx context.Context, userID uuid.UUID) ([]*entity.Address, error) {
+	return u.repo.GetAddressesByUserID(ctx, userID)
+}
+
+func (u *userUsecase) CreateAddress(ctx context.Context, addr *entity.Address) (*entity.Address, error) {
+	if addr == nil {
+		return nil, nil
+	}
+	if err := u.repo.CreateAddress(ctx, addr); err != nil {
+		return nil, err
+	}
+	return addr, nil
+}
+
+func (u *userUsecase) GetAddressByID(ctx context.Context, id int) (*entity.Address, error) {
+	return u.repo.GetAddressByID(ctx, id)
+}
+
+func (u *userUsecase) UpdateAddress(ctx context.Context, addr *entity.Address, userID uuid.UUID) (*entity.Address, error) {
+	if err := u.repo.UpdateAddress(ctx, addr, userID); err != nil {
+		return nil, err
+	}
+	return addr, nil
+}
+
+func (u *userUsecase) UpdateProfile(ctx context.Context, user *entity.User) (*entity.User, error) {
+	if err := u.repo.UpdateProfile(ctx, user); err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
+func (u *userUsecase) DeleteAddress(ctx context.Context, id int, userID uuid.UUID) error {
+	return u.repo.DeleteAddress(ctx, id, userID)
+}

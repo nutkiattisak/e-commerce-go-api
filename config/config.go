@@ -13,11 +13,14 @@ import (
 var (
 	HTTP_PORT string
 
-	POSTGRES_HOST     string
-	POSTGRES_USER     string
-	POSTGRES_PASSWORD string
-	POSTGRES_DB       string
-	POSTGRES_PORT     string
+	POSTGRES_HOST              string
+	POSTGRES_USER              string
+	POSTGRES_PASSWORD          string
+	POSTGRES_DB                string
+	POSTGRES_PORT              string
+	JWT_SECRET                 string
+	JWT_ACCESS_TOKEN_DURATION  string
+	JWT_REFRESH_TOKEN_DURATION string
 
 	DB *gorm.DB
 )
@@ -33,6 +36,9 @@ func InitialENV() {
 	POSTGRES_PASSWORD = requiredEnv("POSTGRES_PASSWORD")
 	POSTGRES_DB = requiredEnv("POSTGRES_DB")
 	POSTGRES_PORT = requiredEnv("POSTGRES_PORT")
+	JWT_SECRET = requiredEnv("JWT_SECRET")
+	JWT_ACCESS_TOKEN_DURATION = requiredEnv("JWT_ACCESS_TOKEN_DURATION")
+	JWT_REFRESH_TOKEN_DURATION = requiredEnv("JWT_REFRESH_TOKEN_DURATION")
 }
 
 func ConnectDatabase() {
