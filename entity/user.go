@@ -45,7 +45,7 @@ type RegisterShopRequest struct {
 }
 
 type RegisterShopResponse struct {
-	Shop         *Shop  `json:"shop"`
+	Shop *Shop `json:"shop"`
 }
 
 type LoginRequest struct {
