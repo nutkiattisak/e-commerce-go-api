@@ -124,7 +124,7 @@ func (u *authUsecase) RegisterShop(ctx context.Context, req *entity.RegisterShop
 	shop.User = *user
 
 	return &entity.RegisterShopResponse{
-		Shop:         shop,
+		Shop: shop,
 	}, nil
 }
 
