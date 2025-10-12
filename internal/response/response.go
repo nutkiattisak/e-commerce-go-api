@@ -2,10 +2,6 @@ package response
 
 import "github.com/labstack/echo/v4"
 
-type ResponseData struct {
-	Data interface{} `json:"data"`
-}
-
 type ResponseSuccess struct {
 	Message string      `json:"message"`
 	Status  string      `json:"status"`

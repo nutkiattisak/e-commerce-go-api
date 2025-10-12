@@ -10,9 +10,9 @@ type SubDistrict struct {
 	NameTH     string     `gorm:"size:150;not null" json:"nameTh"`
 	NameEN     string     `gorm:"size:150;not null" json:"nameEn"`
 	DistrictID int        `gorm:"not null" json:"districtId"`
-	CreatedAt  time.Time  `gorm:"not null;default:now()" json:"createdAt"`
-	UpdatedAt  time.Time  `gorm:"not null;default:now()" json:"updatedAt"`
-	DeletedAt  *time.Time `json:"deletedAt"`
+	CreatedAt  time.Time  `gorm:"not null;default:now()" json:"createdAt,omitempty"`
+	UpdatedAt  time.Time  `gorm:"not null;default:now()" json:"updatedAt,omitempty"`
+	DeletedAt  *time.Time `json:"deletedAt,omitempty"`
 
-	District District `gorm:"foreignKey:DistrictID;references:ID" json:"district,omitempty"`
+	District *District `gorm:"foreignKey:DistrictID;references:ID" json:"district,omitempty"`
 }

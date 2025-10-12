@@ -12,6 +12,7 @@ import (
 
 	_ "ecommerce-go-api/docs"
 	authDelivery "ecommerce-go-api/feature/auth/delivery"
+	locationDelivery "ecommerce-go-api/feature/location/delivery"
 	userDelivery "ecommerce-go-api/feature/user/delivery"
 
 	echoSwagger "github.com/swaggo/echo-swagger"
@@ -59,6 +60,7 @@ func main() {
 	{
 		authDelivery.RegisterAuthHandler(api, db)
 		userDelivery.RegisterUserHandler(api, db)
+		locationDelivery.RegisterLocationHandler(api, db)
 	}
 
 	utils.ServeGracefulShutdown(e)
