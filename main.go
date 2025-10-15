@@ -7,12 +7,15 @@ import (
 	"net/http"
 	"time"
 
+	intvalidator "ecommerce-go-api/internal/validator"
+
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
 	_ "ecommerce-go-api/docs"
 	authDelivery "ecommerce-go-api/feature/auth/delivery"
 	locationDelivery "ecommerce-go-api/feature/location/delivery"
+	productDelivery "ecommerce-go-api/feature/product/delivery"
 	userDelivery "ecommerce-go-api/feature/user/delivery"
 
 	echoSwagger "github.com/swaggo/echo-swagger"
@@ -25,6 +28,9 @@ func init() {
 
 func main() {
 	e := echo.New()
+
+	// attach validator
+	e.Validator = intvalidator.New()
 
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
@@ -61,6 +67,7 @@ func main() {
 		authDelivery.RegisterAuthHandler(api, db)
 		userDelivery.RegisterUserHandler(api, db)
 		locationDelivery.RegisterLocationHandler(api, db)
+		productDelivery.RegisterProductHandler(api, db)
 	}
 
 	utils.ServeGracefulShutdown(e)
