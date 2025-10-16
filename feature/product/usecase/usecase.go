@@ -16,10 +16,10 @@ func NewProductUsecase(r domain.ProductRepository, s domain.ShopRepository) doma
 	return &productUsecase{repo: r, shopRepo: s}
 }
 
-func (u *productUsecase) ListProducts(ctx context.Context, q *entity.ProductListRequest) (*entity.ProductListResponse, error) {
+func (u *productUsecase) ListProducts(ctx context.Context, q *entity.ProductListRequest) ([]*entity.Product, int64, error) {
 	return u.repo.ListProducts(ctx, q)
 }
 
-func (u *productUsecase) GetProductByID(ctx context.Context, productID int) (*entity.ProductResponse, error) {
+func (u *productUsecase) GetProductByID(ctx context.Context, productID int) (*entity.Product, error) {
 	return u.repo.GetProductByID(ctx, productID)
 }
