@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 
@@ -49,12 +50,30 @@ func (h *ProductHandler) ListProducts(c echo.Context) error {
 	if err := c.Bind(&q); err != nil {
 		return response.Error(c, http.StatusBadRequest, "invalid request")
 	}
-	resp, err := h.usecase.ListProducts(c.Request().Context(), &q)
+	items, total, err := h.usecase.ListProducts(c.Request().Context(), &q)
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
-	return response.Success(c, http.StatusOK, "ok", resp)
-	// return c.JSON(http.StatusOK, entity.ResponsePagination{Total: int(resp.Total), Data: resp.Items})
+	var respItems []*entity.ProductResponse
+	for _, p := range items {
+		pr := &entity.ProductResponse{
+			ID:          p.ID,
+			Name:        p.Name,
+			Description: p.Description,
+			ImageURL:    p.ImageURL,
+			Price:       p.Price,
+			StockQty:    p.StockQty,
+			IsActive:    p.IsActive,
+			ShopID:      p.ShopID,
+			CreatedAt:   p.CreatedAt,
+			UpdatedAt:   p.UpdatedAt,
+		}
+		if p.Shop.ID != uuid.Nil {
+			pr.Shop = &entity.ShopResponse{ID: p.Shop.ID, Name: p.Shop.Name, ImageURL: p.Shop.ImageURL}
+		}
+		respItems = append(respItems, pr)
+	}
+	return response.Success(c, http.StatusOK, "ok", &entity.ProductListResponse{Items: respItems, Total: total})
 }
 
 // GetProduct godoc
@@ -68,8 +87,7 @@ func (h *ProductHandler) ListProducts(c echo.Context) error {
 //	@Success		200			{object}	entity.ProductResponse
 //	@Router			/api/products/{productId} [get]
 func (h *ProductHandler) GetProduct(c echo.Context) error {
-	productIdStr := c.Param("productId")
-	productId, err := strconv.Atoi(productIdStr)
+	productId, err := strconv.Atoi(c.Param("productId"))
 	if err != nil {
 		return response.Error(c, http.StatusBadRequest, "invalid product id")
 	}
@@ -82,5 +100,21 @@ func (h *ProductHandler) GetProduct(c echo.Context) error {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
 
-	return response.Success(c, http.StatusOK, "ok", p)
+	pr := &entity.ProductResponse{
+		ID:          p.ID,
+		Name:        p.Name,
+		Description: p.Description,
+		ImageURL:    p.ImageURL,
+		Price:       p.Price,
+		StockQty:    p.StockQty,
+		IsActive:    p.IsActive,
+		ShopID:      p.ShopID,
+		CreatedAt:   p.CreatedAt,
+		UpdatedAt:   p.UpdatedAt,
+	}
+	if p.Shop.ID != uuid.Nil {
+		pr.Shop = &entity.ShopResponse{ID: p.Shop.ID, Name: p.Shop.Name, ImageURL: p.Shop.ImageURL}
+	}
+
+	return response.Success(c, http.StatusOK, "ok", pr)
 }

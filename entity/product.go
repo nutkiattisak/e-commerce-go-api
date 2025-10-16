@@ -9,7 +9,7 @@ import (
 
 type Product struct {
 	ID          int            `gorm:"primaryKey;autoIncrement" json:"id"`
-	Title       string         `gorm:"size:255;not null" json:"title" validate:"required,min=3,max=255"`
+	Name        string         `gorm:"size:255;not null" json:"name" validate:"required,min=3,max=255"`
 	Description string         `gorm:"type:text" json:"description" validate:"omitempty,max=2000"`
 	ImageURL    *string        `gorm:"type:text" json:"imageUrl,omitempty" validate:"omitempty,url"`
 	Price       float64        `gorm:"type:decimal(10,2);not null" json:"price" validate:"required,gt=0"`
@@ -31,7 +31,7 @@ type ShopResponse struct {
 
 type ProductResponse struct {
 	ID          int           `json:"id"`
-	Title       string        `json:"title"`
+	Name        string        `json:"name"`
 	Description string        `json:"description"`
 	ImageURL    *string       `json:"imageUrl,omitempty"`
 	Price       float64       `json:"price"`
@@ -52,4 +52,12 @@ type ProductListRequest struct {
 type ProductListResponse struct {
 	Items []*ProductResponse `json:"items"`
 	Total int64              `json:"total"`
+}
+
+type CreateProductRequest struct {
+	Name        string  `json:"name" validate:"required,min=3,max=255"`
+	Description string  `json:"description" validate:"omitempty,max=2000"`
+	ImageURL    *string `json:"imageUrl,omitempty" validate:"omitempty,url"`
+	Price       float64 `json:"price" validate:"required,gt=0"`
+	StockQty    int     `json:"stockQty" validate:"gte=0"`
 }

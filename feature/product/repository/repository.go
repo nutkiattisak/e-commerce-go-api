@@ -19,7 +19,7 @@ func NewProductRepository(db *gorm.DB) domain.ProductRepository {
 	return &productRepository{db: db}
 }
 
-func (r *productRepository) ListProducts(ctx context.Context, q *entity.ProductListRequest) (*entity.ProductListResponse, error) {
+func (r *productRepository) ListProducts(ctx context.Context, q *entity.ProductListRequest) ([]*entity.Product, int64, error) {
 	var products []*entity.Product
 	var total int64
 
@@ -27,11 +27,11 @@ func (r *productRepository) ListProducts(ctx context.Context, q *entity.ProductL
 
 	if q != nil && q.SearchText != "" {
 		like := "%" + q.SearchText + "%"
-		base = base.Where("title ILIKE ? OR description ILIKE ?", like, like)
+		base = base.Where("name ILIKE ? OR description ILIKE ?", like, like)
 	}
 
 	if err := base.Count(&total).Error; err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	perPage := 20
@@ -44,64 +44,60 @@ func (r *productRepository) ListProducts(ctx context.Context, q *entity.ProductL
 	}
 
 	if err := base.Preload("Shop").Offset(pageIdx * perPage).Limit(perPage).Find(&products).Error; err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	var respItems []*entity.ProductResponse
-	for _, p := range products {
-		pr := &entity.ProductResponse{
-			ID:          p.ID,
-			Title:       p.Title,
-			Description: p.Description,
-			ImageURL:    p.ImageURL,
-			Price:       p.Price,
-			StockQty:    p.StockQty,
-			IsActive:    p.IsActive,
-			ShopID:      p.ShopID,
-			CreatedAt:   p.CreatedAt,
-			UpdatedAt:   p.UpdatedAt,
-		}
-
-		if p.Shop.ID != uuid.Nil {
-			pr.Shop = &entity.ShopResponse{
-				ID:       p.Shop.ID,
-				Name:     p.Shop.Name,
-				ImageURL: p.Shop.ImageURL,
-			}
-		}
-		respItems = append(respItems, pr)
-	}
-
-	return &entity.ProductListResponse{Items: respItems, Total: total}, nil
+	return products, total, nil
 }
 
-func (r *productRepository) GetByID(ctx context.Context, id int) (*entity.ProductResponse, error) {
+func (r *productRepository) GetProductByID(ctx context.Context, id int) (*entity.Product, error) {
 	var p entity.Product
 	if err := r.db.WithContext(ctx).Preload("Shop").First(&p, "id = ? AND deleted_at IS NULL", id).Error; err != nil {
 		return nil, err
 	}
-	pr := &entity.ProductResponse{
-		ID:          p.ID,
-		Title:       p.Title,
-		Description: p.Description,
-		ImageURL:    p.ImageURL,
-		Price:       p.Price,
-		StockQty:    p.StockQty,
-		IsActive:    p.IsActive,
-		ShopID:      p.ShopID,
-		CreatedAt:   p.CreatedAt,
-		UpdatedAt:   p.UpdatedAt,
-	}
-	if p.Shop.ID != uuid.Nil {
-		pr.Shop = &entity.ShopResponse{
-			ID:       p.Shop.ID,
-			Name:     p.Shop.Name,
-			ImageURL: p.Shop.ImageURL,
-		}
-	}
-	return pr, nil
+	return &p, nil
 }
 
-func (r *productRepository) GetProductByID(ctx context.Context, productID int) (*entity.ProductResponse, error) {
-	return r.GetByID(ctx, productID)
+func (r *productRepository) GetByID(ctx context.Context, id int) (*entity.Product, error) {
+	var p entity.Product
+	if err := r.db.WithContext(ctx).Preload("Shop").First(&p, "id = ? AND deleted_at IS NULL", id).Error; err != nil {
+		return nil, err
+	}
+	return &p, nil
+}
+
+func (r *productRepository) ListByShopID(ctx context.Context, shopID uuid.UUID, q *entity.ProductListRequest) ([]*entity.Product, int64, error) {
+	var products []*entity.Product
+	var total int64
+
+	productQuery := r.db.WithContext(ctx).Model(&entity.Product{}).Where("deleted_at IS NULL AND shop_id = ?", shopID)
+
+	if q != nil && q.SearchText != "" {
+		like := "%" + q.SearchText + "%"
+		productQuery = productQuery.Where("name ILIKE ? OR description ILIKE ?", like, like)
+	}
+
+	if err := productQuery.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	perPage := 20
+	if q != nil && q.PerPage > 0 {
+		perPage = int(q.PerPage)
+	}
+
+	page := 0
+	if q != nil && q.Page > 0 {
+		page = int(q.Page) - 1
+	}
+
+	if err := productQuery.Preload("Shop").Offset(page * perPage).Limit(perPage).Find(&products).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return products, total, nil
+}
+
+func (r *productRepository) CreateProduct(ctx context.Context, product *entity.Product) error {
+	return r.db.WithContext(ctx).Create(product).Error
 }
