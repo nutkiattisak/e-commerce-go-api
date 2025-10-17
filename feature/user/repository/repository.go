@@ -5,6 +5,7 @@ import (
 
 	"ecommerce-go-api/domain"
 	"ecommerce-go-api/entity"
+	"ecommerce-go-api/internal/errmap"
 
 	"time"
 
@@ -50,9 +51,32 @@ func (r *UserRepository) CreateAddress(ctx context.Context, addr *entity.Address
 
 func (r *UserRepository) GetAddressByID(ctx context.Context, id int) (*entity.Address, error) {
 	var a entity.Address
-	if err := r.db.WithContext(ctx).First(&a, "id = ? AND deleted_at IS NULL", id).Error; err != nil {
+
+	err := r.db.WithContext(ctx).
+		Preload("SubDistrict", func(db *gorm.DB) *gorm.DB {
+			return db.Select("id, name_th, name_en, district_id").
+				Preload("District", func(db *gorm.DB) *gorm.DB {
+					return db.Select("id, name_th, name_en, province_id").
+						Preload("Province", func(db *gorm.DB) *gorm.DB {
+							return db.Select("id, name_th, name_en")
+						})
+				})
+		}).
+		Preload("District", func(db *gorm.DB) *gorm.DB {
+			return db.Select("id, name_th, name_en, province_id").
+				Preload("Province", func(db *gorm.DB) *gorm.DB {
+					return db.Select("id, name_th, name_en")
+				})
+		}).
+		Preload("Province", func(db *gorm.DB) *gorm.DB {
+			return db.Select("id, name_th, name_en")
+		}).
+		First(&a, "id = ? AND deleted_at IS NULL", id).Error
+
+	if err != nil {
 		return nil, err
 	}
+
 	return &a, nil
 }
 
@@ -84,15 +108,19 @@ func (r *UserRepository) UpdateAddress(ctx context.Context, addr *entity.Address
 }
 
 func (r *UserRepository) DeleteAddress(ctx context.Context, id int, userID uuid.UUID) error {
-	err := r.db.WithContext(ctx).
-		Where("id = ? AND user_id = ?", id, userID).
-		Delete(&entity.Address{}).Error
+	res := r.db.WithContext(ctx).
+		Where("id = ? AND user_id = ? AND is_default = false", id, userID).
+		Delete(&entity.Address{})
 
-	if err != nil {
-		return err
+	if res.Error != nil {
+		return res.Error
 	}
 
-	return nil
+	if res.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+
+	return errmap.ErrForbidden
 }
 
 func (r *UserRepository) UpdateProfile(ctx context.Context, user *entity.User) error {

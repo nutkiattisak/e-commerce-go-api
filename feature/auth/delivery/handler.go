@@ -32,8 +32,9 @@ func NewAuthHandler(authUsecase domain.AuthUsecase) *AuthHandler {
 //	@Accept			json
 //	@Produce		json
 //	@Param			body	body		entity.RegisterRequest	true	"Register payload"
-//	@Success		201		{object}	entity.User
-//	@Failure		400		{object}	object
+//	@Success		201		{object}	object
+//	@Failure		400		{object}	"Bad Request"
+//	@Failure		500		{object}	"Internal Server Error"
 //	@Router			/api/auth/register [post]
 func (h *AuthHandler) Register(c echo.Context) error {
 	var req entity.RegisterRequest
@@ -63,7 +64,7 @@ func (h *AuthHandler) Register(c echo.Context) error {
 //	@Param			body	body		entity.RegisterShopRequest	true	"Register shop payload"
 //	@Success		201		{object}	object
 //	@Failure		400		{object}	object
-//	@Router			/api/auth/register/shop [post]
+//	@Router			/api/auth/register-shop [post]
 func (h *AuthHandler) RegisterShop(c echo.Context) error {
 	var req entity.RegisterShopRequest
 	if err := c.Bind(&req); err != nil {
@@ -90,9 +91,9 @@ func (h *AuthHandler) RegisterShop(c echo.Context) error {
 //	@Accept			json
 //	@Produce		json
 //	@Param			body	body		entity.LoginRequest	true	"Login payload"
-//	@Success		200		{object}	object
-//	@Failure		400		{object}	object
-//	@Failure		401		{object}	object
+//	@Success		200		{object}	entity.AuthResponse
+//	@Failure		400		{object}	error
+//	@Failure		401		{object}	error
 //	@Router			/api/auth/login [post]
 func (h *AuthHandler) Login(c echo.Context) error {
 	var req entity.LoginRequest
@@ -100,7 +101,7 @@ func (h *AuthHandler) Login(c echo.Context) error {
 		return response.Error(c, http.StatusBadRequest, err.Error())
 	}
 
-	loginResp, err := h.authUsecase.Login(c.Request().Context(), &req)
+	loginResponse, err := h.authUsecase.Login(c.Request().Context(), &req)
 	if err != nil {
 		statusCode := http.StatusInternalServerError
 		if err.Error() == "invalid email or password" {
@@ -111,7 +112,7 @@ func (h *AuthHandler) Login(c echo.Context) error {
 		return response.Error(c, statusCode, err.Error())
 	}
 
-	return response.Success(c, http.StatusOK, "Login successful", loginResp)
+	return response.Success(c, http.StatusOK, "Login successful", loginResponse)
 }
 
 // RefreshToken godoc
@@ -122,7 +123,7 @@ func (h *AuthHandler) Login(c echo.Context) error {
 //	@Accept			json
 //	@Produce		json
 //	@Param			body	body		entity.RefreshTokenRequest	true	"Refresh payload"
-//	@Success		200		{object}	object
+//	@Success		200		{object}	entity.AuthResponse
 //	@Failure		401		{object}	object
 //	@Router			/api/auth/refresh [post]
 func (h *AuthHandler) RefreshToken(c echo.Context) error {
@@ -131,18 +132,17 @@ func (h *AuthHandler) RefreshToken(c echo.Context) error {
 		return response.Error(c, http.StatusBadRequest, err.Error())
 	}
 
-	loginResp, err := h.authUsecase.RefreshToken(c.Request().Context(), &req)
+	loginResponse, err := h.authUsecase.RefreshToken(c.Request().Context(), &req)
 	if err != nil {
 		return response.Error(c, http.StatusUnauthorized, err.Error())
 	}
 
-	return response.Success(c, http.StatusOK, "Token refreshed successfully", loginResp)
+	return response.Success(c, http.StatusOK, "Token refreshed successfully", loginResponse)
 }
 
 func RegisterAuthHandler(group *echo.Group, db *gorm.DB) {
 	authRepository := authRepo.NewAuthRepository(db)
 	authUsecaseInstance := authUsecase.NewAuthUsecase(authRepository)
 	authHandler := NewAuthHandler(authUsecaseInstance)
-
 	authHandler.RegisterRoutes(group)
 }

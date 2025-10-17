@@ -121,14 +121,14 @@ func (u *authUsecase) RegisterShop(ctx context.Context, req *entity.RegisterShop
 
 	user.Password = ""
 
-	shop.User = *user
+	shop.User = user
 
 	return &entity.RegisterShopResponse{
 		Shop: shop,
 	}, nil
 }
 
-func (u *authUsecase) Login(ctx context.Context, req *entity.LoginRequest) (*entity.LoginResponse, error) {
+func (u *authUsecase) Login(ctx context.Context, req *entity.LoginRequest) (*entity.AuthResponse, error) {
 
 	user, err := u.authRepo.GetUserByEmail(ctx, req.Email)
 	if err != nil {
@@ -164,13 +164,13 @@ func (u *authUsecase) Login(ctx context.Context, req *entity.LoginRequest) (*ent
 
 	user.Password = ""
 
-	return &entity.LoginResponse{
+	return &entity.AuthResponse{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 	}, nil
 }
 
-func (u *authUsecase) RefreshToken(ctx context.Context, req *entity.RefreshTokenRequest) (*entity.LoginResponse, error) {
+func (u *authUsecase) RefreshToken(ctx context.Context, req *entity.RefreshTokenRequest) (*entity.AuthResponse, error) {
 
 	claims, err := jwt.ValidateToken(req.RefreshToken)
 	if err != nil {
@@ -199,7 +199,7 @@ func (u *authUsecase) RefreshToken(ctx context.Context, req *entity.RefreshToken
 
 	user.Password = ""
 
-	return &entity.LoginResponse{
+	return &entity.AuthResponse{
 		AccessToken:  accessToken,
 		RefreshToken: newRefreshToken,
 	}, nil

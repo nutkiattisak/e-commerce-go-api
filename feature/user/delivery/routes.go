@@ -7,15 +7,15 @@ import (
 )
 
 func (h *UserHandler) RegisterRoutes(r *echo.Group) {
-	users := r.Group("/users")
+	profile := r.Group("/profile", middleware.JWTAuth())
 	{
-		users.GET("/me", h.GetProfile, middleware.JWTAuth())
-		users.PATCH("/me", h.UpdateProfile, middleware.JWTAuth())
-		users.GET(":userId", h.GetUserByID, middleware.JWTAuth())
-		users.GET("/me/addresses", h.GetAddresses, middleware.JWTAuth())
-		users.POST("/me/addresses", h.CreateAddress, middleware.JWTAuth())
-		users.GET("/me/addresses/:addressId", h.GetAddressByID, middleware.JWTAuth())
-		users.PATCH("/me/addresses/:addressId", h.UpdateAddress, middleware.JWTAuth())
-		users.DELETE("/me/addresses/:addressId", h.DeleteAddress, middleware.JWTAuth())
+		profile.GET("", h.GetProfile)
+		profile.PATCH("", h.UpdateProfile)
+
+		profile.GET("/addresses", h.GetAddresses)
+		profile.POST("/addresses", h.CreateAddress)
+		profile.GET("/addresses/:addressId", h.GetAddressByID)
+		profile.PATCH("/addresses/:addressId", h.UpdateAddress)
+		profile.DELETE("/addresses/:addressId", h.DeleteAddress)
 	}
 }

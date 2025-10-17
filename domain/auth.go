@@ -10,8 +10,8 @@ import (
 type AuthUsecase interface {
 	Register(ctx context.Context, req *entity.RegisterRequest) (*entity.User, error)
 	RegisterShop(ctx context.Context, req *entity.RegisterShopRequest) (*entity.RegisterShopResponse, error)
-	Login(ctx context.Context, req *entity.LoginRequest) (*entity.LoginResponse, error)
-	RefreshToken(ctx context.Context, req *entity.RefreshTokenRequest) (*entity.LoginResponse, error)
+	Login(ctx context.Context, req *entity.LoginRequest) (*entity.AuthResponse, error)
+	RefreshToken(ctx context.Context, req *entity.RefreshTokenRequest) (*entity.AuthResponse, error)
 	VerifyToken(ctx context.Context, token string) (*entity.User, error)
 }
 

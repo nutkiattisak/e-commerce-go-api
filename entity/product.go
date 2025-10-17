@@ -18,7 +18,7 @@ type Product struct {
 	ShopID      uuid.UUID      `gorm:"type:uuid;not null;index:idx_products_shop_id" json:"shopId"`
 	CreatedAt   *time.Time     `gorm:"default:now()" json:"createdAt"`
 	UpdatedAt   *time.Time     `gorm:"default:now()" json:"updatedAt"`
-	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
+	DeletedAt   gorm.DeletedAt `gorm:"default:null" json:"deletedAt" swaggerignore:"true"`
 
 	Shop Shop `gorm:"foreignKey:ShopID;references:ID" json:"shop,omitempty"`
 }
@@ -44,8 +44,8 @@ type ProductResponse struct {
 }
 
 type ProductListRequest struct {
-	Page       uint32 `query:"page" validate:"omitempty,min=1"`
-	PerPage    uint32 `query:"perPage" validate:"omitempty,min=1,max=100"`
+	Page       uint64 `query:"page" validate:"omitempty,min=1"`
+	PerPage    uint64 `query:"perPage" validate:"omitempty,min=1,max=100"`
 	SearchText string `query:"searchText"`
 }
 
@@ -55,6 +55,14 @@ type ProductListResponse struct {
 }
 
 type CreateProductRequest struct {
+	Name        string  `json:"name" validate:"required,min=3,max=255"`
+	Description string  `json:"description" validate:"omitempty,max=2000"`
+	ImageURL    *string `json:"imageUrl,omitempty" validate:"omitempty,url"`
+	Price       float64 `json:"price" validate:"required,gt=0"`
+	StockQty    int     `json:"stockQty" validate:"gte=0"`
+}
+
+type UpdateProductRequest struct {
 	Name        string  `json:"name" validate:"required,min=3,max=255"`
 	Description string  `json:"description" validate:"omitempty,max=2000"`
 	ImageURL    *string `json:"imageUrl,omitempty" validate:"omitempty,url"`
