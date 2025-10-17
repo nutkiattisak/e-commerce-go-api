@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	// "fmt"
 
 	"ecommerce-go-api/domain"
 	"ecommerce-go-api/entity"
@@ -23,7 +22,7 @@ func (r *productRepository) ListProducts(ctx context.Context, q *entity.ProductL
 	var products []*entity.Product
 	var total int64
 
-	base := r.db.WithContext(ctx).Model(&entity.Product{}).Where("deleted_at IS NULL")
+	base := r.db.WithContext(ctx).Model(&entity.Product{}).Where("is_active = true AND deleted_at IS NULL")
 
 	if q != nil && q.SearchText != "" {
 		like := "%" + q.SearchText + "%"
@@ -52,15 +51,7 @@ func (r *productRepository) ListProducts(ctx context.Context, q *entity.ProductL
 
 func (r *productRepository) GetProductByID(ctx context.Context, id int) (*entity.Product, error) {
 	var p entity.Product
-	if err := r.db.WithContext(ctx).Preload("Shop").First(&p, "id = ? AND deleted_at IS NULL", id).Error; err != nil {
-		return nil, err
-	}
-	return &p, nil
-}
-
-func (r *productRepository) GetByID(ctx context.Context, id int) (*entity.Product, error) {
-	var p entity.Product
-	if err := r.db.WithContext(ctx).Preload("Shop").First(&p, "id = ? AND deleted_at IS NULL", id).Error; err != nil {
+	if err := r.db.WithContext(ctx).Preload("Shop").First(&p, "id = ? AND is_active = true AND deleted_at IS NULL", id).Error; err != nil {
 		return nil, err
 	}
 	return &p, nil
@@ -100,4 +91,34 @@ func (r *productRepository) ListByShopID(ctx context.Context, shopID uuid.UUID, 
 
 func (r *productRepository) CreateProduct(ctx context.Context, product *entity.Product) error {
 	return r.db.WithContext(ctx).Create(product).Error
+}
+
+func (r *productRepository) UpdateProduct(ctx context.Context, product *entity.Product) error {
+	updates := map[string]interface{}{
+		"name":        product.Name,
+		"description": product.Description,
+		"image_url":   product.ImageURL,
+		"price":       product.Price,
+		"stock_qty":   product.StockQty,
+		"is_active":   product.IsActive,
+		"updated_at":  product.UpdatedAt,
+	}
+	res := r.db.WithContext(ctx).
+		Model(&entity.Product{}).
+		Where("id = ? AND deleted_at IS NULL", product.ID).
+		Updates(updates)
+	if res.Error != nil {
+		return res.Error
+	}
+	if res.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
+}
+
+func (r *productRepository) DeleteProduct(ctx context.Context, productID int) error {
+	res := r.db.WithContext(ctx).
+		Where("id = ?", productID).
+		Delete(&entity.Product{})
+	return res.Error
 }
