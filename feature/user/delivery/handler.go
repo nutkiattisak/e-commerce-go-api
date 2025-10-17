@@ -4,9 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
-	"time"
 
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 
@@ -16,101 +14,58 @@ import (
 	"ecommerce-go-api/feature/user/usecase"
 	"ecommerce-go-api/internal/errmap"
 	"ecommerce-go-api/internal/response"
+	"ecommerce-go-api/middleware"
 )
 
 type UserHandler struct {
 	usecase domain.UserUsecase
 }
 
-// AddressResponse is a flattened response shape for addresses returned to clients
-type UserResponse struct {
-	ID          uuid.UUID `json:"id"`
-	FirstName   string    `json:"firstName"`
-	LastName    string    `json:"lastName"`
-	Email       string    `json:"email"`
-	PhoneNumber string    `json:"phoneNumber"`
-	ImageURL    *string   `json:"imageUrl,omitempty"`
-	CreatedAt   time.Time `json:"createdAt"`
-	UpdatedAt   time.Time `json:"updatedAt"`
-}
-
-type AddressResponse struct {
-	ID                int       `json:"id"`
-	UserID            uuid.UUID `json:"userId"`
-	Name              string    `json:"name"`
-	Line1             string    `json:"line1"`
-	Line2             string    `json:"line2"`
-	SubDistrictID     int       `json:"subDistrictId"`
-	SubDistrictNameTh string    `json:"subDistrictNameTh"`
-	SubDistrictNameEn string    `json:"subDistrictNameEn"`
-	DistrictNameTh    string    `json:"districtNameTh"`
-	DistrictNameEn    string    `json:"districtNameEn"`
-	DistrictID        int       `json:"districtId"`
-	ProvinceID        int       `json:"provinceId"`
-	ProvinceNameTh    string    `json:"provinceNameTh"`
-	ProvinceNameEn    string    `json:"provinceNameEn"`
-	Zipcode           int       `json:"zipcode"`
-	PhoneNumber       string    `json:"phoneNumber"`
-	IsDefault         bool      `json:"isDefault"`
-	CreatedAt         time.Time `json:"createdAt"`
-	UpdatedAt         time.Time `json:"updatedAt"`
-}
-
-func mapAddressToResponse(a *entity.Address) *AddressResponse {
+func mapAddressToResponse(a *entity.Address) *entity.AddressResponse {
 	if a == nil {
 		return nil
 	}
+	subDistrictNameTh, subDistrictNameEn := "", ""
+	districtNameTh, districtNameEn := "", ""
+	provinceNameTh, provinceNameEn := "", ""
 
-	var sdNameTh, sdNameEn, dNameTh, dNameEn, pNameTh, pNameEn string
-	var districtID, provinceID int
-
-	if a.SubDistrict.ID != 0 {
-		sdNameTh = a.SubDistrict.NameTH
-		sdNameEn = a.SubDistrict.NameEN
-		if a.SubDistrict.District.ID != 0 {
-			dNameTh = a.SubDistrict.District.NameTH
-			dNameEn = a.SubDistrict.District.NameEN
-			districtID = a.SubDistrict.District.ID
-			if a.SubDistrict.District.Province.ID != 0 {
-				pNameTh = a.SubDistrict.District.Province.NameTH
-				pNameEn = a.SubDistrict.District.Province.NameEN
-				provinceID = a.SubDistrict.District.Province.ID
+	if a.SubDistrict != (entity.SubDistrict{}) {
+		subDistrictNameTh = a.SubDistrict.NameTH
+		subDistrictNameEn = a.SubDistrict.NameEN
+		if a.SubDistrict.District != nil {
+			districtNameTh = a.SubDistrict.District.NameTH
+			districtNameEn = a.SubDistrict.District.NameEN
+			if a.SubDistrict.District.Province != nil {
+				provinceNameTh = a.SubDistrict.District.Province.NameTH
+				provinceNameEn = a.SubDistrict.District.Province.NameEN
 			}
 		}
 	}
 
-	if districtID == 0 && a.District.ID != 0 {
-		dNameTh = a.District.NameTH
-		dNameEn = a.District.NameEN
-		districtID = a.District.ID
-		if a.District.Province.ID != 0 {
-			pNameTh = a.District.Province.NameTH
-			pNameEn = a.District.Province.NameEN
-			provinceID = a.District.Province.ID
-		}
+	if districtNameTh == "" && a.District != (entity.District{}) {
+		districtNameTh = a.District.NameTH
+		districtNameEn = a.District.NameEN
+	}
+	if provinceNameTh == "" && a.Province != (entity.Province{}) {
+		provinceNameTh = a.Province.NameTH
+		provinceNameEn = a.Province.NameEN
 	}
 
-	if provinceID == 0 && a.Province.ID != 0 {
-		pNameTh = a.Province.NameTH
-		pNameEn = a.Province.NameEN
-		provinceID = a.Province.ID
-	}
-
-	return &AddressResponse{
+	return &entity.AddressResponse{
 		ID:                a.ID,
 		UserID:            a.UserID,
 		Name:              a.Name,
 		Line1:             a.Line1,
 		Line2:             a.Line2,
 		SubDistrictID:     a.SubDistrictID,
-		SubDistrictNameTh: sdNameTh,
-		SubDistrictNameEn: sdNameEn,
-		DistrictNameTh:    dNameTh,
-		DistrictNameEn:    dNameEn,
-		DistrictID:        districtID,
-		ProvinceID:        provinceID,
-		ProvinceNameTh:    pNameTh,
-		ProvinceNameEn:    pNameEn,
+		SubDistrictNameTh: subDistrictNameTh,
+		SubDistrictNameEn: subDistrictNameEn,
+		DistrictNameTh:    districtNameTh,
+		DistrictNameEn:    districtNameEn,
+		DistrictID:        a.DistrictID,
+		ProvinceID:        a.ProvinceID,
+		ProvinceNameTh:    provinceNameTh,
+		ProvinceNameEn:    provinceNameEn,
 		Zipcode:           a.Zipcode,
 		PhoneNumber:       a.PhoneNumber,
 		IsDefault:         a.IsDefault,
@@ -133,10 +88,10 @@ func NewUserHandler(u domain.UserUsecase) *UserHandler {
 //	@Success		200	{object}	entity.User
 //	@Failure		400	{object}	object
 //	@Failure		401	{object}	object
-//	@Router			/api/users/me [get]
+//	@Router			/api/profile [get]
 func (h *UserHandler) GetProfile(c echo.Context) error {
-	userID, exist := c.Get("userId").(uuid.UUID)
-	if !exist {
+	userID, err := middleware.GetUserID(c)
+	if err != nil {
 		return response.Error(c, http.StatusUnauthorized, "unauthorized")
 	}
 
@@ -145,79 +100,61 @@ func (h *UserHandler) GetProfile(c echo.Context) error {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
 
-	return response.Success(c, http.StatusOK, "profile retrieved", user)
-}
-
-// GetUserByID returns public profile for given user id
-//
-//	@Summary		Get user by id
-//	@Description	Get public profile by user id
-//	@Tags			User
-//	@Security		ApiKeyAuth
-//	@Produce		json
-//	@Param			userId	path		string	true	"User ID"
-//	@Success		200		{object}	entity.User
-//	@Failure		400		{object}	object
-//	@Failure		404		{object}	object
-//	@Router			/api/users/{userId} [get]
-func (h *UserHandler) GetUserByID(c echo.Context) error {
-	userID := c.Param("userId")
-	id, err := uuid.Parse(userID)
-	if err != nil {
-		return response.Error(c, http.StatusBadRequest, "invalid user id")
+	if user == nil {
+		return response.Success(c, http.StatusOK, "profile retrieved", nil)
 	}
-
-	user, err := h.usecase.GetUserByID(c.Request().Context(), id)
-	if err != nil {
-		return response.Error(c, http.StatusInternalServerError, err.Error())
-	}
-
-	return response.Success(c, http.StatusOK, "user retrieved", user)
+	return response.Success(c, http.StatusOK, "profile retrieved", &entity.UserResponse{
+		ID:          user.ID,
+		FirstName:   user.FirstName,
+		LastName:    user.LastName,
+		Email:       user.Email,
+		PhoneNumber: user.PhoneNumber,
+		ImageURL:    user.ImageURL,
+		CreatedAt:   user.CreatedAt,
+		UpdatedAt:   user.UpdatedAt,
+	})
 }
 
 // UpdateProfile godoc
 //
-// @Summary     Update authenticated user's profile
-// @Tags        User
-// @Security    ApiKeyAuth
-// @Accept      json
-// @Produce     json
-// @Param       body  body    entity.User  true  "User payload"
-// @Success     200   {object}  entity.User
-// @Failure     400   {object}  object
-// @Failure     401   {object}  object
-// @Failure     404   {object}  object
-// @Router      /users/me [patch]
+//	@Summary	Update authenticated user's profile
+//	@Tags		User
+//	@Security	ApiKeyAuth
+//	@Accept		json
+//	@Produce	json
+//	@Param		body	body		entity.User	true	"User payload"
+//	@Success	200		{object}	entity.User
+//	@Failure	400		{object}	object
+//	@Failure	401		{object}	object
+//	@Failure	404		{object}	object
+//	@Router		/api/profile [patch]
 func (h *UserHandler) UpdateProfile(c echo.Context) error {
-	userID, ok := c.Get("userId").(uuid.UUID)
-	if !ok {
+	userID, err := middleware.GetUserID(c)
+	if err != nil {
 		return response.Error(c, http.StatusUnauthorized, "unauthorized")
 	}
-
-	var user entity.User
-	if err := c.Bind(&user); err != nil {
+	var req entity.UpdateProfileRequest
+	if err := c.Bind(&req); err != nil {
 		return response.Error(c, http.StatusBadRequest, err.Error())
 	}
 
-	user.ID = userID
-
-	_, err := h.usecase.UpdateProfile(c.Request().Context(), &user)
-	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return response.Error(c, http.StatusNotFound, "user not found")
-		}
-		return response.Error(c, http.StatusInternalServerError, err.Error())
+	user := &entity.User{
+		ID:          userID,
+		FirstName:   req.FirstName,
+		LastName:    req.LastName,
+		PhoneNumber: req.PhoneNumber,
+		ImageURL:    req.ImageURL,
 	}
 
-	return response.Success(c, http.StatusOK, "profile updated", nil)
-}
+	_, exit := h.usecase.UpdateProfile(c.Request().Context(), user)
+	if exit != nil {
+		if exit == gorm.ErrRecordNotFound {
+			return response.Error(c, http.StatusNotFound, "user not found")
+		}
+		return response.Error(c, http.StatusInternalServerError, exit.Error())
+	}
 
-func RegisterUserHandler(group *echo.Group, db *gorm.DB) {
-	userRepository := repository.NewUserRepository(db)
-	userUsecaseInstance := usecase.NewUserUsecase(userRepository)
-	userHandler := NewUserHandler(userUsecaseInstance)
-
-	userHandler.RegisterRoutes(group)
+	return response.NoContent(c)
 }
 
 // GetAddresses godoc
@@ -226,12 +163,12 @@ func RegisterUserHandler(group *echo.Group, db *gorm.DB) {
 //	@Tags		User
 //	@Security	ApiKeyAuth
 //	@Produce	json
-//	@Success	200	{array}		AddressResponse
+//	@Success	200	{array}		entity.AddressResponse
 //	@Failure	401	{object}	object
-//	@Router		/users/me/addresses [get]
+//	@Router		/api/profile/addresses [get]
 func (h *UserHandler) GetAddresses(c echo.Context) error {
-	userID, exist := c.Get("userId").(uuid.UUID)
-	if !exist {
+	userID, err := middleware.GetUserID(c)
+	if err != nil {
 		return response.Error(c, http.StatusUnauthorized, "unauthorized")
 	}
 
@@ -240,12 +177,54 @@ func (h *UserHandler) GetAddresses(c echo.Context) error {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
 
-	var out []*AddressResponse
+	var out []*entity.AddressResponse
 	for _, a := range addrs {
 		out = append(out, mapAddressToResponse(a))
 	}
 
 	return response.Success(c, http.StatusOK, "addresses retrieved", out)
+}
+
+// GetAddressByID godoc
+//
+//	@Summary	Get address by id for authenticated user
+//	@Tags		User
+//	@Security	ApiKeyAuth
+//	@Produce	json
+//	@Param		addressId	path		int	true	"Address ID"
+//	@Success	200			{object}	entity.AddressResponse
+//	@Failure	400			{object}	object
+//	@Failure	401			{object}	object
+//	@Failure	404			{object}	object
+//	@Router		/api/profile/addresses/{addressId} [get]
+func (h *UserHandler) GetAddressByID(c echo.Context) error {
+	userID, err := middleware.GetUserID(c)
+	if err != nil {
+		return response.Error(c, http.StatusUnauthorized, "unauthorized")
+	}
+
+	addressID, err := strconv.Atoi(c.Param("addressId"))
+	if err != nil {
+		return response.Error(c, http.StatusBadRequest, "invalid address id")
+	}
+
+	addr, err := h.usecase.GetAddressByID(c.Request().Context(), addressID)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return response.Error(c, http.StatusNotFound, "address not found")
+		}
+		return response.Error(c, http.StatusInternalServerError, err.Error())
+	}
+
+	if addr == nil {
+		return response.Error(c, http.StatusNotFound, "address not found")
+	}
+
+	if addr.UserID != userID {
+		return response.Error(c, http.StatusForbidden, "forbidden")
+	}
+
+	return response.Success(c, http.StatusOK, "address retrieved", mapAddressToResponse(addr))
 }
 
 // CreateAddress godoc
@@ -259,57 +238,41 @@ func (h *UserHandler) GetAddresses(c echo.Context) error {
 //	@Success	201		{object}	object
 //	@Failure	400		{object}	object
 //	@Failure	401		{object}	object
-//	@Router		/users/me/addresses [post]
+//	@Router		/api/profile/addresses [post]
 func (h *UserHandler) CreateAddress(c echo.Context) error {
-	userID, exist := c.Get("userId").(uuid.UUID)
-	if !exist {
+	userID, err := middleware.GetUserID(c)
+	if err != nil {
 		return response.Error(c, http.StatusUnauthorized, "unauthorized")
 	}
-
-	var addr entity.Address
-	if err := c.Bind(&addr); err != nil {
+	var req entity.CreateAddressRequest
+	if err := c.Bind(&req); err != nil {
 		return response.Error(c, http.StatusBadRequest, err.Error())
 	}
 
-	addr.UserID = userID
+	addr := &entity.Address{
+		UserID:        userID,
+		Name:          req.Name,
+		Line1:         req.Line1,
+		Line2:         req.Line2,
+		SubDistrictID: req.SubDistrictID,
+		DistrictID:    req.DistrictID,
+		ProvinceID:    req.ProvinceID,
+		Zipcode:       req.Zipcode,
+		PhoneNumber:   req.PhoneNumber,
+		IsDefault:     req.IsDefault,
+	}
 
-	_, err := h.usecase.CreateAddress(c.Request().Context(), &addr)
+	added, err := h.usecase.CreateAddress(c.Request().Context(), addr)
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
 
-	return response.Success(c, http.StatusCreated, "address created", nil)
-}
-
-// GetAddressByID godoc
-//
-//	@Summary	Get address by id for authenticated user
-//	@Tags		User
-//	@Security	ApiKeyAuth
-//	@Produce	json
-//	@Param		addressId	path		int	true	"Address ID"
-//	@Success	200			{object}	AddressResponse
-//	@Failure	400			{object}	object
-//	@Failure	401			{object}	object
-//	@Failure	404			{object}	object
-//	@Router		/users/me/addresses/{addressId} [get]
-func (h *UserHandler) GetAddressByID(c echo.Context) error {
-	_, exist := c.Get("userId").(uuid.UUID)
-	if !exist {
-		return response.Error(c, http.StatusUnauthorized, "unauthorized")
-	}
-
-	addressID, err := strconv.Atoi(c.Param("addressId"))
+	full, err := h.usecase.GetAddressByID(c.Request().Context(), added.ID)
 	if err != nil {
-		return response.Error(c, http.StatusBadRequest, "invalid address id")
+		return response.Success(c, http.StatusCreated, "address created", mapAddressToResponse(added))
 	}
 
-	addr, err := h.usecase.GetAddressByID(c.Request().Context(), addressID)
-	if err != nil {
-		return response.Error(c, http.StatusInternalServerError, err.Error())
-	}
-
-	return response.Success(c, http.StatusOK, "address retrieved", mapAddressToResponse(addr))
+	return response.Success(c, http.StatusCreated, "address created", mapAddressToResponse(full))
 }
 
 // UpdateAddress godoc
@@ -322,13 +285,13 @@ func (h *UserHandler) GetAddressByID(c echo.Context) error {
 //	@Param		addressId	path		int				true	"Address ID"
 //	@Param		body		body		entity.Address	true	"Address payload"
 //	@Success	200			{object}	entity.Address
-//	@Failure	400			{object}	object
-//	@Failure	401			{object}	object
-//	@Failure	404			{object}	object
-//	@Router		/users/me/addresses/{addressId} [patch]
+//	@Failure	400			{object}	"Bad Request"
+//	@Failure	401			{object}	"Unauthorized"
+//	@Failure	404			{object}	"Not Found"
+//	@Router		/api/profile/addresses/{addressId} [patch]
 func (h *UserHandler) UpdateAddress(c echo.Context) error {
-	userID, exist := c.Get("userId").(uuid.UUID)
-	if !exist {
+	userID, err := middleware.GetUserID(c)
+	if err != nil {
 		return response.Error(c, http.StatusUnauthorized, "unauthorized")
 	}
 
@@ -337,20 +300,43 @@ func (h *UserHandler) UpdateAddress(c echo.Context) error {
 		return response.Error(c, http.StatusBadRequest, "invalid address id")
 	}
 
-	var addr entity.Address
-	if err := c.Bind(&addr); err != nil {
+	var req entity.UpdateAddressRequest
+	if err := c.Bind(&req); err != nil {
 		return response.Error(c, http.StatusBadRequest, err.Error())
 	}
 
-	addr.ID = addressID
+	if err := c.Validate(&req); err != nil {
+		return response.Error(c, http.StatusBadRequest, err.Error())
+	}
 
-	_, err = h.usecase.UpdateAddress(c.Request().Context(), &addr, userID)
+	addr, err := h.usecase.GetAddressByID(c.Request().Context(), addressID)
+	if err != nil {
+		return response.Error(c, http.StatusInternalServerError, err.Error())
+	}
+	if addr == nil {
+		return response.Error(c, http.StatusNotFound, "address not found")
+	}
+	if addr.UserID != userID {
+		return response.Error(c, http.StatusForbidden, "forbidden")
+	}
+
+	addr.Name = req.Name
+	addr.Line1 = req.Line1
+	addr.Line2 = req.Line2
+	addr.SubDistrictID = req.SubDistrictID
+	addr.DistrictID = req.DistrictID
+	addr.ProvinceID = req.ProvinceID
+	addr.Zipcode = req.Zipcode
+	addr.PhoneNumber = req.PhoneNumber
+	addr.IsDefault = req.IsDefault
+
+	_, err = h.usecase.UpdateAddress(c.Request().Context(), addr, userID)
 
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
 
-	return response.Success(c, http.StatusOK, "address updated", nil)
+	return response.NoContent(c)
 }
 
 // DeleteAddress godoc
@@ -361,13 +347,13 @@ func (h *UserHandler) UpdateAddress(c echo.Context) error {
 //	@Produce	json
 //	@Param		addressId	path		int	true	"Address ID"
 //	@Success	204			{object}	object
-//	@Failure	400			{object}	object
-//	@Failure	401			{object}	object
-//	@Failure	404			{object}	object
-//	@Router		/users/me/addresses/{addressId} [delete]
+//	@Failure		400			{object}	"Bad Request"
+//	@Failure		404			{object}	"Not Found"
+//	@Failure		500			{object}	"Internal Server Error"
+//	@Router		/api/profile/addresses/{addressId} [delete]
 func (h *UserHandler) DeleteAddress(c echo.Context) error {
-	userID, exist := c.Get("userId").(uuid.UUID)
-	if !exist {
+	userID, err := middleware.GetUserID(c)
+	if err != nil {
 		return response.Error(c, http.StatusUnauthorized, "unauthorized")
 	}
 
@@ -386,5 +372,13 @@ func (h *UserHandler) DeleteAddress(c echo.Context) error {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
 
-	return response.Success(c, http.StatusNoContent, "address deleted", nil)
+	return response.NoContent(c)
+}
+
+func RegisterUserHandler(group *echo.Group, db *gorm.DB) {
+	userRepository := repository.NewUserRepository(db)
+	userUsecaseInstance := usecase.NewUserUsecase(userRepository)
+	userHandler := NewUserHandler(userUsecaseInstance)
+
+	userHandler.RegisterRoutes(group)
 }

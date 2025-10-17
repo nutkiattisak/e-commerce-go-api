@@ -2,11 +2,14 @@ package usecase
 
 import (
 	"context"
+	"errors"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 
 	"ecommerce-go-api/domain"
 	"ecommerce-go-api/entity"
+	"ecommerce-go-api/internal/errmap"
 )
 
 type userUsecase struct {
@@ -58,5 +61,23 @@ func (u *userUsecase) UpdateProfile(ctx context.Context, user *entity.User) (*en
 }
 
 func (u *userUsecase) DeleteAddress(ctx context.Context, id int, userID uuid.UUID) error {
+	addr, err := u.repo.GetAddressByID(ctx, id)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return gorm.ErrRecordNotFound
+		}
+		return err
+	}
+	if addr == nil {
+		return gorm.ErrRecordNotFound
+	}
+	if addr.UserID != userID {
+		return errmap.ErrForbidden
+	}
+
+	if addr.IsDefault {
+		return errmap.ErrForbidden
+	}
+
 	return u.repo.DeleteAddress(ctx, id, userID)
 }

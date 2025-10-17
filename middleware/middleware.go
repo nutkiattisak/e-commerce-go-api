@@ -16,7 +16,6 @@ const (
 	CTX_KEY_ROLE    = "role"
 )
 
-// JWTAuth validates JWT token and sets user context
 func JWTAuth() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
@@ -82,7 +81,25 @@ func RoleAuth(allowedRoles ...string) echo.MiddlewareFunc {
 	}
 }
 
-// Convenience middleware for specific roles
+func GetUserID(c echo.Context) (uuid.UUID, error) {
+	v := c.Get("userId")
+	if v == nil {
+		return uuid.Nil, echo.NewHTTPError(http.StatusUnauthorized, "unauthorized")
+	}
+	switch t := v.(type) {
+	case uuid.UUID:
+		return t, nil
+	case string:
+		id, err := uuid.Parse(t)
+		if err != nil {
+			return uuid.Nil, echo.NewHTTPError(http.StatusBadRequest, "invalid user id")
+		}
+		return id, nil
+	default:
+		return uuid.Nil, echo.NewHTTPError(http.StatusBadRequest, "invalid user id type")
+	}
+}
+
 func AdminOnly() echo.MiddlewareFunc {
 	return RoleAuth("ADMIN")
 }

@@ -2,7 +2,7 @@ package main
 
 import (
 	"ecommerce-go-api/config"
-	"ecommerce-go-api/entity"
+	resp "ecommerce-go-api/internal/response"
 	"ecommerce-go-api/utils"
 	"net/http"
 	"time"
@@ -16,6 +16,7 @@ import (
 	authDelivery "ecommerce-go-api/feature/auth/delivery"
 	locationDelivery "ecommerce-go-api/feature/location/delivery"
 	productDelivery "ecommerce-go-api/feature/product/delivery"
+	shopDelivery "ecommerce-go-api/feature/shop/delivery"
 	userDelivery "ecommerce-go-api/feature/user/delivery"
 
 	echoSwagger "github.com/swaggo/echo-swagger"
@@ -29,7 +30,6 @@ func init() {
 func main() {
 	e := echo.New()
 
-	// attach validator
 	e.Validator = intvalidator.New()
 
 	e.Use(middleware.Logger())
@@ -37,8 +37,7 @@ func main() {
 	e.Use(middleware.CORS())
 
 	e.GET("/", func(c echo.Context) error {
-		return c.JSON(http.StatusOK, map[string]string{
-			"message": "Welcome to E-commerce API",
+		return resp.Success(c, http.StatusOK, "Welcome to E-commerce API", map[string]string{
 			"status":  "running",
 			"version": "v1.0.0",
 		})
@@ -49,11 +48,10 @@ func main() {
 		duration := time.Since(started)
 
 		if duration.Seconds() > 10 {
-			return c.JSON(http.StatusInternalServerError, entity.ResponseError{})
+			return resp.Error(c, http.StatusInternalServerError, "service unhealthy")
 		}
 
-		return c.JSON(http.StatusOK, map[string]interface{}{
-			"status":   "healthy",
+		return resp.Success(c, http.StatusOK, "healthy", map[string]interface{}{
 			"duration": duration.String(),
 			"database": "connected",
 		})
@@ -68,6 +66,7 @@ func main() {
 		userDelivery.RegisterUserHandler(api, db)
 		locationDelivery.RegisterLocationHandler(api, db)
 		productDelivery.RegisterProductHandler(api, db)
+		shopDelivery.RegisterShopHandler(api, db)
 	}
 
 	utils.ServeGracefulShutdown(e)

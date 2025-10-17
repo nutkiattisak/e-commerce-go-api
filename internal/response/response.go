@@ -1,6 +1,10 @@
 package response
 
-import "github.com/labstack/echo/v4"
+import (
+	"net/http"
+
+	"github.com/labstack/echo/v4"
+)
 
 type ResponseSuccess struct {
 	Message string      `json:"message"`
@@ -24,6 +28,21 @@ func Success(c echo.Context, statusCode int, message string, data interface{}) e
 		Status:  "success",
 		Data:    data,
 	})
+}
+
+func SuccessWithPagination(c echo.Context, statusCode int, message string, data interface{}, total int) error {
+	return c.JSON(statusCode, ResponseSuccess{
+		Message: message,
+		Status:  "success",
+		Data: ResponsePagination{
+			Data:  data,
+			Total: total,
+		},
+	})
+}
+
+func NoContent(c echo.Context) error {
+	return c.NoContent(http.StatusNoContent)
 }
 
 func Error(c echo.Context, statusCode int, message string) error {
