@@ -44,6 +44,9 @@ func RegisterProductHandler(group *echo.Group, db *gorm.DB) {
 //	@Param			page		query		int		false	"page"
 //	@Param			perPage		query		int		false	"perPage"
 //	@Success		200			{object}	entity.ProductListResponse
+//	@Failure		400			{object}	"Bad Request"
+//	@Failure		404			{object}	"Not Found"
+//	@Failure		500			{object}	"Internal Server Error"
 //	@Router			/api/products [get]
 func (h *ProductHandler) ListProducts(c echo.Context) error {
 	var q entity.ProductListRequest
@@ -85,6 +88,9 @@ func (h *ProductHandler) ListProducts(c echo.Context) error {
 //	@Produce		json
 //	@Param			productId	path		string	true	"Product ID"
 //	@Success		200			{object}	entity.ProductResponse
+//	@Failure		400			{object}	"Bad Request"
+//	@Failure		404			{object}	"Not Found"
+//	@Failure		500			{object}	"Internal Server Error"
 //	@Router			/api/products/{productId} [get]
 func (h *ProductHandler) GetProduct(c echo.Context) error {
 	productId, err := strconv.Atoi(c.Param("productId"))
