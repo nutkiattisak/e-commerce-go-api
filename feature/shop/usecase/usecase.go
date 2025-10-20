@@ -84,7 +84,3 @@ func (u *shopUsecase) ActivateShop(ctx context.Context, shopID uuid.UUID) error 
 func (u *shopUsecase) DeactivateShop(ctx context.Context, shopID uuid.UUID) error {
 	return u.shopRepo.UpdateStatus(ctx, shopID, false)
 }
-
-func (u *shopUsecase) ListProductsByShop(ctx context.Context, shopID uuid.UUID) ([]*entity.Product, error) {
-	return nil, nil
-}

@@ -14,3 +14,60 @@ type Cart struct {
 
 	User User `gorm:"foreignKey:UserID;references:ID" json:"user,omitempty"`
 }
+
+type ProductSummary struct {
+	ID       int     `json:"id"`
+	Name     string  `json:"name,omitempty"`
+	ImageURL *string `json:"imageUrl,omitempty"`
+	Price    float64 `json:"price"`
+	StockQty int     `json:"stockQty"`
+}
+
+type CartSummary struct {
+	TotalItems int     `json:"totalItems"`
+	TotalQty   int     `json:"totalQty"`
+	Subtotal   float64 `json:"subtotal"`
+}
+
+type CartResponse struct {
+	ID        int                `json:"id"`
+	UserID    string             `json:"userId"`
+	CreatedAt time.Time          `json:"createdAt"`
+	UpdatedAt time.Time          `json:"updatedAt"`
+	Summary   CartSummary        `json:"summary"`
+	Items     []CartItemResponse `json:"items,omitempty"`
+}
+
+type CartItemResponse struct {
+	ID        int            `json:"id"`
+	Product   ProductSummary `json:"product"`
+	Qty       int            `json:"qty"`
+	UnitPrice float64        `json:"unitPrice"`
+	Subtotal  float64        `json:"subtotal"`
+}
+
+type CourierOption struct {
+	CourierID int     `json:"courierId"`
+	Name      string  `json:"name,omitempty"`
+	Price     float64 `json:"price"`
+}
+
+type CartShopEstimate struct {
+	ShopID   string          `json:"shopId"`
+	Items    []CartItemShort `json:"items"`
+	Subtotal float64         `json:"subtotal"`
+	Courier  CourierOption   `json:"courier"`
+}
+
+type CartShippingEstimateResponse struct {
+	Shop       []CartShopEstimate `json:"shop"`
+	GrandTotal float64            `json:"grandTotal"`
+}
+
+type CartItemShort struct {
+	CartItemID int     `json:"cartItemId"`
+	ProductID  int     `json:"productId"`
+	Qty        int     `json:"qty"`
+	UnitPrice  float64 `json:"unitPrice"`
+	Subtotal   float64 `json:"subtotal"`
+}
