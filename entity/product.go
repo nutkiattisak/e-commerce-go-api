@@ -23,24 +23,24 @@ type Product struct {
 	Shop Shop `gorm:"foreignKey:ShopID;references:ID" json:"shop,omitempty"`
 }
 
-type ShopResponse struct {
+type ProductShopResponse struct {
 	ID       uuid.UUID `json:"id"`
 	Name     string    `json:"name"`
 	ImageURL string    `json:"imageUrl,omitempty"`
 }
 
 type ProductResponse struct {
-	ID          int           `json:"id"`
-	Name        string        `json:"name"`
-	Description string        `json:"description"`
-	ImageURL    *string       `json:"imageUrl,omitempty"`
-	Price       float64       `json:"price"`
-	StockQty    int           `json:"stockQty"`
-	IsActive    bool          `json:"isActive"`
-	ShopID      uuid.UUID     `json:"shopId"`
-	CreatedAt   *time.Time    `json:"createdAt,omitempty"`
-	UpdatedAt   *time.Time    `json:"updatedAt,omitempty"`
-	Shop        *ShopResponse `json:"shop,omitempty"`
+	ID          int                  `json:"id"`
+	Name        string               `json:"name"`
+	Description string               `json:"description"`
+	ImageURL    *string              `json:"imageUrl,omitempty"`
+	Price       float64              `json:"price"`
+	StockQty    int                  `json:"stockQty"`
+	IsActive    bool                 `json:"isActive"`
+	ShopID      uuid.UUID            `json:"shopId"`
+	CreatedAt   *time.Time           `json:"createdAt,omitempty"`
+	UpdatedAt   *time.Time           `json:"updatedAt,omitempty"`
+	Shop        *ProductShopResponse `json:"shop,omitempty"`
 }
 
 type ProductListRequest struct {

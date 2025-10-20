@@ -77,3 +77,19 @@ func (r *shopRepository) ListShops(ctx context.Context, req *entity.ShopListRequ
 func (r *shopRepository) UpdateStatus(ctx context.Context, id uuid.UUID, isActive bool) error {
 	return r.db.WithContext(ctx).Model(&entity.Shop{}).Where("id = ?", id).Update("is_active", isActive).Error
 }
+
+func (r *shopRepository) ListShopCouriersByShopIDs(ctx context.Context, shopIDs []uuid.UUID) ([]*entity.ShopCourier, error) {
+	var scs []*entity.ShopCourier
+	if len(shopIDs) == 0 {
+		return scs, nil
+	}
+
+	if err := r.db.WithContext(ctx).
+		Preload("Courier").
+		Where("shop_id IN ? AND deleted_at IS NULL", shopIDs).
+		Find(&scs).Error; err != nil {
+		return nil, err
+	}
+
+	return scs, nil
+}

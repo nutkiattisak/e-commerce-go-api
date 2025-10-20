@@ -34,7 +34,7 @@ func (u *productUsecase) CreateProduct(ctx context.Context, userID uuid.UUID, re
 		return nil, fmt.Errorf("invalid input: %w", err)
 	}
 
-	shop, err := u.shopRepo.GetShopByID(ctx, userID)
+	shop, err := u.shopRepo.GetShopByUserID(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("shop not found for user: %w", err)
 	}
@@ -107,4 +107,24 @@ func (u *productUsecase) DeleteProduct(ctx context.Context, userID uuid.UUID, pr
 		return fmt.Errorf("failed to delete product: %w", err)
 	}
 	return nil
+}
+
+func (u *productUsecase) ListProductsByShop(ctx context.Context, shopID uuid.UUID) ([]*entity.Product, error) {
+	items, _, err := u.repo.ListByShopID(ctx, shopID, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list products by shop: %w", err)
+	}
+	return items, nil
+}
+
+func (u *productUsecase) GetProductsByUserID(ctx context.Context, userID uuid.UUID) ([]*entity.Product, int64, error) {
+	shop, err := u.shopRepo.GetShopByUserID(ctx, userID)
+	if err != nil {
+		return nil, 0, fmt.Errorf("shop not found for user: %w", err)
+	}
+	items, total, err := u.repo.ListByShopID(ctx, shop.ID, nil)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to list products for shop: %w", err)
+	}
+	return items, total, nil
 }
