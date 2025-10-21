@@ -85,9 +85,20 @@ func (h *CartHandler) AddItem(c echo.Context) error {
 		StockQty: item.Product.StockQty,
 	}
 
+	var shopResponse *entity.CartShopResponse
+	if item.Product.Shop.ID != (entity.Shop{}).ID {
+		shopResponse = &entity.CartShopResponse{
+			ID:          item.Product.Shop.ID,
+			Name:        item.Product.Shop.Name,
+			Description: item.Product.Shop.Description,
+			ImageURL:    item.Product.Shop.ImageURL,
+		}
+	}
+
 	cartItemResponse := entity.CartItemResponse{
 		ID:        item.ID,
 		Product:   productSummary,
+		Shop:      shopResponse,
 		Qty:       item.Qty,
 		UnitPrice: item.Product.Price,
 		Subtotal:  float64(item.Qty) * item.Product.Price,
@@ -130,25 +141,35 @@ func (h *CartHandler) GetCart(c echo.Context) error {
 			StockQty: it.Product.StockQty,
 		}
 
+		var shopResponse *entity.CartShopResponse
+		if it.Product.Shop.ID != (entity.Shop{}).ID {
+			shopResponse = &entity.CartShopResponse{
+				ID:          it.Product.Shop.ID,
+				Name:        it.Product.Shop.Name,
+				Description: it.Product.Shop.Description,
+				ImageURL:    it.Product.Shop.ImageURL,
+			}
+		}
+
 		itemResponses = append(itemResponses, entity.CartItemResponse{
 			ID:        it.ID,
 			Product:   pr,
+			Shop:      shopResponse,
 			Qty:       it.Qty,
 			UnitPrice: unitPrice,
 			Subtotal:  lineSubtotal,
 		})
 	}
 
-	cartResp := entity.CartResponse{
+	cartResponse := entity.CartResponse{
 		ID:        cart.ID,
-		UserID:    cart.UserID.String(),
 		CreatedAt: cart.CreatedAt,
 		UpdatedAt: cart.UpdatedAt,
 		Summary:   *summary,
 		Items:     itemResponses,
 	}
 
-	return response.Success(c, http.StatusOK, "ok", cartResp)
+	return response.Success(c, http.StatusOK, "ok", cartResponse)
 }
 
 // UpdateItem godoc
@@ -180,7 +201,7 @@ func (h *CartHandler) UpdateItem(c echo.Context) error {
 	if err := c.Bind(&body); err != nil {
 		return response.Error(c, http.StatusBadRequest, errmap.ErrInvalidRequest.Error())
 	}
-	it, err := h.cartUsecase.UpdateItem(c.Request().Context(), userID, itemID, body.Qty)
+	_, err = h.cartUsecase.UpdateItem(c.Request().Context(), userID, itemID, body.Qty)
 	if err != nil {
 		if errors.Is(err, errmap.ErrQuantityMustBeGreaterThanZero) {
 			return response.Error(c, http.StatusBadRequest, errmap.ErrQuantityMustBeGreaterThanZero.Error())
@@ -197,23 +218,7 @@ func (h *CartHandler) UpdateItem(c echo.Context) error {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
 
-	productSummary := entity.ProductSummary{
-		ID:       it.Product.ID,
-		Name:     it.Product.Name,
-		ImageURL: it.Product.ImageURL,
-		Price:    it.Product.Price,
-		StockQty: it.Product.StockQty,
-	}
-
-	cartItemResponse := entity.CartItemResponse{
-		ID:        it.ID,
-		Product:   productSummary,
-		Qty:       it.Qty,
-		UnitPrice: it.Product.Price,
-		Subtotal:  float64(it.Qty) * it.Product.Price,
-	}
-
-	return response.Success(c, http.StatusOK, "updated", cartItemResponse)
+	return response.NoContent(c)
 }
 
 // DeleteItem godoc

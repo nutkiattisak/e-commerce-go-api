@@ -49,6 +49,7 @@ func (r *cartRepository) ListCartItems(ctx context.Context, cartID int) ([]*enti
 	var items []*entity.CartItem
 	if err := r.db.WithContext(ctx).
 		Preload("Product").
+		Preload("Product.Shop").
 		Where("cart_id = ? AND deleted_at IS NULL", cartID).
 		Find(&items).Error; err != nil {
 		return nil, err
@@ -78,7 +79,7 @@ func (r *cartRepository) UpsertCartItem(ctx context.Context, item *entity.CartIt
 	created := item.ID != 0
 
 	var out entity.CartItem
-	if err := r.db.WithContext(ctx).Preload("Product").Where("cart_id = ? AND product_id = ? AND deleted_at IS NULL", item.CartID, item.ProductID).First(&out).Error; err != nil {
+	if err := r.db.WithContext(ctx).Preload("Product").Preload("Product.Shop").Where("cart_id = ? AND product_id = ? AND deleted_at IS NULL", item.CartID, item.ProductID).First(&out).Error; err != nil {
 		return nil, false, err
 	}
 
@@ -89,6 +90,7 @@ func (r *cartRepository) GetCartItemByID(ctx context.Context, id int) (*entity.C
 	var it entity.CartItem
 	if err := r.db.WithContext(ctx).
 		Preload("Product").
+		Preload("Product.Shop").
 		Preload("Cart").
 		First(&it, "id = ? AND deleted_at IS NULL", id).Error; err != nil {
 		return nil, err
@@ -127,6 +129,7 @@ func (r *cartRepository) GetCartItemsByIDs(ctx context.Context, id []int) ([]*en
 
 	if err := r.db.WithContext(ctx).
 		Preload("Product").
+		Preload("Product.Shop").
 		Where("id IN ? AND deleted_at IS NULL", id).
 		Find(&cartItems).Error; err != nil {
 		return nil, err
