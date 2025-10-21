@@ -1,93 +1,481 @@
-# E-Commerce Go API
+# E-commerce Platform API
 
+A multi-vendor e-commerce platform built with Go, following Clean Architecture and Domain-Driven Design (DDD) principles.
 
+## 📋 Table of Contents
 
-## Getting started
+- [Features](#features)
+- [System Requirements](#system-requirements)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [API Documentation](#api-documentation)
+- [Database Schema](#database-schema)
+- [Development](#development)
+- [Testing](#testing)
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+## ✨ Features
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+### For Customers
 
-## Add your files
+- Browse products from all shops
+- Search and filter products
+- Create orders and purchase products
+- Track order status and shipping information
+- View order history
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+### For Shop Owners
+
+- Create and manage shop
+- Add, edit, and delete products
+- Manage inventory
+- Process orders (change status, cancel)
+- Add shipping/courier information
+- View shop-specific orders
+
+## 🔧 System Requirements
+
+- Go 1.21 or higher
+- PostgreSQL 14+
+- Docker & Docker Compose (optional)
+
+## 🛠 Tech Stack
+
+- **Framework:** Echo
+
+- [Echo Web Framework](https://github.com/labstack/echo)
+- [Echo Web Framework](https://github.com/labstack/echo)
+- [Echo Web Framework](https://github.com/labstack/echo)
+  ecommerce/
+  ├── domain/ # Domain entities and business logic
+  │ ├── user.go
+  │ ├── shop.go
+  │ ├── product.go
+  │ ├── order.go
+  │ ├── order_item.go
+  │ ├── shipping.go
+  │ └── errors.go
+  │
+  ├── feature/ # Features organized by domain
+  │ ├── auth/
+  │ │ ├── delivery/ # HTTP handlers
+  │ │ ├── usecase/ # Business logic
+  │ │ └── repository/ # Data access
+  │ ├── shop/
+  │ │ ├── delivery/ # HTTP handlers
+  │ │ ├── usecase/ # Business logic
+  │ │ └── repository/ # Data access
+  │ ├── product/
+  │ │ ├── delivery/ # HTTP handlers
+  │ │ ├── usecase/ # Business logic
+  │ │ └── repository/ # Data access
+  │ ├── order/
+  │ │ ├── delivery/ # HTTP handlers
+  │ │ ├── usecase/ # Business logic
+  │ │ └── repository/ # Data access
+  │ ├── shop/
+  │ ├── product/
+  │ ├── order/
+  │ └── shipping/
+  ├── middleware/ # HTTP middlewares
+  │ ├── auth.go
+  │ ├── role.go
+  │ └── shop_owner.go
+  │
+  ├── internal/ # Shared packages
+  │ ├── response/
+  │ ├── validation/
+  │ └── pagination/
+  │
+  ├── config/ # Configuration
+  │ └── config.go
+  │
+  ├── migrations/ # Database migrations
+  ├── docs/ # API documentation
+  └── main.go
+
+````
+
+## 🚀 Installation
+
+### Using Docker Compose (Recommended)
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/ecommerce-platform.git
+cd ecommerce-platform
+
+# Start services
+docker-compose up -d
+
+# Run migrations
+docker-compose exec api go run migrations/migrate.go up
+````
+
+### Manual Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/ecommerce-platform.git
+cd ecommerce-platform
+
+# Install dependencies
+go mod download
+
+# Copy environment file
+cp .env.example .env
+
+# Edit .env with your configuration
+nano .env
+
+# Run migrations
+go run migrations/migrate.go up
+
+# Start the server
+go run main.go
+```
+
+## ⚙️ Configuration
+
+Create a `.env` file in the root directory:
+
+```env
+# Server
+PORT=8080
+ECHO_MODE=release
+
+# Database
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=yourpassword
+DB_NAME=ecommerce
+DB_SSL_MODE=disable
+
+# JWT
+JWT_SECRET=your-secret-key
+JWT_EXPIRE_HOURS=24
+
+# CORS
+ALLOWED_ORIGINS=http://localhost:3000
+
+# File Upload
+MAX_UPLOAD_SIZE=10485760  # 10MB
+UPLOAD_PATH=./uploads
+```
+
+## 📚 API Documentation
+
+### Base URL
 
 ```
-cd existing_repo
-git remote add origin https://gitlab.dev.pdkm.tech/kiattisak.c/e-commerce-go-api.git
-git branch -M main
-git push -uf origin main
+http://localhost:8080/api/v1
 ```
 
-## Integrate with your tools
+### Authentication
 
-- [ ] [Set up project integrations](https://gitlab.dev.pdkm.tech/kiattisak.c/e-commerce-go-api/-/settings/integrations)
+All authenticated endpoints require a Bearer token in the Authorization header:
 
-## Collaborate with your team
+```
+Authorization: Bearer <your-jwt-token>
+```
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+### API Endpoints
 
-## Test and Deploy
+#### Authentication
 
-Use the built-in continuous integration in GitLab.
+```
+POST   /auth/register          Register new user (shop/customer)
+POST   /auth/login             Login
+POST   /auth/logout            Logout
+GET    /auth/me                Get current user info
+```
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+#### Shops
 
-***
+```
+GET    /shops                  Get all shops
+GET    /shops/:shopId          Get shop details
+GET    /shops/me               Get my shop (shop owner)
+POST   /shops/me               Create shop (shop owner)
+PUT    /shops/me               Update my shop (shop owner)
+DELETE /shops/me               Delete my shop (shop owner)
+```
 
-# Editing this README
+#### Products
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+```
+GET    /products               Get all products
+GET    /products/search        Search products
+GET    /products/:productId    Get product details
+GET    /shops/:shopId/products Get products by shop
 
-## Suggestions for a good README
+GET    /products/me            Get my products (shop owner)
+POST   /products/me            Create product (shop owner)
+PUT    /products/me/:productId Update product (shop owner)
+DELETE /products/me/:productId Delete product (shop owner)
+POST   /products/me/:productId/images  Upload images (shop owner)
+```
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+#### Orders
 
-## Name
-Choose a self-explaining name for your project.
+```
+POST   /orders                 Create order (customer)
+GET    /orders/me              Get my orders (customer)
+GET    /orders/:orderId        Get order details
+PUT    /orders/:orderId/cancel Cancel order (customer)
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+GET    /orders/shop            Get shop orders (shop owner)
+PUT    /orders/:orderId/status Update order status (shop owner)
+PUT    /orders/:orderId/cancel Cancel order (shop owner)
+POST   /orders/:orderId/shipping Add shipping info (shop owner)
+```
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+#### Shipping
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+```
+GET    /couriers               Get all couriers
+GET    /orders/:orderId/tracking Track order
+```
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+### Request Examples
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+#### Register as Customer
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+```bash
+curl -X POST http://localhost:8080/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "customer@example.com",
+    "password": "password123",
+    "name": "John Doe",
+    "role": "customer"
+  }'
+```
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+#### Register as Shop
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+```bash
+curl -X POST http://localhost:8080/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "shop@example.com",
+    "password": "password123",
+    "name": "Shop Owner",
+    "role": "shop"
+  }'
+```
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+#### Create Product
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+```bash
+curl -X POST http://localhost:8080/api/v1/products/me \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Product Name",
+    "description": "Product Description",
+    "price": 999.99,
+    "stock": 100,
+    "category": "Electronics"
+  }'
+```
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+#### Create Order
 
-## License
-For open source projects, say how it is licensed.
+```bash
+curl -X POST http://localhost:8080/api/v1/orders \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "items": [
+      {
+        "product_id": "uuid",
+        "quantity": 2
+      }
+    ],
+    "shipping_address": {
+      "address": "123 Main St",
+      "city": "Bangkok",
+      "postal_code": "10110"
+    }
+  }'
+```
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+## 🗄 Database Schema
+
+### Users Table
+
+```sql
+CREATE TABLE users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    role VARCHAR(50) NOT NULL CHECK (role IN ('customer', 'shop')),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### Shops Table
+
+```sql
+CREATE TABLE shops (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    owner_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    logo VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(owner_id)
+);
+```
+
+### Products Table
+
+```sql
+CREATE TABLE products (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    shop_id UUID NOT NULL REFERENCES shops(id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    price DECIMAL(10, 2) NOT NULL,
+    stock INTEGER NOT NULL DEFAULT 0,
+    status VARCHAR(50) DEFAULT 'active' CHECK (status IN ('active', 'inactive')),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### Orders Table
+
+```sql
+CREATE TABLE orders (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    customer_id UUID NOT NULL REFERENCES users(id),
+    total_amount DECIMAL(10, 2) NOT NULL,
+    status VARCHAR(50) DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'shipped', 'delivered', 'cancelled')),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### Order Items Table
+
+```sql
+CREATE TABLE order_items (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+    product_id UUID NOT NULL REFERENCES products(id),
+    shop_id UUID NOT NULL REFERENCES shops(id),
+    quantity INTEGER NOT NULL,
+    price DECIMAL(10, 2) NOT NULL,
+    subtotal DECIMAL(10, 2) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### Shipping Table
+
+```sql
+CREATE TABLE shipping (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+    courier_name VARCHAR(255) NOT NULL,
+    tracking_number VARCHAR(255),
+    shipped_at TIMESTAMP,
+    delivered_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+## 👨‍💻 Development
+
+### Running in Development Mode
+
+```bash
+# Install air for hot reload
+go install github.com/cosmtrek/air@latest
+
+# Run with hot reload
+air
+```
+
+### Code Style
+
+This project follows Go standard coding conventions:
+
+- Run `gofmt` before committing
+- Follow Go Code Review Comments
+- Use meaningful variable names
+
+```bash
+# Format code
+go fmt ./...
+
+# Run linter
+golangci-lint run
+```
+
+## 🧪 Testing
+
+### Run All Tests
+
+```bash
+go test ./...
+```
+
+### Run Tests with Coverage
+
+```bash
+go test -cover ./...
+```
+
+### Run Specific Feature Tests
+
+```bash
+go test ./feature/product/...
+```
+
+### Generate Coverage Report
+
+```bash
+go test -coverprofile=coverage.out ./...
+go tool cover -html=coverage.out
+```
+
+## 🔐 Security Considerations
+
+- Passwords are hashed using bcrypt
+- JWT tokens for authentication
+- Input validation on all endpoints
+- SQL injection prevention using parameterized queries
+- CORS configuration
+- Rate limiting (recommended for production)
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 👥 Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📧 Contact
+
+Your Name - your.email@example.com
+
+Project Link: [https://github.com/yourusername/ecommerce-platform](https://github.com/yourusername/ecommerce-platform)
+
+## 🙏 Acknowledgments
+
+- [Gin Web Framework](https://github.com/gin-gonic/gin)
+- [Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
+- [Domain-Driven Design](https://martinfowler.com/bliki/DomainDrivenDesign.html)

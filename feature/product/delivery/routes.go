@@ -13,7 +13,7 @@ func RegisterRoutes(group *echo.Group, h *ProductHandler) {
 	shopGroup := group.Group("/shop")
 	shopGroup.Use(middleware.JWTAuth())
 	shopGroup.GET("/products", h.ListShopProducts)
-	shopGroup.POST("/products", h.CreateProduct)
+	shopGroup.POST("/products", h.CreateShopProduct)
 	shopGroup.GET("/products/:productId", h.GetShopProduct)
 	shopGroup.PUT("/products/:productId", h.UpdateShopProduct)
 	shopGroup.DELETE("/products/:productId", h.DeleteShopProduct)

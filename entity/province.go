@@ -13,7 +13,6 @@ type Province struct {
 	DeletedAt *time.Time `gorm:"default:null" json:"deletedAt"`
 }
 
-// ProvinceResponse is the transport DTO for Province used in API responses
 type ProvinceResponse struct {
 	ID     int    `json:"id"`
 	NameTH string `json:"nameTh"`

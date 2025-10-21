@@ -53,10 +53,10 @@ type CourierOption struct {
 }
 
 type CartShopEstimate struct {
-	ShopID   string          `json:"shopId"`
-	Items    []CartItemShort `json:"items"`
-	Subtotal float64         `json:"subtotal"`
-	Courier  CourierOption   `json:"courier"`
+	ShopID   string         `json:"shopId"`
+	Items    []CartItemShop `json:"items"`
+	Subtotal float64        `json:"subtotal"`
+	Courier  CourierOption  `json:"courier"`
 }
 
 type CartShippingEstimateResponse struct {
@@ -64,7 +64,7 @@ type CartShippingEstimateResponse struct {
 	GrandTotal float64            `json:"grandTotal"`
 }
 
-type CartItemShort struct {
+type CartItemShop struct {
 	CartItemID int     `json:"cartItemId"`
 	ProductID  int     `json:"productId"`
 	Qty        int     `json:"qty"`

@@ -92,7 +92,7 @@ func NewUserHandler(u domain.UserUsecase) *UserHandler {
 func (h *UserHandler) GetProfile(c echo.Context) error {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
-		return response.Error(c, http.StatusUnauthorized, "unauthorized")
+		return response.Error(c, http.StatusUnauthorized, errmap.ErrUnauthorized.Error())
 	}
 
 	user, err := h.usecase.GetProfile(c.Request().Context(), userID)
@@ -131,7 +131,7 @@ func (h *UserHandler) GetProfile(c echo.Context) error {
 func (h *UserHandler) UpdateProfile(c echo.Context) error {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
-		return response.Error(c, http.StatusUnauthorized, "unauthorized")
+		return response.Error(c, http.StatusUnauthorized, errmap.ErrUnauthorized.Error())
 	}
 	var req entity.UpdateProfileRequest
 	if err := c.Bind(&req); err != nil {
@@ -169,7 +169,7 @@ func (h *UserHandler) UpdateProfile(c echo.Context) error {
 func (h *UserHandler) GetAddresses(c echo.Context) error {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
-		return response.Error(c, http.StatusUnauthorized, "unauthorized")
+		return response.Error(c, http.StatusUnauthorized, errmap.ErrUnauthorized.Error())
 	}
 
 	addrs, err := h.usecase.GetAddresses(c.Request().Context(), userID)
@@ -200,7 +200,7 @@ func (h *UserHandler) GetAddresses(c echo.Context) error {
 func (h *UserHandler) GetAddressByID(c echo.Context) error {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
-		return response.Error(c, http.StatusUnauthorized, "unauthorized")
+		return response.Error(c, http.StatusUnauthorized, errmap.ErrUnauthorized.Error())
 	}
 
 	addressID, err := strconv.Atoi(c.Param("addressId"))
@@ -221,7 +221,7 @@ func (h *UserHandler) GetAddressByID(c echo.Context) error {
 	}
 
 	if addr.UserID != userID {
-		return response.Error(c, http.StatusForbidden, "forbidden")
+		return response.Error(c, http.StatusForbidden, errmap.ErrForbidden.Error())
 	}
 
 	return response.Success(c, http.StatusOK, "address retrieved", mapAddressToResponse(addr))
@@ -285,9 +285,9 @@ func (h *UserHandler) CreateAddress(c echo.Context) error {
 //	@Param		addressId	path		int				true	"Address ID"
 //	@Param		body		body		entity.Address	true	"Address payload"
 //	@Success	200			{object}	entity.Address
-//	@Failure	400			{object}	"Bad Request"
-//	@Failure	401			{object}	"Unauthorized"
-//	@Failure	404			{object}	"Not Found"
+//	@Failure	400			{object}	object
+//	@Failure	401			{object}	object
+//	@Failure	404			{object}	object
 //	@Router		/api/profile/addresses/{addressId} [patch]
 func (h *UserHandler) UpdateAddress(c echo.Context) error {
 	userID, err := middleware.GetUserID(c)
@@ -347,9 +347,9 @@ func (h *UserHandler) UpdateAddress(c echo.Context) error {
 //	@Produce	json
 //	@Param		addressId	path		int	true	"Address ID"
 //	@Success	204			{object}	object
-//	@Failure		400			{object}	"Bad Request"
-//	@Failure		404			{object}	"Not Found"
-//	@Failure		500			{object}	"Internal Server Error"
+//	@Failure	400			{object}	object
+//	@Failure	404			{object}	object
+//	@Failure	500			{object}	object
 //	@Router		/api/profile/addresses/{addressId} [delete]
 func (h *UserHandler) DeleteAddress(c echo.Context) error {
 	userID, err := middleware.GetUserID(c)
@@ -379,6 +379,5 @@ func RegisterUserHandler(group *echo.Group, db *gorm.DB) {
 	userRepository := repository.NewUserRepository(db)
 	userUsecaseInstance := usecase.NewUserUsecase(userRepository)
 	userHandler := NewUserHandler(userUsecaseInstance)
-
 	userHandler.RegisterRoutes(group)
 }

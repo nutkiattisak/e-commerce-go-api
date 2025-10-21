@@ -100,10 +100,6 @@ func GetUserID(c echo.Context) (uuid.UUID, error) {
 	}
 }
 
-func AdminOnly() echo.MiddlewareFunc {
-	return RoleAuth("ADMIN")
-}
-
 func ShopOwnerOnly() echo.MiddlewareFunc {
 	return RoleAuth("SHOP")
 }
@@ -112,6 +108,6 @@ func UserOnly() echo.MiddlewareFunc {
 	return RoleAuth("USER")
 }
 
-func ShopOrAdmin() echo.MiddlewareFunc {
-	return RoleAuth("SHOP", "ADMIN")
+func ShopOrUser() echo.MiddlewareFunc {
+	return RoleAuth("SHOP", "USER")
 }

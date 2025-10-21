@@ -4,15 +4,11 @@ import (
 	"context"
 	"ecommerce-go-api/domain"
 	"ecommerce-go-api/entity"
+	"ecommerce-go-api/internal/errmap"
 	"ecommerce-go-api/internal/hash"
 	"ecommerce-go-api/internal/jwt"
 	"errors"
-)
-
-var (
-	ErrEmailAlreadyExists  = errors.New("email already exists")
-	ErrInvalidCredentials  = errors.New("invalid email or password")
-	ErrInvalidRefreshToken = errors.New("invalid refresh token")
+	"fmt"
 )
 
 type authUsecase struct {
@@ -28,8 +24,9 @@ func NewAuthUsecase(authRepo domain.AuthRepository) domain.AuthUsecase {
 func (u *authUsecase) Register(ctx context.Context, req *entity.RegisterRequest) (*entity.User, error) {
 
 	existingUser, _ := u.authRepo.GetUserByEmail(ctx, req.Email)
+
 	if existingUser != nil {
-		return nil, ErrEmailAlreadyExists
+		return nil, errmap.ErrEmailAlreadyExists
 	}
 
 	hashedPassword, err := hash.HashPassword(req.Password)
@@ -43,7 +40,10 @@ func (u *authUsecase) Register(ctx context.Context, req *entity.RegisterRequest)
 		FirstName:   req.FirstName,
 		LastName:    req.LastName,
 		PhoneNumber: req.PhoneNumber,
-		ImageURL:    &req.ImageURL,
+	}
+
+	if req.ImageURL != "" {
+		user.ImageURL = &req.ImageURL
 	}
 
 	if err := u.authRepo.CreateUser(ctx, user); err != nil {
@@ -70,7 +70,7 @@ func (u *authUsecase) RegisterShop(ctx context.Context, req *entity.RegisterShop
 
 	existingUser, _ := u.authRepo.GetUserByEmail(ctx, req.Email)
 	if existingUser != nil {
-		return nil, ErrEmailAlreadyExists
+		return nil, errmap.ErrEmailAlreadyExists
 	}
 
 	hashedPassword, err := hash.HashPassword(req.Password)
@@ -132,11 +132,14 @@ func (u *authUsecase) Login(ctx context.Context, req *entity.LoginRequest) (*ent
 
 	user, err := u.authRepo.GetUserByEmail(ctx, req.Email)
 	if err != nil {
-		return nil, ErrInvalidCredentials
+		if errors.Is(err, errmap.ErrNotFound) {
+			return nil, errmap.ErrInvalidCredentials
+		}
+		return nil, fmt.Errorf("failed to get user: %w", err)
 	}
 
 	if !hash.CheckPassword(req.Password, user.Password) {
-		return nil, ErrInvalidCredentials
+		return nil, errmap.ErrInvalidCredentials
 	}
 
 	roles, err := u.authRepo.GetRolesByUserID(ctx, user.ID)
@@ -174,7 +177,7 @@ func (u *authUsecase) RefreshToken(ctx context.Context, req *entity.RefreshToken
 
 	claims, err := jwt.ValidateToken(req.RefreshToken)
 	if err != nil {
-		return nil, ErrInvalidRefreshToken
+		return nil, errmap.ErrInvalidRefreshToken
 	}
 
 	user, err := u.authRepo.GetUserByID(ctx, claims.UserID)
@@ -182,9 +185,17 @@ func (u *authUsecase) RefreshToken(ctx context.Context, req *entity.RefreshToken
 		return nil, err
 	}
 
-	role := claims.Role
-	if role == "" {
-		role = "USER"
+	roles, err := u.authRepo.GetRolesByUserID(ctx, user.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get roles for refresh: %w", err)
+	}
+
+	role := "USER"
+	for _, r := range roles {
+		if r.Name == "SHOP" {
+			role = "SHOP"
+			break
+		}
 	}
 
 	accessToken, err := jwt.GenerateAccessToken(user.ID, role)

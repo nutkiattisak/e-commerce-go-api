@@ -2,6 +2,7 @@ package jwt
 
 import (
 	"errors"
+	"log"
 	"os"
 	"time"
 
@@ -21,7 +22,6 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-// GenerateAccessToken generates a new JWT access token
 func GenerateAccessToken(userID uuid.UUID, role string) (string, error) {
 	secret := getJWTSecret()
 	duration := getAccessTokenDuration()
@@ -40,7 +40,6 @@ func GenerateAccessToken(userID uuid.UUID, role string) (string, error) {
 	return token.SignedString([]byte(secret))
 }
 
-// GenerateRefreshToken generates a new JWT refresh token
 func GenerateRefreshToken(userID uuid.UUID) (string, error) {
 	secret := getJWTSecret()
 	duration := getRefreshTokenDuration()
@@ -58,7 +57,6 @@ func GenerateRefreshToken(userID uuid.UUID) (string, error) {
 	return token.SignedString([]byte(secret))
 }
 
-// ValidateToken validates and parses a JWT token
 func ValidateToken(tokenString string) (*Claims, error) {
 	secret := getJWTSecret()
 
@@ -78,18 +76,17 @@ func ValidateToken(tokenString string) (*Claims, error) {
 		return nil, ErrInvalidToken
 	}
 
-	if claims.ExpiresAt != nil && claims.ExpiresAt.Time.Before(time.Now()) {
+	if claims.ExpiresAt != nil && claims.ExpiresAt.Before(time.Now()) {
 		return nil, ErrExpiredToken
 	}
 
 	return claims, nil
 }
 
-// Helper functions
 func getJWTSecret() string {
 	secret := os.Getenv("JWT_SECRET")
 	if secret == "" {
-		return "your-super-secret-jwt-key-change-this-in-production"
+		log.Fatal("FATAL: JWT_SECRET environment variable is not set")
 	}
 	return secret
 }

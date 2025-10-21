@@ -3,7 +3,6 @@ package delivery
 import (
 	"errors"
 	"net/http"
-	"strconv"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -70,8 +69,17 @@ func (h *ShopHandler) ListShops(c echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return response.Error(c, http.StatusBadRequest, errmap.ErrInvalidRequest.Error())
 	}
+
+	if err := c.Validate(&req); err != nil {
+		return response.Error(c, http.StatusBadRequest, err.Error())
+	}
+
 	resp, err := h.shopUsecase.ListShops(c.Request().Context(), &req)
 	if err != nil {
+		if errors.Is(err, errmap.ErrNotFound) {
+			return response.Error(c, http.StatusNotFound, err.Error())
+		}
+
 		return response.Error(c, http.StatusInternalServerError, errmap.ErrInternalServer.Error())
 	}
 	return response.Success(c, http.StatusOK, "ok", resp)
@@ -84,83 +92,25 @@ func (h *ShopHandler) ListShops(c echo.Context) error {
 //	@Description	Get the authenticated user's shop
 //	@Accept			json
 //	@Produce		json
-//	@Success		200	{object}	entity.Shop
+//	@Success		200	{object}	entity.ShopResponse
 //	@Failure		401	{object}	object
 //	@Failure		500	{object}	object
 //	@Router			/api/shop [get]
 func (h *ShopHandler) GetMyShop(c echo.Context) error {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
-		return response.Error(c, http.StatusUnauthorized, "unauthorized")
-	}
-
-	shop, err := h.shopUsecase.GetShopByUserID(c.Request().Context(), userID)
-	if err != nil {
-		return response.Error(c, http.StatusInternalServerError, err.Error())
-	}
-	return response.Success(c, http.StatusOK, "ok", shop)
-}
-
-// GetShopProduct godoc
-//
-//	@Summary		Get product (my shop)
-//	@Tags			Shops
-//	@Description	Get a single product belonging to the authenticated user's shop
-//	@Accept			json
-//	@Produce		json
-//	@Param			productId	path		int	true	"Product ID"
-//	@Success		200			{object}	entity.ProductResponse
-//	@Failure		400			{object}	object
-//	@Failure		401			{object}	object
-//	@Failure		403			{object}	object
-//	@Failure		404			{object}	object
-//	@Failure		500			{object}	object
-//	@Router			/api/shop/products/{productId} [get]
-func (h *ShopHandler) GetShopProduct(c echo.Context) error {
-	userID, err := middleware.GetUserID(c)
-	if err != nil {
 		return response.Error(c, http.StatusUnauthorized, errmap.ErrUnauthorized.Error())
 	}
 
-	productID, err := strconv.Atoi(c.Param("productId"))
-	if err != nil {
-		return response.Error(c, http.StatusBadRequest, errmap.ErrInvalidProductID.Error())
-	}
-
-	product, err := h.productUsecase.GetProductByID(c.Request().Context(), productID)
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return response.Error(c, http.StatusNotFound, errmap.ErrProductNotFound.Error())
-		}
-		return response.Error(c, http.StatusInternalServerError, err.Error())
-	}
-
 	shop, err := h.shopUsecase.GetShopByUserID(c.Request().Context(), userID)
 	if err != nil {
-		return response.Error(c, http.StatusInternalServerError, err.Error())
-	}
+		if errors.Is(err, errmap.ErrNotFound) {
+			return response.Error(c, http.StatusNotFound, err.Error())
+		}
 
-	if product.ShopID != shop.ID {
-		return response.Error(c, http.StatusForbidden, errmap.ErrForbidden.Error())
+		return response.Error(c, http.StatusInternalServerError, errmap.ErrInternalServer.Error())
 	}
-
-	productResponse := &entity.ProductResponse{
-		ID:          product.ID,
-		Name:        product.Name,
-		Description: product.Description,
-		ImageURL:    product.ImageURL,
-		Price:       product.Price,
-		StockQty:    product.StockQty,
-		IsActive:    product.IsActive,
-		ShopID:      product.ShopID,
-		CreatedAt:   product.CreatedAt,
-		UpdatedAt:   product.UpdatedAt,
-	}
-	if product.Shop.ID != uuid.Nil {
-		productResponse.Shop = &entity.ProductShopResponse{ID: product.Shop.ID, Name: product.Shop.Name, ImageURL: product.Shop.ImageURL}
-	}
-
-	return response.Success(c, http.StatusOK, "ok", productResponse)
+	return response.Success(c, http.StatusOK, "ok", shop)
 }
 
 // UpdateMyShop godoc
@@ -184,6 +134,10 @@ func (h *ShopHandler) UpdateMyShop(c echo.Context) error {
 	}
 	var req entity.UpdateShopRequest
 	if err := c.Bind(&req); err != nil {
+		return response.Error(c, http.StatusBadRequest, errmap.ErrInvalidRequest.Error())
+	}
+
+	if err := c.Validate(&req); err != nil {
 		return response.Error(c, http.StatusBadRequest, err.Error())
 	}
 

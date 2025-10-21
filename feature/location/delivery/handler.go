@@ -5,14 +5,14 @@ import (
 	"strconv"
 
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 
 	"ecommerce-go-api/domain"
 	"ecommerce-go-api/entity"
 	"ecommerce-go-api/feature/location/repository"
 	"ecommerce-go-api/feature/location/usecase"
+	"ecommerce-go-api/internal/errmap"
 	"ecommerce-go-api/internal/response"
-
-	"gorm.io/gorm"
 )
 
 type LocationHandler struct {
@@ -21,14 +21,6 @@ type LocationHandler struct {
 
 func NewLocationHandler(u domain.LocationUsecase) *LocationHandler {
 	return &LocationHandler{usecase: u}
-}
-
-func RegisterLocationHandler(group *echo.Group, db *gorm.DB) {
-	repo := repository.NewLocationRepository(db)
-	uc := usecase.NewLocationUsecase(repo)
-	h := NewLocationHandler(uc)
-
-	h.RegisterRoutes(group)
 }
 
 // GetProvinces godoc
@@ -76,11 +68,11 @@ func (h *LocationHandler) GetProvinces(c echo.Context) error {
 func (h *LocationHandler) GetDistrictsByProvince(c echo.Context) error {
 	provinceId := c.QueryParam("provinceId")
 	if provinceId == "" {
-		return response.Error(c, http.StatusBadRequest, "provinceId is required")
+		return response.Error(c, http.StatusBadRequest, errmap.ErrProvinceIDRequired.Error())
 	}
 	id, err := strconv.Atoi(provinceId)
 	if err != nil {
-		return response.Error(c, http.StatusBadRequest, "invalid provinceId")
+		return response.Error(c, http.StatusBadRequest, errmap.ErrInvalidProvinceID.Error())
 	}
 
 	districts, err := h.usecase.GetDistrictsByProvince(c.Request().Context(), id)
@@ -129,11 +121,11 @@ func (h *LocationHandler) GetDistrictsByProvince(c echo.Context) error {
 func (h *LocationHandler) GetSubDistrictsByDistrict(c echo.Context) error {
 	districtId := c.QueryParam("districtId")
 	if districtId == "" {
-		return response.Error(c, http.StatusBadRequest, "districtId is required")
+		return response.Error(c, http.StatusBadRequest, errmap.ErrDistrictIDRequired.Error())
 	}
 	id, err := strconv.Atoi(districtId)
 	if err != nil {
-		return response.Error(c, http.StatusBadRequest, "invalid districtId")
+		return response.Error(c, http.StatusBadRequest, errmap.ErrInvalidDistrictID.Error())
 	}
 
 	subs, err := h.usecase.GetSubDistrictsByDistrict(c.Request().Context(), id)
@@ -157,4 +149,12 @@ func (h *LocationHandler) GetSubDistrictsByDistrict(c echo.Context) error {
 	}
 
 	return response.Success(c, http.StatusOK, "subdistricts retrieved", resp)
+}
+
+func RegisterLocationHandler(group *echo.Group, db *gorm.DB) {
+	repo := repository.NewLocationRepository(db)
+	uc := usecase.NewLocationUsecase(repo)
+	h := NewLocationHandler(uc)
+
+	h.RegisterRoutes(group)
 }

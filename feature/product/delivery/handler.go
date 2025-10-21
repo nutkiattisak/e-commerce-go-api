@@ -72,7 +72,6 @@ func (h *ProductHandler) ListProducts(c echo.Context) error {
 			ImageURL:    p.ImageURL,
 			Price:       p.Price,
 			StockQty:    p.StockQty,
-			IsActive:    p.IsActive,
 			ShopID:      p.ShopID,
 			CreatedAt:   p.CreatedAt,
 			UpdatedAt:   p.UpdatedAt,
@@ -176,7 +175,7 @@ func (h *ProductHandler) ListShopProducts(c echo.Context) error {
 	return response.Success(c, http.StatusOK, "ok", &entity.ProductListResponse{Items: respItems, Total: total})
 }
 
-// CreateProduct godoc
+// CreateShopProduct godoc
 //
 //	@Summary		Create product
 //	@Tags			Products
@@ -190,7 +189,7 @@ func (h *ProductHandler) ListShopProducts(c echo.Context) error {
 //	@Failure		401		{object}	object
 //	@Failure		500		{object}	object
 //	@Router			/api/shop/products [post]
-func (h *ProductHandler) CreateProduct(c echo.Context) error {
+func (h *ProductHandler) CreateShopProduct(c echo.Context) error {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
 		return response.Error(c, http.StatusUnauthorized, errmap.ErrUnauthorized.Error())
@@ -277,7 +276,7 @@ func (h *ProductHandler) GetShopProduct(c echo.Context) error {
 //	@Produce		json
 //	@Param			productId	path		int							true	"Product ID"
 //	@Param			body		body		entity.UpdateProductRequest	true	"Update Product Request"
-//	@Success		200			{object}	entity.ProductResponse
+//	@Success		204			{object}	object
 //	@Failure		400			{object}	object
 //	@Failure		401			{object}	object
 //	@Failure		403			{object}	object
@@ -323,7 +322,7 @@ func (h *ProductHandler) UpdateShopProduct(c echo.Context) error {
 //	@Accept			json
 //	@Produce		json
 //	@Param			productId	path		int	true	"Product ID"
-//	@Success		200			{object}	object
+//	@Success		204			{object}	object
 //	@Failure		400			{object}	object
 //	@Failure		401			{object}	object
 //	@Failure		403			{object}	object
@@ -351,5 +350,5 @@ func (h *ProductHandler) DeleteShopProduct(c echo.Context) error {
 		return response.Error(c, http.StatusInternalServerError, errmap.ErrInternalServer.Error())
 	}
 
-	return response.Success(c, http.StatusOK, "deleted", nil)
+	return response.NoContent(c)
 }
