@@ -2,12 +2,14 @@ package usecase
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/google/uuid"
 
 	"ecommerce-go-api/domain"
 	"ecommerce-go-api/entity"
+	"ecommerce-go-api/internal/errmap"
 )
 
 type shopUsecase struct {
@@ -43,22 +45,26 @@ func (u *shopUsecase) GetProductsByUserID(ctx context.Context, userID uuid.UUID)
 func (u *shopUsecase) UpdateShop(ctx context.Context, shopID uuid.UUID, userID uuid.UUID, req *entity.UpdateShopRequest) (*entity.Shop, error) {
 	shop, err := u.shopRepo.GetShopByID(ctx, shopID)
 	if err != nil {
+		if errors.Is(err, errmap.ErrNotFound) {
+			return nil, errmap.ErrNotFound
+		}
+
 		return nil, fmt.Errorf("failed to get shop: %w", err)
 	}
 	if shop.UserID != userID {
-		return nil, fmt.Errorf("forbidden: user not owner")
+		return nil, errmap.ErrForbidden
 	}
-	if req.Name != "" {
-		shop.Name = req.Name
+	if req.Name != nil {
+		shop.Name = *req.Name
 	}
-	if req.Description != "" {
-		shop.Description = req.Description
+	if req.Description != nil {
+		shop.Description = *req.Description
 	}
-	if req.ImageURL != "" {
-		shop.ImageURL = req.ImageURL
+	if req.ImageURL != nil {
+		shop.ImageURL = *req.ImageURL
 	}
-	if req.Address != "" {
-		shop.Address = req.Address
+	if req.Address != nil {
+		shop.Address = *req.Address
 	}
 
 	if err := u.shopRepo.UpdateShop(ctx, shop); err != nil {

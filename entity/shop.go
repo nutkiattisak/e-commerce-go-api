@@ -17,7 +17,7 @@ type Shop struct {
 	IsActive    bool           `gorm:"default:true;index:idx_shops_is_active" json:"isActive"`
 	CreatedAt   time.Time      `gorm:"not null;default:now()" json:"createdAt"`
 	UpdatedAt   time.Time      `gorm:"not null;default:now()" json:"updatedAt"`
-	DeletedAt   gorm.DeletedAt `gorm:"default:null" json:"deletedAt" swaggerignore:"true"`
+	DeletedAt   gorm.DeletedAt `gorm:"default:null" json:"-" swaggerignore:"true"`
 
 	User *User `gorm:"foreignKey:UserID;references:ID" json:"user,omitempty"`
 }
@@ -30,10 +30,10 @@ type CreateShopRequest struct {
 }
 
 type UpdateShopRequest struct {
-	Name        string `json:"name" validate:"omitempty,max=255"`
-	Description string `json:"description"`
-	ImageURL    string `json:"imageUrl"`
-	Address     string `json:"address"`
+	Name        *string `json:"name" validate:"required,max=255"`
+	Description *string `json:"description"`
+	ImageURL    *string `json:"imageUrl"`
+	Address     *string `json:"address"`
 }
 
 type ShopListRequest struct {
@@ -45,4 +45,16 @@ type ShopListRequest struct {
 type ShopListResponse struct {
 	Items []*Shop `json:"items"`
 	Total int64   `json:"total"`
+}
+
+type ShopResponse struct {
+	ID          uuid.UUID `json:"id"`
+	UserID      uuid.UUID `json:"userId"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	ImageURL    string    `json:"imageUrl"`
+	Address     string    `json:"address"`
+	IsActive    bool      `json:"isActive"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
 }

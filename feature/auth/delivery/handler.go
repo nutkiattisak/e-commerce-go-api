@@ -1,10 +1,12 @@
 package delivery
 
 import (
+	"errors"
 	"net/http"
 
 	"ecommerce-go-api/domain"
 	"ecommerce-go-api/entity"
+	"ecommerce-go-api/internal/errmap"
 	"ecommerce-go-api/internal/response"
 
 	authRepo "ecommerce-go-api/feature/auth/repository"
@@ -33,8 +35,8 @@ func NewAuthHandler(authUsecase domain.AuthUsecase) *AuthHandler {
 //	@Produce		json
 //	@Param			body	body		entity.RegisterRequest	true	"Register payload"
 //	@Success		201		{object}	object
-//	@Failure		400		{object}	"Bad Request"
-//	@Failure		500		{object}	"Internal Server Error"
+//	@Failure		400		{object}	object
+//	@Failure		500		{object}	object
 //	@Router			/api/auth/register [post]
 func (h *AuthHandler) Register(c echo.Context) error {
 	var req entity.RegisterRequest
@@ -45,10 +47,10 @@ func (h *AuthHandler) Register(c echo.Context) error {
 	user, err := h.authUsecase.Register(c.Request().Context(), &req)
 	if err != nil {
 		statusCode := http.StatusInternalServerError
-		if err.Error() == "email already exists" || err.Error() == "username already exists" {
+		if errors.Is(err, errmap.ErrEmailAlreadyExists) {
 			statusCode = http.StatusConflict
 		}
-		return response.Error(c, statusCode, err.Error())
+		return response.Error(c, statusCode, errmap.ErrEmailAlreadyExists.Error())
 	}
 
 	return response.Success(c, http.StatusCreated, "User registered successfully", user)
@@ -74,10 +76,10 @@ func (h *AuthHandler) RegisterShop(c echo.Context) error {
 	resp, err := h.authUsecase.RegisterShop(c.Request().Context(), &req)
 	if err != nil {
 		statusCode := http.StatusInternalServerError
-		if err.Error() == "email already exists" {
+		if errors.Is(err, errmap.ErrEmailAlreadyExists) {
 			statusCode = http.StatusConflict
 		}
-		return response.Error(c, statusCode, err.Error())
+		return response.Error(c, statusCode, errmap.ErrEmailAlreadyExists.Error())
 	}
 
 	return response.Success(c, http.StatusCreated, "Shop registered successfully", resp)
@@ -104,12 +106,10 @@ func (h *AuthHandler) Login(c echo.Context) error {
 	loginResponse, err := h.authUsecase.Login(c.Request().Context(), &req)
 	if err != nil {
 		statusCode := http.StatusInternalServerError
-		if err.Error() == "invalid email or password" {
+		if errors.Is(err, errmap.ErrInvalidCredentials) {
 			statusCode = http.StatusUnauthorized
-		} else if err.Error() == "user account is not active" {
-			statusCode = http.StatusForbidden
 		}
-		return response.Error(c, statusCode, err.Error())
+		return response.Error(c, statusCode, errmap.ErrInvalidCredentials.Error())
 	}
 
 	return response.Success(c, http.StatusOK, "Login successful", loginResponse)
@@ -129,12 +129,22 @@ func (h *AuthHandler) Login(c echo.Context) error {
 func (h *AuthHandler) RefreshToken(c echo.Context) error {
 	var req entity.RefreshTokenRequest
 	if err := c.Bind(&req); err != nil {
+		return response.Error(c, http.StatusBadRequest, errmap.ErrInvalidRequest.Error())
+	}
+
+	if err := c.Validate(&req); err != nil {
 		return response.Error(c, http.StatusBadRequest, err.Error())
 	}
 
 	loginResponse, err := h.authUsecase.RefreshToken(c.Request().Context(), &req)
 	if err != nil {
-		return response.Error(c, http.StatusUnauthorized, err.Error())
+		switch {
+		case errors.Is(err, errmap.ErrInvalidRefreshToken):
+			return response.Error(c, http.StatusUnauthorized, err.Error())
+		default:
+			c.Logger().Error("RefreshToken error: ", err)
+			return response.Error(c, http.StatusInternalServerError, errmap.ErrInternalServer.Error())
+		}
 	}
 
 	return response.Success(c, http.StatusOK, "Token refreshed successfully", loginResponse)

@@ -30,15 +30,12 @@ type RegisterRequest struct {
 }
 
 type RegisterShopRequest struct {
-	// User information
-	Email       string `json:"email" validate:"required,email"`
-	Password    string `json:"password" validate:"required,min=8"`
-	FirstName   string `json:"firstName" validate:"required"`
-	LastName    string `json:"lastName" validate:"required"`
-	PhoneNumber string `json:"phoneNumber" validate:"required"`
-	ImageURL    string `json:"imageUrl"`
-
-	// Shop information
+	Email           string `json:"email" validate:"required,email"`
+	Password        string `json:"password" validate:"required,min=8"`
+	FirstName       string `json:"firstName" validate:"required"`
+	LastName        string `json:"lastName" validate:"required"`
+	PhoneNumber     string `json:"phoneNumber" validate:"required"`
+	ImageURL        string `json:"imageUrl"`
 	ShopName        string `json:"shopName" validate:"required,max=255"`
 	ShopDescription string `json:"shopDescription"`
 	ShopImageURL    string `json:"shopImageUrl"`

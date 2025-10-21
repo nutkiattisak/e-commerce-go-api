@@ -36,7 +36,7 @@ type ProductResponse struct {
 	ImageURL    *string              `json:"imageUrl,omitempty"`
 	Price       float64              `json:"price"`
 	StockQty    int                  `json:"stockQty"`
-	IsActive    bool                 `json:"isActive"`
+	IsActive    bool                 `json:"isActive,omitempty"`
 	ShopID      uuid.UUID            `json:"shopId"`
 	CreatedAt   *time.Time           `json:"createdAt,omitempty"`
 	UpdatedAt   *time.Time           `json:"updatedAt,omitempty"`
