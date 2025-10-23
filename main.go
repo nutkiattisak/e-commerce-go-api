@@ -15,6 +15,7 @@ import (
 	_ "ecommerce-go-api/docs"
 	authDelivery "ecommerce-go-api/feature/auth/delivery"
 	cartDelivery "ecommerce-go-api/feature/cart/delivery"
+	courierDelivery "ecommerce-go-api/feature/courier/delivery"
 	locationDelivery "ecommerce-go-api/feature/location/delivery"
 	productDelivery "ecommerce-go-api/feature/product/delivery"
 	shopDelivery "ecommerce-go-api/feature/shop/delivery"
@@ -69,6 +70,7 @@ func main() {
 		productDelivery.RegisterProductHandler(api, db)
 		shopDelivery.RegisterShopHandler(api, db)
 		cartDelivery.RegisterCartHandler(api, db)
+		courierDelivery.RegisterCourierHandler(api, db)
 	}
 
 	utils.ServeGracefulShutdown(e)

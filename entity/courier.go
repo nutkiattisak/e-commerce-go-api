@@ -15,3 +15,9 @@ type Courier struct {
 	UpdatedAt time.Time      `gorm:"not null;default:now()" json:"updatedAt"`
 	DeletedAt gorm.DeletedAt `gorm:"default:null" json:"deletedAt" swaggerignore:"true"`
 }
+type CourierListResponse struct {
+	ID       int     `json:"id"`
+	Name     string  `json:"name"`
+	ImageURL string  `json:"imageUrl"`
+	Rate     float64 `json:"rate"`
+}
