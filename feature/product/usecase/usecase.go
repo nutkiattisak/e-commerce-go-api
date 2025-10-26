@@ -21,15 +21,61 @@ func NewProductUsecase(r domain.ProductRepository, s domain.ShopRepository) doma
 	return &productUsecase{repo: r, shopRepo: s, validator: validator.New()}
 }
 
-func (u *productUsecase) ListProducts(ctx context.Context, q *entity.ProductListRequest) ([]*entity.Product, int64, error) {
-	return u.repo.ListProducts(ctx, q)
+func mapToProductResponse(p *entity.Product) *entity.ProductResponse {
+	if p == nil {
+		return nil
+	}
+
+	resp := &entity.ProductResponse{
+		ID:          p.ID,
+		Name:        p.Name,
+		Description: p.Description,
+		ImageURL:    p.ImageURL,
+		Price:       p.Price,
+		StockQty:    p.StockQty,
+		IsActive:    p.IsActive,
+		ShopID:      p.ShopID,
+		CreatedAt:   p.CreatedAt,
+		UpdatedAt:   p.UpdatedAt,
+	}
+
+	if p.Shop.ID != uuid.Nil {
+		resp.Shop = &entity.ProductShopResponse{
+			ID:       p.Shop.ID,
+			Name:     p.Shop.Name,
+			ImageURL: p.Shop.ImageURL,
+		}
+	}
+
+	return resp
 }
 
-func (u *productUsecase) GetProductByID(ctx context.Context, productID int) (*entity.Product, error) {
-	return u.repo.GetProductByID(ctx, productID)
+func (u *productUsecase) ListProducts(ctx context.Context, q *entity.ProductListRequest) (*entity.ProductListResponse, error) {
+	items, total, err := u.repo.ListProducts(ctx, q)
+	if err != nil {
+		return nil, err
+	}
+
+	productResponses := make([]*entity.ProductResponse, len(items))
+	for i, p := range items {
+		productResponses[i] = mapToProductResponse(p)
+	}
+
+	return &entity.ProductListResponse{
+		Items: productResponses,
+		Total: total,
+	}, nil
 }
 
-func (u *productUsecase) CreateProduct(ctx context.Context, userID uuid.UUID, req *entity.CreateProductRequest) (*entity.Product, error) {
+func (u *productUsecase) GetProductByID(ctx context.Context, productID int) (*entity.ProductResponse, error) {
+	product, err := u.repo.GetProductByID(ctx, productID)
+	if err != nil {
+		return nil, err
+	}
+	return mapToProductResponse(product), nil
+}
+
+func (u *productUsecase) CreateProduct(ctx context.Context, userID uuid.UUID, req *entity.CreateProductRequest) (*entity.ProductResponse, error) {
 	if err := u.validator.Struct(req); err != nil {
 		return nil, fmt.Errorf("invalid input: %w", err)
 	}
@@ -55,10 +101,10 @@ func (u *productUsecase) CreateProduct(ctx context.Context, userID uuid.UUID, re
 
 	p.Shop = *shop
 
-	return p, nil
+	return mapToProductResponse(p), nil
 }
 
-func (u *productUsecase) UpdateProduct(ctx context.Context, userID uuid.UUID, productID int, req *entity.UpdateProductRequest) (*entity.Product, error) {
+func (u *productUsecase) UpdateProduct(ctx context.Context, userID uuid.UUID, productID int, req *entity.UpdateProductRequest) (*entity.ProductResponse, error) {
 	if err := u.validator.Struct(req); err != nil {
 		return nil, fmt.Errorf("invalid input: %w", err)
 	}
@@ -86,7 +132,7 @@ func (u *productUsecase) UpdateProduct(ctx context.Context, userID uuid.UUID, pr
 		return nil, fmt.Errorf("failed to update product: %w", err)
 	}
 
-	return prod, nil
+	return mapToProductResponse(prod), nil
 }
 
 func (u *productUsecase) DeleteProduct(ctx context.Context, userID uuid.UUID, productID int) error {
@@ -109,22 +155,37 @@ func (u *productUsecase) DeleteProduct(ctx context.Context, userID uuid.UUID, pr
 	return nil
 }
 
-func (u *productUsecase) ListProductsByShop(ctx context.Context, shopID uuid.UUID) ([]*entity.Product, error) {
+func (u *productUsecase) ListProductsByShop(ctx context.Context, shopID uuid.UUID) ([]*entity.ProductResponse, error) {
 	items, _, err := u.repo.ListByShopID(ctx, shopID, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list products by shop: %w", err)
 	}
-	return items, nil
+
+	productResponses := make([]*entity.ProductResponse, len(items))
+	for i, p := range items {
+		productResponses[i] = mapToProductResponse(p)
+	}
+
+	return productResponses, nil
 }
 
-func (u *productUsecase) GetProductsByUserID(ctx context.Context, userID uuid.UUID) ([]*entity.Product, int64, error) {
+func (u *productUsecase) GetProductsByUserID(ctx context.Context, userID uuid.UUID) (*entity.ProductListResponse, error) {
 	shop, err := u.shopRepo.GetShopByUserID(ctx, userID)
 	if err != nil {
-		return nil, 0, fmt.Errorf("shop not found for user: %w", err)
+		return nil, fmt.Errorf("shop not found for user: %w", err)
 	}
 	items, total, err := u.repo.ListByShopID(ctx, shop.ID, nil)
 	if err != nil {
-		return nil, 0, fmt.Errorf("failed to list products for shop: %w", err)
+		return nil, fmt.Errorf("failed to list products for shop: %w", err)
 	}
-	return items, total, nil
+
+	productResponses := make([]*entity.ProductResponse, len(items))
+	for i, p := range items {
+		productResponses[i] = mapToProductResponse(p)
+	}
+
+	return &entity.ProductListResponse{
+		Items: productResponses,
+		Total: total,
+	}, nil
 }

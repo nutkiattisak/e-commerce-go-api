@@ -70,6 +70,15 @@ func (u *cartUsecase) EstimateShipping(ctx context.Context, userID uuid.UUID, ca
 		scMap[shopCourier.ShopID.String()] = append(scMap[shopCourier.ShopID.String()], shopCourier)
 	}
 
+	shops, err := u.shopRepo.GetShopsByIDs(ctx, shopUUIDs)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get shops: %w", err)
+	}
+	shopDetailsMap := make(map[string]*entity.Shop)
+	for _, shop := range shops {
+		shopDetailsMap[shop.ID.String()] = shop
+	}
+
 	var resp entity.CartShippingEstimateResponse
 	var grandTotal float64
 
@@ -98,8 +107,17 @@ func (u *cartUsecase) EstimateShipping(ctx context.Context, userID uuid.UUID, ca
 			return nil, errmap.ErrNoShippingOptions
 		}
 
+		var shopName string
+		var shopImageURL string
+		if shop, ok := shopDetailsMap[shopID]; ok {
+			shopName = shop.Name
+			shopImageURL = shop.ImageURL
+		}
+
 		shopEstimate := entity.CartShopEstimate{
 			ShopID:   shopID,
+			Name:     shopName,
+			ImageURL: shopImageURL,
 			Items:    items,
 			Subtotal: subtotal,
 			Courier:  courierOpt,

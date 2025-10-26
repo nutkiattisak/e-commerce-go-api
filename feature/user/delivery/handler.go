@@ -85,9 +85,9 @@ func NewUserHandler(u domain.UserUsecase) *UserHandler {
 //	@Tags			User
 //	@Security		ApiKeyAuth
 //	@Produce		json
-//	@Success		200	{object}	entity.User
-//	@Failure		400	{object}	object
-//	@Failure		401	{object}	object
+//	@Success		200	{object}	entity.UserResponse
+//	@Failure		400	{object}	response.ResponseError
+//	@Failure		401	{object}	response.ResponseError
 //	@Router			/api/profile [get]
 func (h *UserHandler) GetProfile(c echo.Context) error {
 	userID, err := middleware.GetUserID(c)
@@ -100,19 +100,7 @@ func (h *UserHandler) GetProfile(c echo.Context) error {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
 
-	if user == nil {
-		return response.Success(c, http.StatusOK, "profile retrieved", nil)
-	}
-	return response.Success(c, http.StatusOK, "profile retrieved", &entity.UserResponse{
-		ID:          user.ID,
-		FirstName:   user.FirstName,
-		LastName:    user.LastName,
-		Email:       user.Email,
-		PhoneNumber: user.PhoneNumber,
-		ImageURL:    user.ImageURL,
-		CreatedAt:   user.CreatedAt,
-		UpdatedAt:   user.UpdatedAt,
-	})
+	return response.Success(c, http.StatusOK, "profile retrieved", user)
 }
 
 // UpdateProfile godoc
@@ -122,19 +110,24 @@ func (h *UserHandler) GetProfile(c echo.Context) error {
 //	@Security	ApiKeyAuth
 //	@Accept		json
 //	@Produce	json
-//	@Param		body	body		entity.User	true	"User payload"
-//	@Success	200		{object}	entity.User
+//	@Param		body	body		entity.UpdateProfileRequest	true	"Update profile payload"
+//	@Success	200		{object}	entity.UserResponse
 //	@Failure	400		{object}	object
-//	@Failure	401		{object}	object
-//	@Failure	404		{object}	object
+//	@Failure	401		{object}	response.ResponseError
+//	@Failure	404		{object}	response.ResponseError
 //	@Router		/api/profile [patch]
 func (h *UserHandler) UpdateProfile(c echo.Context) error {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
 		return response.Error(c, http.StatusUnauthorized, errmap.ErrUnauthorized.Error())
 	}
+
 	var req entity.UpdateProfileRequest
 	if err := c.Bind(&req); err != nil {
+		return response.Error(c, http.StatusBadRequest, err.Error())
+	}
+
+	if err := c.Validate(&req); err != nil {
 		return response.Error(c, http.StatusBadRequest, err.Error())
 	}
 
@@ -146,15 +139,15 @@ func (h *UserHandler) UpdateProfile(c echo.Context) error {
 		ImageURL:    req.ImageURL,
 	}
 
-	_, exit := h.usecase.UpdateProfile(c.Request().Context(), user)
-	if exit != nil {
-		if exit == gorm.ErrRecordNotFound {
+	updated, err := h.usecase.UpdateProfile(c.Request().Context(), user)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
 			return response.Error(c, http.StatusNotFound, "user not found")
 		}
-		return response.Error(c, http.StatusInternalServerError, exit.Error())
+		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
 
-	return response.NoContent(c)
+	return response.Success(c, http.StatusOK, "profile updated", updated)
 }
 
 // GetAddresses godoc
@@ -193,9 +186,9 @@ func (h *UserHandler) GetAddresses(c echo.Context) error {
 //	@Produce	json
 //	@Param		addressId	path		int	true	"Address ID"
 //	@Success	200			{object}	entity.AddressResponse
-//	@Failure	400			{object}	object
-//	@Failure	401			{object}	object
-//	@Failure	404			{object}	object
+//	@Failure	400			{object}	response.ResponseError
+//	@Failure	401			{object}	response.ResponseError
+//	@Failure	404			{object}	response.ResponseError
 //	@Router		/api/profile/addresses/{addressId} [get]
 func (h *UserHandler) GetAddressByID(c echo.Context) error {
 	userID, err := middleware.GetUserID(c)
@@ -236,8 +229,8 @@ func (h *UserHandler) GetAddressByID(c echo.Context) error {
 //	@Produce	json
 //	@Param		body	body		entity.Address	true	"Address payload"
 //	@Success	201		{object}	object
-//	@Failure	400		{object}	object
-//	@Failure	401		{object}	object
+//	@Failure	400		{object}	response.ResponseError
+//	@Failure	401		{object}	response.ResponseError
 //	@Router		/api/profile/addresses [post]
 func (h *UserHandler) CreateAddress(c echo.Context) error {
 	userID, err := middleware.GetUserID(c)
@@ -285,9 +278,9 @@ func (h *UserHandler) CreateAddress(c echo.Context) error {
 //	@Param		addressId	path		int				true	"Address ID"
 //	@Param		body		body		entity.Address	true	"Address payload"
 //	@Success	200			{object}	entity.Address
-//	@Failure	400			{object}	object
-//	@Failure	401			{object}	object
-//	@Failure	404			{object}	object
+//	@Failure	400			{object}	response.ResponseError
+//	@Failure	401			{object}	response.ResponseError
+//	@Failure	404			{object}	response.ResponseError
 //	@Router		/api/profile/addresses/{addressId} [patch]
 func (h *UserHandler) UpdateAddress(c echo.Context) error {
 	userID, err := middleware.GetUserID(c)
@@ -347,9 +340,9 @@ func (h *UserHandler) UpdateAddress(c echo.Context) error {
 //	@Produce	json
 //	@Param		addressId	path		int	true	"Address ID"
 //	@Success	204			{object}	object
-//	@Failure	400			{object}	object
-//	@Failure	404			{object}	object
-//	@Failure	500			{object}	object
+//	@Failure	400			{object}	response.ResponseError
+//	@Failure	404			{object}	response.ResponseError
+//	@Failure	500			{object}	response.ResponseError
 //	@Router		/api/profile/addresses/{addressId} [delete]
 func (h *UserHandler) DeleteAddress(c echo.Context) error {
 	userID, err := middleware.GetUserID(c)

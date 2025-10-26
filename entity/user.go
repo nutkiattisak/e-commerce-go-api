@@ -29,6 +29,17 @@ type RegisterRequest struct {
 	ImageURL    string `json:"imageUrl"`
 }
 
+type RegisterResponse struct {
+	ID          uuid.UUID `json:"id"`
+	FirstName   string    `json:"firstName"`
+	LastName    string    `json:"lastName"`
+	Email       string    `json:"email"`
+	PhoneNumber string    `json:"phoneNumber"`
+	ImageURL    *string   `json:"imageUrl,omitempty"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
+}
+
 type RegisterShopRequest struct {
 	Email           string `json:"email" validate:"required,email"`
 	Password        string `json:"password" validate:"required,min=8"`
@@ -43,7 +54,15 @@ type RegisterShopRequest struct {
 }
 
 type RegisterShopResponse struct {
-	Shop *Shop `json:"shop"`
+	ID          uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
+	Name        string    `gorm:"size:255;not null" json:"name"`
+	Description string    `gorm:"type:text" json:"description"`
+	ImageURL    string    `gorm:"type:text" json:"imageUrl"`
+	Address     string    `gorm:"type:text" json:"address"`
+	CreatedAt   time.Time `gorm:"not null;default:now()" json:"createdAt"`
+	UpdatedAt   time.Time `gorm:"not null;default:now()" json:"updatedAt"`
+
+	User *RegisterResponse `gorm:"foreignKey:UserID;references:ID" json:"user,omitempty"`
 }
 
 type LoginRequest struct {

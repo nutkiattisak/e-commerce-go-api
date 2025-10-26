@@ -18,3 +18,16 @@ type CartItem struct {
 	Cart    Cart    `gorm:"foreignKey:CartID;references:ID" json:"cart,omitempty"`
 	Product Product `gorm:"foreignKey:ProductID;references:ID" json:"product,omitempty"`
 }
+
+type CartItemRequest struct {
+	ProductID int `json:"productId" validate:"required,gt=0"`
+	Qty       int `json:"qty" validate:"required,gt=0"`
+}
+
+type UpdateCartItemRequest struct {
+	Qty int `json:"qty" validate:"required,gt=0"`
+}
+
+type EstimateShippingRequest struct {
+	CartItemIDs []int `json:"cartItemIds" validate:"required,min=1,dive,gt=0"`
+}

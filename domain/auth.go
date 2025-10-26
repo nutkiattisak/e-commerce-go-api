@@ -8,7 +8,7 @@ import (
 )
 
 type AuthUsecase interface {
-	Register(ctx context.Context, req *entity.RegisterRequest) (*entity.User, error)
+	Register(ctx context.Context, req *entity.RegisterRequest) (*entity.RegisterResponse, error)
 	RegisterShop(ctx context.Context, req *entity.RegisterShopRequest) (*entity.RegisterShopResponse, error)
 	Login(ctx context.Context, req *entity.LoginRequest) (*entity.AuthResponse, error)
 	RefreshToken(ctx context.Context, req *entity.RefreshTokenRequest) (*entity.AuthResponse, error)

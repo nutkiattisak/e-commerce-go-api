@@ -8,6 +8,14 @@ import (
 	"ecommerce-go-api/entity"
 )
 
+type CartUsecase interface {
+	AddItem(ctx context.Context, userID uuid.UUID, productID int, qty int) (*entity.CartItem, bool, error)
+	GetCart(ctx context.Context, userID uuid.UUID) (*entity.Cart, []*entity.CartItem, *entity.CartSummary, error)
+	UpdateItem(ctx context.Context, userID uuid.UUID, itemID int, qty int) (*entity.CartItem, error)
+	DeleteItem(ctx context.Context, userID uuid.UUID, itemID int) error
+	EstimateShipping(ctx context.Context, userID uuid.UUID, cartItemIDs []int) (*entity.CartShippingEstimateResponse, error)
+}
+
 type CartRepository interface {
 	EnsureCartForUser(ctx context.Context, userID uuid.UUID) (*entity.Cart, error)
 	GetCartByUserID(ctx context.Context, userID uuid.UUID) (*entity.Cart, error)
@@ -21,12 +29,4 @@ type CartRepository interface {
 	UpdateCartItem(ctx context.Context, item *entity.CartItem) error
 	DeleteCartItem(ctx context.Context, id int) error
 	ClearCart(ctx context.Context, cartID int) error
-}
-
-type CartUsecase interface {
-	AddItem(ctx context.Context, userID uuid.UUID, productID int, qty int) (*entity.CartItem, bool, error)
-	GetCart(ctx context.Context, userID uuid.UUID) (*entity.Cart, []*entity.CartItem, *entity.CartSummary, error)
-	UpdateItem(ctx context.Context, userID uuid.UUID, itemID int, qty int) (*entity.CartItem, error)
-	DeleteItem(ctx context.Context, userID uuid.UUID, itemID int) error
-	EstimateShipping(ctx context.Context, userID uuid.UUID, cartItemIDs []int) (*entity.CartShippingEstimateResponse, error)
 }

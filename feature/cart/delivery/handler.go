@@ -36,32 +36,37 @@ func NewCartHandler(r domain.CartRepository, u domain.CartUsecase, ou domain.Ord
 
 // AddItem godoc
 //
-//	@Summary	Add item to cart
-//	@Tags		Cart
-//	@Security	ApiKeyAuth
-//	@Accept		json
-//	@Produce	json
-//	@Param		body	body		object	true	"{\"productId\":1, \"qty\":2}"
-//	@Success	201		{object}	object
-//	@Router		/api/cart [post]
+//	@Summary		Add item to cart
+//	@Description	Adds a product to the user's cart or updates quantity if it already exists
+//	@Tags			Cart
+//	@Security		ApiKeyAuth
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		entity.CartItemRequest	true	"Cart item payload"
+//	@Success		201		{object}	entity.CartItemResponse	"Created"
+//	@Success		200		{object}	entity.CartItemResponse	"Updated"
+//	@Failure		400		{object}	response.ResponseError
+//	@Failure		401		{object}	response.ResponseError
+//	@Failure		404		{object}	response.ResponseError
+//	@Failure		409		{object}	response.ResponseError
+//	@Failure		500		{object}	response.ResponseError
+//	@Router			/api/cart [post]
 func (h *CartHandler) AddItem(c echo.Context) error {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
 		return response.Error(c, http.StatusUnauthorized, errmap.ErrUnauthorized.Error())
 	}
-	var body struct {
-		ProductID int `json:"productId"`
-		Qty       int `json:"qty"`
-	}
-	if err := c.Bind(&body); err != nil {
+
+	var req entity.CartItemRequest
+	if err := c.Bind(&req); err != nil {
 		return response.Error(c, http.StatusBadRequest, errmap.ErrInvalidRequest.Error())
 	}
 
-	if body.Qty <= 0 {
-		return response.Error(c, http.StatusBadRequest, errmap.ErrInvalidQuantity.Error())
+	if err := c.Validate(&req); err != nil {
+		return response.Error(c, http.StatusBadRequest, err.Error())
 	}
 
-	item, created, err := h.cartUsecase.AddItem(c.Request().Context(), userID, body.ProductID, body.Qty)
+	item, created, err := h.cartUsecase.AddItem(c.Request().Context(), userID, req.ProductID, req.Qty)
 	if err != nil {
 		if errors.Is(err, errmap.ErrQuantityMustBeGreaterThanZero) || errors.Is(err, errmap.ErrProductInactive) {
 			return response.Error(c, http.StatusBadRequest, errmap.ErrQuantityMustBeGreaterThanZero.Error())
@@ -112,12 +117,15 @@ func (h *CartHandler) AddItem(c echo.Context) error {
 
 // GetCart godoc
 //
-//	@Summary	Get user's cart
-//	@Tags		Cart
-//	@Security	ApiKeyAuth
-//	@Produce	json
-//	@Success	200	{object}	object
-//	@Router		/api/cart [get]
+//	@Summary		Get user's cart
+//	@Description	Retrieves the current user's cart along with items and summary
+//	@Tags			Cart
+//	@Security		ApiKeyAuth
+//	@Produce		json
+//	@Success		200	{object}	entity.CartResponse
+//	@Failure		401	{object}	response.ResponseError
+//	@Failure		500	{object}	response.ResponseError
+//	@Router			/api/cart [get]
 func (h *CartHandler) GetCart(c echo.Context) error {
 	userID, exit := middleware.GetUserID(c)
 	if exit != nil {
@@ -179,11 +187,12 @@ func (h *CartHandler) GetCart(c echo.Context) error {
 //	@Security	ApiKeyAuth
 //	@Accept		json
 //	@Produce	json
-//	@Param		itemId	path		int		true	"Item ID"
-//	@Param		body	body		object	true	"{\"qty\":2}"
+//	@Param		itemId	path		int								true	"Item ID"
+//	@Param		body	body		entity.UpdateCartItemRequest	true	"Update quantity payload"
 //	@Success	204		{object}	object
-//	@Failure	400		{object}	object
-//	@Failure	404		{object}	object
+//	@Failure	400		{object}	response.ResponseError
+//	@Failure	404		{object}	response.ResponseError
+//	@Failure	409		{object}	response.ResponseError
 //	@Router		/api/cart/items/{itemId} [put]
 func (h *CartHandler) UpdateItem(c echo.Context) error {
 	userID, exit := middleware.GetUserID(c)
@@ -195,13 +204,17 @@ func (h *CartHandler) UpdateItem(c echo.Context) error {
 	if err != nil {
 		return response.Error(c, http.StatusBadRequest, "invalid item id")
 	}
-	var body struct {
-		Qty int `json:"qty"`
-	}
-	if err := c.Bind(&body); err != nil {
+
+	var req entity.UpdateCartItemRequest
+	if err := c.Bind(&req); err != nil {
 		return response.Error(c, http.StatusBadRequest, errmap.ErrInvalidRequest.Error())
 	}
-	_, err = h.cartUsecase.UpdateItem(c.Request().Context(), userID, itemID, body.Qty)
+
+	if err := c.Validate(&req); err != nil {
+		return response.Error(c, http.StatusBadRequest, err.Error())
+	}
+
+	_, err = h.cartUsecase.UpdateItem(c.Request().Context(), userID, itemID, req.Qty)
 	if err != nil {
 		if errors.Is(err, errmap.ErrQuantityMustBeGreaterThanZero) {
 			return response.Error(c, http.StatusBadRequest, errmap.ErrQuantityMustBeGreaterThanZero.Error())
@@ -228,8 +241,8 @@ func (h *CartHandler) UpdateItem(c echo.Context) error {
 //	@Security	ApiKeyAuth
 //	@Param		itemId	path		int	true	"Item ID"
 //	@Success	204		{object}	object
-//	@Failure	400		{object}	object
-//	@Failure	404		{object}	object
+//	@Failure	400		{object}	response.ResponseError
+//	@Failure	404		{object}	response.ResponseError
 //	@Router		/api/cart/items/{itemId} [delete]
 func (h *CartHandler) DeleteItem(c echo.Context) error {
 	userID, exit := middleware.GetUserID(c)
@@ -257,29 +270,34 @@ func (h *CartHandler) DeleteItem(c echo.Context) error {
 
 // Estimate godoc
 //
-//	@Summary	Estimate shipping per shop for given cart items
-//	@Tags		Cart
-//	@Security	ApiKeyAuth
-//	@Accept		json
-//	@Produce	json
-//	@Param		body	body		object	true	"{\"cartItemIds\": [1,3,5]}"
-//	@Success	200		{object}	object
-//	@Failure	400		{object}	object
-//	@Router		/api/cart/estimate [post]
+//	@Summary		Estimate shipping per shop for given cart items
+//	@Description	Calculate shipping costs grouped by shop for selected cart items
+//	@Tags			Cart
+//	@Security		ApiKeyAuth
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		entity.EstimateShippingRequest	true	"Cart item IDs to estimate"
+//	@Success		200		{object}	entity.CartShippingEstimateResponse
+//	@Failure		400		{object}	response.ResponseError
+//	@Failure		401		{object}	response.ResponseError
+//	@Failure		500		{object}	response.ResponseError
+//	@Router			/api/cart/estimate [post]
 func (h *CartHandler) Estimate(c echo.Context) error {
 	userID, exit := middleware.GetUserID(c)
 	if exit != nil {
 		return response.Error(c, http.StatusUnauthorized, errmap.ErrUnauthorized.Error())
 	}
 
-	var body struct {
-		CartItemIDs []int `json:"cartItemIds"`
-	}
-	if err := c.Bind(&body); err != nil {
+	var req entity.EstimateShippingRequest
+	if err := c.Bind(&req); err != nil {
 		return response.Error(c, http.StatusBadRequest, errmap.ErrInvalidRequest.Error())
 	}
 
-	resp, err := h.cartUsecase.EstimateShipping(c.Request().Context(), userID, body.CartItemIDs)
+	if err := c.Validate(&req); err != nil {
+		return response.Error(c, http.StatusBadRequest, err.Error())
+	}
+
+	resp, err := h.cartUsecase.EstimateShipping(c.Request().Context(), userID, req.CartItemIDs)
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}

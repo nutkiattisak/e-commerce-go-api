@@ -9,12 +9,12 @@ import (
 )
 
 type UserUsecase interface {
-	GetProfile(ctx context.Context, userID uuid.UUID) (*entity.User, error)
+	GetProfile(ctx context.Context, userID uuid.UUID) (*entity.UserResponse, error)
 	GetAddresses(ctx context.Context, userID uuid.UUID) ([]*entity.Address, error)
 	CreateAddress(ctx context.Context, addr *entity.Address) (*entity.Address, error)
 	GetAddressByID(ctx context.Context, id int) (*entity.Address, error)
 	UpdateAddress(ctx context.Context, addr *entity.Address, userID uuid.UUID) (*entity.Address, error)
-	UpdateProfile(ctx context.Context, user *entity.User) (*entity.User, error)
+	UpdateProfile(ctx context.Context, user *entity.User) (*entity.UserResponse, error)
 	DeleteAddress(ctx context.Context, id int, userID uuid.UUID) error
 }
 

@@ -21,9 +21,15 @@ func NewAuthUsecase(authRepo domain.AuthRepository) domain.AuthUsecase {
 	}
 }
 
-func (u *authUsecase) Register(ctx context.Context, req *entity.RegisterRequest) (*entity.User, error) {
+func (u *authUsecase) Register(ctx context.Context, req *entity.RegisterRequest) (*entity.RegisterResponse, error) {
 
-	existingUser, _ := u.authRepo.GetUserByEmail(ctx, req.Email)
+	existingUser, err := u.authRepo.GetUserByEmail(ctx, req.Email)
+
+	if err != nil {
+		if !errors.Is(err, errmap.ErrNotFound) {
+			return nil, err
+		}
+	}
 
 	if existingUser != nil {
 		return nil, errmap.ErrEmailAlreadyExists
@@ -62,8 +68,16 @@ func (u *authUsecase) Register(ctx context.Context, req *entity.RegisterRequest)
 		return nil, err
 	}
 
-	user.Password = ""
-	return user, nil
+	return &entity.RegisterResponse{
+		ID:          user.ID,
+		FirstName:   user.FirstName,
+		LastName:    user.LastName,
+		Email:       user.Email,
+		PhoneNumber: user.PhoneNumber,
+		ImageURL:    user.ImageURL,
+		CreatedAt:   user.CreatedAt,
+		UpdatedAt:   user.UpdatedAt,
+	}, nil
 }
 
 func (u *authUsecase) RegisterShop(ctx context.Context, req *entity.RegisterShopRequest) (*entity.RegisterShopResponse, error) {
@@ -124,7 +138,23 @@ func (u *authUsecase) RegisterShop(ctx context.Context, req *entity.RegisterShop
 	shop.User = user
 
 	return &entity.RegisterShopResponse{
-		Shop: shop,
+		ID:          shop.ID,
+		Name:        shop.Name,
+		Description: shop.Description,
+		ImageURL:    shop.ImageURL,
+		Address:     shop.Address,
+		CreatedAt:   shop.CreatedAt,
+		UpdatedAt:   shop.UpdatedAt,
+		User: &entity.RegisterResponse{
+			ID:          user.ID,
+			FirstName:   user.FirstName,
+			LastName:    user.LastName,
+			Email:       user.Email,
+			PhoneNumber: user.PhoneNumber,
+			ImageURL:    user.ImageURL,
+			CreatedAt:   user.CreatedAt,
+			UpdatedAt:   user.UpdatedAt,
+		},
 	}, nil
 }
 
