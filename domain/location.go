@@ -7,9 +7,9 @@ import (
 )
 
 type LocationUsecase interface {
-	GetProvinces(ctx context.Context) ([]*entity.Province, error)
-	GetDistrictsByProvince(ctx context.Context, provinceID int) ([]*entity.District, error)
-	GetSubDistrictsByDistrict(ctx context.Context, districtID int) ([]*entity.SubDistrict, error)
+	GetProvinces(ctx context.Context) ([]*entity.ProvinceResponse, error)
+	GetDistrictsByProvince(ctx context.Context, provinceID int) ([]*entity.DistrictResponse, error)
+	GetSubDistrictsByDistrict(ctx context.Context, districtID int) ([]*entity.SubDistrictResponse, error)
 }
 
 type LocationRepository interface {

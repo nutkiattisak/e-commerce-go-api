@@ -108,6 +108,7 @@ func (h *ProductHandler) GetProduct(c echo.Context) error {
 //	@Success		200	{object}	entity.ProductListResponse
 //	@Failure		400	{object}	response.ResponseError
 //	@Failure		401	{object}	response.ResponseError
+//	@Failure		403	{object}	response.ResponseError
 //	@Failure		500	{object}	response.ResponseError
 //	@Router			/api/shop/products [get]
 func (h *ProductHandler) ListShopProducts(c echo.Context) error {
@@ -136,6 +137,7 @@ func (h *ProductHandler) ListShopProducts(c echo.Context) error {
 //	@Success		201		{object}	entity.ProductResponse
 //	@Failure		400		{object}	response.ResponseError
 //	@Failure		401		{object}	response.ResponseError
+//	@Failure		403		{object}	response.ResponseError
 //	@Failure		500		{object}	response.ResponseError
 //	@Router			/api/shop/products [post]
 func (h *ProductHandler) CreateShopProduct(c echo.Context) error {

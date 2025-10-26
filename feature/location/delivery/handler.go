@@ -8,7 +8,6 @@ import (
 	"gorm.io/gorm"
 
 	"ecommerce-go-api/domain"
-	"ecommerce-go-api/entity"
 	"ecommerce-go-api/feature/location/repository"
 	"ecommerce-go-api/feature/location/usecase"
 	"ecommerce-go-api/internal/errmap"
@@ -30,7 +29,8 @@ func NewLocationHandler(u domain.LocationUsecase) *LocationHandler {
 //	@Tags			Location
 //	@Produce		json
 //	@Success		200	{array}		entity.ProvinceResponse
-//	@Failure		500	{object}	object
+//	@Failure		400			{object}	response.ResponseError
+//	@Failure		500			{object}	response.ResponseError
 //	@Router			/api/locations/provinces [get]
 func (h *LocationHandler) GetProvinces(c echo.Context) error {
 	ctx := c.Request().Context()
@@ -39,19 +39,7 @@ func (h *LocationHandler) GetProvinces(c echo.Context) error {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
 
-	resp := make([]entity.ProvinceResponse, 0, len(provinces))
-	for _, p := range provinces {
-		if p == nil {
-			continue
-		}
-		resp = append(resp, entity.ProvinceResponse{
-			ID:     p.ID,
-			NameTH: p.NameTH,
-			NameEN: p.NameEN,
-		})
-	}
-
-	return response.Success(c, http.StatusOK, "provinces retrieved", resp)
+	return response.Success(c, http.StatusOK, "provinces retrieved", provinces)
 }
 
 // GetDistrictsByProvince godoc
@@ -62,8 +50,8 @@ func (h *LocationHandler) GetProvinces(c echo.Context) error {
 //	@Produce		json
 //	@Param			provinceId	query		int	true	"Province ID"
 //	@Success		200			{array}		entity.DistrictResponse
-//	@Failure		400			{object}	object
-//	@Failure		500			{object}	object
+//	@Failure		400			{object}	response.ResponseError
+//	@Failure		500			{object}	response.ResponseError
 //	@Router			/api/locations/districts [get]
 func (h *LocationHandler) GetDistrictsByProvince(c echo.Context) error {
 	provinceId := c.QueryParam("provinceId")
@@ -80,31 +68,7 @@ func (h *LocationHandler) GetDistrictsByProvince(c echo.Context) error {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
 
-	resp := make([]entity.DistrictResponse, 0, len(districts))
-	for _, d := range districts {
-		if d == nil {
-			continue
-		}
-		var provResp *entity.ProvinceResponse
-		if d.Province != nil {
-			prov := d.Province
-			provResp = &entity.ProvinceResponse{
-				ID:     prov.ID,
-				NameTH: prov.NameTH,
-				NameEN: prov.NameEN,
-			}
-		}
-
-		resp = append(resp, entity.DistrictResponse{
-			ID:         d.ID,
-			ProvinceID: d.ProvinceID,
-			NameTH:     d.NameTH,
-			NameEN:     d.NameEN,
-			Province:   provResp,
-		})
-	}
-
-	return response.Success(c, http.StatusOK, "districts retrieved", resp)
+	return response.Success(c, http.StatusOK, "districts retrieved", districts)
 }
 
 // GetSubDistrictsByDistrict godoc
@@ -115,8 +79,8 @@ func (h *LocationHandler) GetDistrictsByProvince(c echo.Context) error {
 //	@Produce		json
 //	@Param			districtId	query		int	true	"District ID"
 //	@Success		200			{array}		entity.SubDistrictResponse
-//	@Failure		400			{object}	object
-//	@Failure		500			{object}	object
+//	@Failure		400			{object}	response.ResponseError
+//	@Failure		500			{object}	response.ResponseError
 //	@Router			/api/locations/sub-districts [get]
 func (h *LocationHandler) GetSubDistrictsByDistrict(c echo.Context) error {
 	districtId := c.QueryParam("districtId")
@@ -133,22 +97,7 @@ func (h *LocationHandler) GetSubDistrictsByDistrict(c echo.Context) error {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
 
-	resp := make([]entity.SubDistrictResponse, 0, len(subs))
-	for _, s := range subs {
-		if s == nil {
-			continue
-		}
-
-		resp = append(resp, entity.SubDistrictResponse{
-			ID:         s.ID,
-			Zipcode:    s.Zipcode,
-			NameTH:     s.NameTH,
-			NameEN:     s.NameEN,
-			DistrictID: s.DistrictID,
-		})
-	}
-
-	return response.Success(c, http.StatusOK, "subdistricts retrieved", resp)
+	return response.Success(c, http.StatusOK, "subdistricts retrieved", subs)
 }
 
 func RegisterLocationHandler(group *echo.Group, db *gorm.DB) {
