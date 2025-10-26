@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 
@@ -50,38 +49,22 @@ func RegisterProductHandler(group *echo.Group, db *gorm.DB) {
 //	@Param			page		query		int		false	"page"
 //	@Param			perPage		query		int		false	"perPage"
 //	@Success		200			{object}	entity.ProductListResponse
-//	@Failure		400			{object}	object
-//	@Failure		404			{object}	object
-//	@Failure		500			{object}	object
+//	@Failure		400			{object}	response.ResponseError
+//	@Failure		404			{object}	response.ResponseError
+//	@Failure		500			{object}	response.ResponseError
 //	@Router			/api/products [get]
 func (h *ProductHandler) ListProducts(c echo.Context) error {
 	var q entity.ProductListRequest
 	if err := c.Bind(&q); err != nil {
 		return response.Error(c, http.StatusBadRequest, "invalid request")
 	}
-	items, total, err := h.usecase.ListProducts(c.Request().Context(), &q)
+
+	result, err := h.usecase.ListProducts(c.Request().Context(), &q)
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
-	var respItems []*entity.ProductResponse
-	for _, p := range items {
-		pr := &entity.ProductResponse{
-			ID:          p.ID,
-			Name:        p.Name,
-			Description: p.Description,
-			ImageURL:    p.ImageURL,
-			Price:       p.Price,
-			StockQty:    p.StockQty,
-			ShopID:      p.ShopID,
-			CreatedAt:   p.CreatedAt,
-			UpdatedAt:   p.UpdatedAt,
-		}
-		if p.Shop.ID != uuid.Nil {
-			pr.Shop = &entity.ProductShopResponse{ID: p.Shop.ID, Name: p.Shop.Name, ImageURL: p.Shop.ImageURL}
-		}
-		respItems = append(respItems, pr)
-	}
-	return response.Success(c, http.StatusOK, "ok", &entity.ProductListResponse{Items: respItems, Total: total})
+
+	return response.Success(c, http.StatusOK, "ok", result)
 }
 
 // GetProduct godoc
@@ -93,9 +76,9 @@ func (h *ProductHandler) ListProducts(c echo.Context) error {
 //	@Produce		json
 //	@Param			productId	path		string	true	"Product ID"
 //	@Success		200			{object}	entity.ProductResponse
-//	@Failure		400			{object}	object
-//	@Failure		404			{object}	object
-//	@Failure		500			{object}	object
+//	@Failure		400			{object}	response.ResponseError
+//	@Failure		404			{object}	response.ResponseError
+//	@Failure		500			{object}	response.ResponseError
 //	@Router			/api/products/{productId} [get]
 func (h *ProductHandler) GetProduct(c echo.Context) error {
 	productId, err := strconv.Atoi(c.Param("productId"))
@@ -103,7 +86,7 @@ func (h *ProductHandler) GetProduct(c echo.Context) error {
 		return response.Error(c, http.StatusBadRequest, errmap.ErrInvalidProductID.Error())
 	}
 
-	p, err := h.usecase.GetProductByID(c.Request().Context(), productId)
+	product, err := h.usecase.GetProductByID(c.Request().Context(), productId)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return response.Error(c, http.StatusNotFound, errmap.ErrProductNotFound.Error())
@@ -111,23 +94,7 @@ func (h *ProductHandler) GetProduct(c echo.Context) error {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
 
-	pr := &entity.ProductResponse{
-		ID:          p.ID,
-		Name:        p.Name,
-		Description: p.Description,
-		ImageURL:    p.ImageURL,
-		Price:       p.Price,
-		StockQty:    p.StockQty,
-		IsActive:    p.IsActive,
-		ShopID:      p.ShopID,
-		CreatedAt:   p.CreatedAt,
-		UpdatedAt:   p.UpdatedAt,
-	}
-	if p.Shop.ID != uuid.Nil {
-		pr.Shop = &entity.ProductShopResponse{ID: p.Shop.ID, Name: p.Shop.Name, ImageURL: p.Shop.ImageURL}
-	}
-
-	return response.Success(c, http.StatusOK, "ok", pr)
+	return response.Success(c, http.StatusOK, "ok", product)
 }
 
 // ListShopProducts godoc
@@ -139,9 +106,9 @@ func (h *ProductHandler) GetProduct(c echo.Context) error {
 //	@Produce		json
 //	@Security		ApiKeyAuth
 //	@Success		200	{object}	entity.ProductListResponse
-//	@Failure		400	{object}	object
-//	@Failure		401	{object}	object
-//	@Failure		500	{object}	object
+//	@Failure		400	{object}	response.ResponseError
+//	@Failure		401	{object}	response.ResponseError
+//	@Failure		500	{object}	response.ResponseError
 //	@Router			/api/shop/products [get]
 func (h *ProductHandler) ListShopProducts(c echo.Context) error {
 	userID, err := middleware.GetUserID(c)
@@ -149,30 +116,12 @@ func (h *ProductHandler) ListShopProducts(c echo.Context) error {
 		return response.Error(c, http.StatusUnauthorized, "unauthorized")
 	}
 
-	items, total, err := h.usecase.GetProductsByUserID(c.Request().Context(), userID)
+	result, err := h.usecase.GetProductsByUserID(c.Request().Context(), userID)
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
-	var respItems []*entity.ProductResponse
-	for _, p := range items {
-		pr := &entity.ProductResponse{
-			ID:          p.ID,
-			Name:        p.Name,
-			Description: p.Description,
-			ImageURL:    p.ImageURL,
-			Price:       p.Price,
-			StockQty:    p.StockQty,
-			IsActive:    p.IsActive,
-			ShopID:      p.ShopID,
-			CreatedAt:   p.CreatedAt,
-			UpdatedAt:   p.UpdatedAt,
-		}
-		if p.Shop.ID != uuid.Nil {
-			pr.Shop = &entity.ProductShopResponse{ID: p.Shop.ID, Name: p.Shop.Name, ImageURL: p.Shop.ImageURL}
-		}
-		respItems = append(respItems, pr)
-	}
-	return response.Success(c, http.StatusOK, "ok", &entity.ProductListResponse{Items: respItems, Total: total})
+
+	return response.Success(c, http.StatusOK, "ok", result)
 }
 
 // CreateShopProduct godoc
@@ -185,9 +134,9 @@ func (h *ProductHandler) ListShopProducts(c echo.Context) error {
 //	@Security		ApiKeyAuth
 //	@Param			body	body		entity.CreateProductRequest	true	"Create Product Request"
 //	@Success		201		{object}	entity.ProductResponse
-//	@Failure		400		{object}	object
-//	@Failure		401		{object}	object
-//	@Failure		500		{object}	object
+//	@Failure		400		{object}	response.ResponseError
+//	@Failure		401		{object}	response.ResponseError
+//	@Failure		500		{object}	response.ResponseError
 //	@Router			/api/shop/products [post]
 func (h *ProductHandler) CreateShopProduct(c echo.Context) error {
 	userID, err := middleware.GetUserID(c)
@@ -215,11 +164,11 @@ func (h *ProductHandler) CreateShopProduct(c echo.Context) error {
 //	@Produce		json
 //	@Param			productId	path		int	true	"Product ID"
 //	@Success		200			{object}	entity.ProductResponse
-//	@Failure		400			{object}	object
-//	@Failure		401			{object}	object
-//	@Failure		403			{object}	object
-//	@Failure		404			{object}	object
-//	@Failure		500			{object}	object
+//	@Failure		400			{object}	response.ResponseError
+//	@Failure		401			{object}	response.ResponseError
+//	@Failure		403			{object}	response.ResponseError
+//	@Failure		404			{object}	response.ResponseError
+//	@Failure		500			{object}	response.ResponseError
 //	@Router			/api/shop/products/{productId} [get]
 func (h *ProductHandler) GetShopProduct(c echo.Context) error {
 	userID, err := middleware.GetUserID(c)
@@ -232,7 +181,7 @@ func (h *ProductHandler) GetShopProduct(c echo.Context) error {
 		return response.Error(c, http.StatusBadRequest, errmap.ErrInvalidProductID.Error())
 	}
 
-	p, err := h.usecase.GetProductByID(c.Request().Context(), productID)
+	product, err := h.usecase.GetProductByID(c.Request().Context(), productID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return response.Error(c, http.StatusNotFound, errmap.ErrProductNotFound.Error())
@@ -244,27 +193,11 @@ func (h *ProductHandler) GetShopProduct(c echo.Context) error {
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, errmap.ErrInternalServer.Error())
 	}
-	if p.ShopID != shop.ID {
+	if product.ShopID != shop.ID {
 		return response.Error(c, http.StatusForbidden, errmap.ErrForbidden.Error())
 	}
 
-	resp := &entity.ProductResponse{
-		ID:          p.ID,
-		Name:        p.Name,
-		Description: p.Description,
-		ImageURL:    p.ImageURL,
-		Price:       p.Price,
-		StockQty:    p.StockQty,
-		IsActive:    p.IsActive,
-		ShopID:      p.ShopID,
-		CreatedAt:   p.CreatedAt,
-		UpdatedAt:   p.UpdatedAt,
-	}
-	if p.Shop.ID != uuid.Nil {
-		resp.Shop = &entity.ProductShopResponse{ID: p.Shop.ID, Name: p.Shop.Name, ImageURL: p.Shop.ImageURL}
-	}
-
-	return response.Success(c, http.StatusOK, "ok", resp)
+	return response.Success(c, http.StatusOK, "ok", product)
 }
 
 // UpdateShopProduct godoc
@@ -276,12 +209,12 @@ func (h *ProductHandler) GetShopProduct(c echo.Context) error {
 //	@Produce		json
 //	@Param			productId	path		int							true	"Product ID"
 //	@Param			body		body		entity.UpdateProductRequest	true	"Update Product Request"
-//	@Success		204			{object}	object
-//	@Failure		400			{object}	object
-//	@Failure		401			{object}	object
-//	@Failure		403			{object}	object
-//	@Failure		404			{object}	object
-//	@Failure		500			{object}	object
+//	@Success		200			{object}	entity.ProductResponse
+//	@Failure		400			{object}	response.ResponseError
+//	@Failure		401			{object}	response.ResponseError
+//	@Failure		403			{object}	response.ResponseError
+//	@Failure		404			{object}	response.ResponseError
+//	@Failure		500			{object}	response.ResponseError
 //	@Router			/api/shop/products/{productId} [put]
 func (h *ProductHandler) UpdateShopProduct(c echo.Context) error {
 	userID, err := middleware.GetUserID(c)
@@ -299,7 +232,11 @@ func (h *ProductHandler) UpdateShopProduct(c echo.Context) error {
 		return response.Error(c, http.StatusBadRequest, err.Error())
 	}
 
-	_, err = h.usecase.UpdateProduct(c.Request().Context(), userID, productID, &req)
+	if err := c.Validate(&req); err != nil {
+		return response.Error(c, http.StatusBadRequest, err.Error())
+	}
+
+	product, err := h.usecase.UpdateProduct(c.Request().Context(), userID, productID, &req)
 	if err != nil {
 		if errors.Is(err, errmap.ErrForbidden) {
 			return response.Error(c, http.StatusForbidden, errmap.ErrForbidden.Error())
@@ -311,7 +248,7 @@ func (h *ProductHandler) UpdateShopProduct(c echo.Context) error {
 		return response.Error(c, http.StatusInternalServerError, errmap.ErrInternalServer.Error())
 	}
 
-	return response.NoContent(c)
+	return response.Success(c, http.StatusOK, "updated", product)
 }
 
 // DeleteShopProduct godoc
@@ -323,11 +260,11 @@ func (h *ProductHandler) UpdateShopProduct(c echo.Context) error {
 //	@Produce		json
 //	@Param			productId	path		int	true	"Product ID"
 //	@Success		204			{object}	object
-//	@Failure		400			{object}	object
-//	@Failure		401			{object}	object
-//	@Failure		403			{object}	object
-//	@Failure		404			{object}	object
-//	@Failure		500			{object}	object
+//	@Failure		400			{object}	response.ResponseError
+//	@Failure		401			{object}	response.ResponseError
+//	@Failure		403			{object}	response.ResponseError
+//	@Failure		404			{object}	response.ResponseError
+//	@Failure		500			{object}	response.ResponseError
 //	@Router			/api/shop/products/{productId} [delete]
 func (h *ProductHandler) DeleteShopProduct(c echo.Context) error {
 	userID, err := middleware.GetUserID(c)

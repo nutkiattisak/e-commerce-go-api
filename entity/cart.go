@@ -34,7 +34,7 @@ type CartResponse struct {
 	CreatedAt time.Time          `json:"createdAt"`
 	UpdatedAt time.Time          `json:"updatedAt"`
 	Summary   CartSummary        `json:"summary"`
-	Items     []CartItemResponse `json:"items,omitempty"`
+	Items     []CartItemResponse `json:"items"`
 }
 
 type CartItemResponse struct {
@@ -54,6 +54,8 @@ type CourierOption struct {
 
 type CartShopEstimate struct {
 	ShopID   string         `json:"shopId"`
+	Name     string         `json:"name"`
+	ImageURL string         `json:"imageUrl"`
 	Items    []CartItemShop `json:"items"`
 	Subtotal float64        `json:"subtotal"`
 	Courier  CourierOption  `json:"courier"`

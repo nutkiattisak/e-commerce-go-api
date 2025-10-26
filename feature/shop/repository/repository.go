@@ -34,6 +34,17 @@ func (r *shopRepository) GetShopByUserID(ctx context.Context, userID uuid.UUID) 
 	return &s, nil
 }
 
+func (r *shopRepository) GetShopsByIDs(ctx context.Context, ids []uuid.UUID) ([]*entity.Shop, error) {
+	var shops []*entity.Shop
+	if len(ids) == 0 {
+		return shops, nil
+	}
+	if err := r.db.WithContext(ctx).Where("id IN ? AND deleted_at IS NULL", ids).Find(&shops).Error; err != nil {
+		return nil, err
+	}
+	return shops, nil
+}
+
 func (r *shopRepository) GetProductsByUserID(ctx context.Context, userID uuid.UUID) ([]*entity.Product, error) {
 	var products []*entity.Product
 	if err := r.db.WithContext(ctx).Where("user_id = ? AND deleted_at IS NULL", userID).Find(&products).Error; err != nil {

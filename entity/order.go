@@ -90,3 +90,27 @@ type OrderResponse struct {
 	CancelledAt         *time.Time          `json:"cancelledAt"`
 	ShopOrders          []ShopOrderResponse `json:"shopOrders"`
 }
+
+type OrderListResponse struct {
+	ID                  uuid.UUID           `json:"id"`
+	OrderID             uuid.UUID           `json:"orderId"`
+	OrderNumber         string              `json:"orderNumber"`
+	Status              string              `json:"status"`
+	Shipping            float64             `json:"shipping"`
+	GrandTotal          float64             `json:"grandTotal"`
+	CancelReason        string              `json:"cancelReason"`
+	ShippingName        string              `json:"shippingName"`
+	ShippingPhone       string              `json:"shippingPhone"`
+	ShippingLine1       string              `json:"shippingLine1"`
+	ShippingLine2       string              `json:"shippingLine2"`
+	ShippingSubDistrict string              `json:"shippingSubDistrict"`
+	ShippingDistrict    string              `json:"shippingDistrict"`
+	ShippingProvince    string              `json:"shippingProvince"`
+	ShippingZipcode     string              `json:"shippingZipcode"`
+	PaymentMethod       string              `json:"paymentMethod"`
+	CreatedAt           time.Time           `json:"createdAt"`
+	UpdatedAt           time.Time           `json:"updatedAt"`
+	CancelledAt         *time.Time          `json:"cancelledAt"`
+	Shop                OrderShopResponse   `json:"shop"`
+	OrderItems          []OrderItemResponse `json:"orderItems"`
+}

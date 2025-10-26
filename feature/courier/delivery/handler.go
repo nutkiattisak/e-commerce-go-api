@@ -24,8 +24,8 @@ func NewCourierHandler(usecase domain.CourierUsecase) *CourierHandler {
 //	@Tags			Courier
 //	@Produce		json
 //	@Success		200	{array}		entity.CourierListResponse
-//	@Failure		401	{object}	object
-//	@Failure		500	{object}	object
+//	@Failure		401	{object}	response.ResponseError
+//	@Failure		500	{object}	response.ResponseError
 //	@Router			/api/couriers [get]
 func (h *CourierHandler) ListCouriers(c echo.Context) error {
 	ctx := c.Request().Context()

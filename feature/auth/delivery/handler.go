@@ -34,9 +34,9 @@ func NewAuthHandler(authUsecase domain.AuthUsecase) *AuthHandler {
 //	@Accept			json
 //	@Produce		json
 //	@Param			body	body		entity.RegisterRequest	true	"Register payload"
-//	@Success		201		{object}	object
-//	@Failure		400		{object}	object
-//	@Failure		500		{object}	object
+//	@Success		201		{object}	entity.RegisterResponse
+//	@Failure		400		{object}	response.ResponseError
+//	@Failure		500		{object}	response.ResponseError
 //	@Router			/api/auth/register [post]
 func (h *AuthHandler) Register(c echo.Context) error {
 	var req entity.RegisterRequest
@@ -64,8 +64,9 @@ func (h *AuthHandler) Register(c echo.Context) error {
 //	@Accept			json
 //	@Produce		json
 //	@Param			body	body		entity.RegisterShopRequest	true	"Register shop payload"
-//	@Success		201		{object}	object
-//	@Failure		400		{object}	object
+//	@Success		201		{object}	entity.RegisterShopResponse
+//	@Failure		400		{object}	response.ResponseError
+//	@Failure		500		{object}	response.ResponseError
 //	@Router			/api/auth/register-shop [post]
 func (h *AuthHandler) RegisterShop(c echo.Context) error {
 	var req entity.RegisterShopRequest
@@ -94,8 +95,8 @@ func (h *AuthHandler) RegisterShop(c echo.Context) error {
 //	@Produce		json
 //	@Param			body	body		entity.LoginRequest	true	"Login payload"
 //	@Success		200		{object}	entity.AuthResponse
-//	@Failure		400		{object}	error
-//	@Failure		401		{object}	error
+//	@Failure		401		{object}	response.ResponseError
+//	@Failure		500		{object}	response.ResponseError
 //	@Router			/api/auth/login [post]
 func (h *AuthHandler) Login(c echo.Context) error {
 	var req entity.LoginRequest
@@ -124,7 +125,9 @@ func (h *AuthHandler) Login(c echo.Context) error {
 //	@Produce		json
 //	@Param			body	body		entity.RefreshTokenRequest	true	"Refresh payload"
 //	@Success		200		{object}	entity.AuthResponse
-//	@Failure		401		{object}	object
+//	@Failure		400		{object}	response.ResponseError
+//	@Failure		401		{object}	response.ResponseError
+//	@Failure		500		{object}	response.ResponseError
 //	@Router			/api/auth/refresh [post]
 func (h *AuthHandler) RefreshToken(c echo.Context) error {
 	var req entity.RefreshTokenRequest

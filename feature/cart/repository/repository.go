@@ -6,7 +6,6 @@ import (
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 
 	"ecommerce-go-api/domain"
 	"ecommerce-go-api/entity"
@@ -62,28 +61,51 @@ func (r *cartRepository) AddCartItem(ctx context.Context, item *entity.CartItem)
 }
 
 func (r *cartRepository) UpsertCartItem(ctx context.Context, item *entity.CartItem) (*entity.CartItem, bool, error) {
+	var existing entity.CartItem
+	err := r.db.WithContext(ctx).
+		Where("cart_id = ? AND product_id = ? AND deleted_at IS NULL", item.CartID, item.ProductID).
+		First(&existing).Error
 
-	res := r.db.WithContext(ctx).Clauses(clause.OnConflict{
-		Columns: []clause.Column{{Name: "cart_id"}, {Name: "product_id"}},
-		DoUpdates: clause.Assignments(map[string]interface{}{
-			"qty":        gorm.Expr("cart_items.qty + EXCLUDED.qty"),
-			"updated_at": gorm.Expr("NOW()"),
-			"deleted_at": gorm.Expr("NULL"),
-		}),
-	}).Create(item)
+	if err == nil {
+		existing.Qty += item.Qty
+		if updateErr := r.db.WithContext(ctx).Save(&existing).Error; updateErr != nil {
+			return nil, false, updateErr
+		}
 
-	if res.Error != nil {
-		return nil, false, res.Error
+		var out entity.CartItem
+		if err := r.db.WithContext(ctx).
+			Preload("Product").
+			Preload("Product.Shop").
+			Where("id = ?", existing.ID).
+			First(&out).Error; err != nil {
+			return nil, false, err
+		}
+
+		return &out, false, nil
 	}
 
-	created := item.ID != 0
-
-	var out entity.CartItem
-	if err := r.db.WithContext(ctx).Preload("Product").Preload("Product.Shop").Where("cart_id = ? AND product_id = ? AND deleted_at IS NULL", item.CartID, item.ProductID).First(&out).Error; err != nil {
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, false, err
 	}
 
-	return &out, created, nil
+	r.db.WithContext(ctx).Unscoped().
+		Where("cart_id = ? AND product_id = ? AND deleted_at IS NOT NULL", item.CartID, item.ProductID).
+		Delete(&entity.CartItem{})
+
+	if createErr := r.db.WithContext(ctx).Create(item).Error; createErr != nil {
+		return nil, false, createErr
+	}
+
+	var out entity.CartItem
+	if err := r.db.WithContext(ctx).
+		Preload("Product").
+		Preload("Product.Shop").
+		Where("id = ?", item.ID).
+		First(&out).Error; err != nil {
+		return nil, false, err
+	}
+
+	return &out, true, nil
 }
 
 func (r *cartRepository) GetCartItemByID(ctx context.Context, id int) (*entity.CartItem, error) {

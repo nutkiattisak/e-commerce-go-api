@@ -20,6 +20,7 @@ type ShopUsecase interface {
 type ShopRepository interface {
 	GetShopByID(ctx context.Context, id uuid.UUID) (*entity.Shop, error)
 	GetShopByUserID(ctx context.Context, userID uuid.UUID) (*entity.Shop, error)
+	GetShopsByIDs(ctx context.Context, ids []uuid.UUID) ([]*entity.Shop, error)
 	UpdateShop(ctx context.Context, shop *entity.Shop) error
 	ListShops(ctx context.Context, req *entity.ShopListRequest) ([]*entity.Shop, int64, error)
 	UpdateStatus(ctx context.Context, id uuid.UUID, isActive bool) error
