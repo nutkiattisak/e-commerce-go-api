@@ -29,8 +29,8 @@ func NewLocationHandler(u domain.LocationUsecase) *LocationHandler {
 //	@Tags			Location
 //	@Produce		json
 //	@Success		200	{array}		entity.ProvinceResponse
-//	@Failure		400			{object}	response.ResponseError
-//	@Failure		500			{object}	response.ResponseError
+//	@Failure		400	{object}	response.ResponseError
+//	@Failure		500	{object}	response.ResponseError
 //	@Router			/api/locations/provinces [get]
 func (h *LocationHandler) GetProvinces(c echo.Context) error {
 	ctx := c.Request().Context()

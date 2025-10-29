@@ -39,7 +39,7 @@ func NewCartHandler(r domain.CartRepository, u domain.CartUsecase, ou domain.Ord
 //	@Summary		Add item to cart
 //	@Description	Adds a product to the user's cart or updates quantity if it already exists
 //	@Tags			Cart
-//	@Security		ApiKeyAuth
+//	@Security		BearerAuth
 //	@Accept			json
 //	@Produce		json
 //	@Param			body	body		entity.CartItemRequest	true	"Cart item payload"
@@ -120,10 +120,11 @@ func (h *CartHandler) AddItem(c echo.Context) error {
 //	@Summary		Get user's cart
 //	@Description	Retrieves the current user's cart along with items and summary
 //	@Tags			Cart
-//	@Security		ApiKeyAuth
+//	@Security		BearerAuth
 //	@Produce		json
 //	@Success		200	{object}	entity.CartResponse
 //	@Failure		401	{object}	response.ResponseError
+//	@Failure		403	{object}	response.ResponseError
 //	@Failure		500	{object}	response.ResponseError
 //	@Router			/api/cart [get]
 func (h *CartHandler) GetCart(c echo.Context) error {
@@ -184,13 +185,14 @@ func (h *CartHandler) GetCart(c echo.Context) error {
 //
 //	@Summary	Update cart item quantity
 //	@Tags		Cart
-//	@Security	ApiKeyAuth
+//	@Security	BearerAuth
 //	@Accept		json
 //	@Produce	json
 //	@Param		itemId	path		int								true	"Item ID"
 //	@Param		body	body		entity.UpdateCartItemRequest	true	"Update quantity payload"
 //	@Success	204		{object}	object
 //	@Failure	400		{object}	response.ResponseError
+//	@Failure	403		{object}	response.ResponseError
 //	@Failure	404		{object}	response.ResponseError
 //	@Failure	409		{object}	response.ResponseError
 //	@Router		/api/cart/items/{itemId} [put]
@@ -238,10 +240,11 @@ func (h *CartHandler) UpdateItem(c echo.Context) error {
 //
 //	@Summary	Delete cart item
 //	@Tags		Cart
-//	@Security	ApiKeyAuth
+//	@Security	BearerAuth
 //	@Param		itemId	path		int	true	"Item ID"
 //	@Success	204		{object}	object
 //	@Failure	400		{object}	response.ResponseError
+//	@Failure	403		{object}	response.ResponseError
 //	@Failure	404		{object}	response.ResponseError
 //	@Router		/api/cart/items/{itemId} [delete]
 func (h *CartHandler) DeleteItem(c echo.Context) error {
@@ -273,7 +276,7 @@ func (h *CartHandler) DeleteItem(c echo.Context) error {
 //	@Summary		Estimate shipping per shop for given cart items
 //	@Description	Calculate shipping costs grouped by shop for selected cart items
 //	@Tags			Cart
-//	@Security		ApiKeyAuth
+//	@Security		BearerAuth
 //	@Accept			json
 //	@Produce		json
 //	@Param			body	body		entity.EstimateShippingRequest	true	"Cart item IDs to estimate"

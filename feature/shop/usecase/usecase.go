@@ -21,12 +21,38 @@ func NewShopUsecase(s domain.ShopRepository, p domain.ProductRepository) domain.
 	return &shopUsecase{shopRepo: s, productRepo: p}
 }
 
-func (u *shopUsecase) GetShopByID(ctx context.Context, shopID uuid.UUID) (*entity.Shop, error) {
-	return u.shopRepo.GetShopByID(ctx, shopID)
+func (u *shopUsecase) GetShopByID(ctx context.Context, shopID uuid.UUID) (*entity.ShopResponse, error) {
+	shop, err := u.shopRepo.GetShopByID(ctx, shopID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &entity.ShopResponse{
+		ID:          shop.ID,
+		UserID:      shop.UserID,
+		Name:        shop.Name,
+		Description: shop.Description,
+		ImageURL:    shop.ImageURL,
+		Address:     shop.Address,
+		IsActive:    shop.IsActive,
+	}, nil
 }
 
-func (u *shopUsecase) GetShopByUserID(ctx context.Context, userID uuid.UUID) (*entity.Shop, error) {
-	return u.shopRepo.GetShopByUserID(ctx, userID)
+func (u *shopUsecase) GetShopByUserID(ctx context.Context, userID uuid.UUID) (*entity.ShopResponse, error) {
+	shop, err := u.shopRepo.GetShopByUserID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &entity.ShopResponse{
+		ID:          shop.ID,
+		UserID:      shop.UserID,
+		Name:        shop.Name,
+		Description: shop.Description,
+		ImageURL:    shop.ImageURL,
+		Address:     shop.Address,
+		IsActive:    shop.IsActive,
+	}, nil
 }
 
 func (u *shopUsecase) GetProductsByUserID(ctx context.Context, userID uuid.UUID) ([]*entity.Product, int64, error) {
@@ -42,7 +68,7 @@ func (u *shopUsecase) GetProductsByUserID(ctx context.Context, userID uuid.UUID)
 	return items, total, nil
 }
 
-func (u *shopUsecase) UpdateShop(ctx context.Context, shopID uuid.UUID, userID uuid.UUID, req *entity.UpdateShopRequest) (*entity.Shop, error) {
+func (u *shopUsecase) UpdateShop(ctx context.Context, shopID uuid.UUID, userID uuid.UUID, req *entity.UpdateShopRequest) (*entity.ShopResponse, error) {
 	shop, err := u.shopRepo.GetShopByID(ctx, shopID)
 	if err != nil {
 		if errors.Is(err, errmap.ErrNotFound) {
@@ -71,7 +97,15 @@ func (u *shopUsecase) UpdateShop(ctx context.Context, shopID uuid.UUID, userID u
 		return nil, fmt.Errorf("failed to update shop: %w", err)
 	}
 
-	return shop, nil
+	return &entity.ShopResponse{
+		ID:          shop.ID,
+		UserID:      shop.UserID,
+		Name:        shop.Name,
+		Description: shop.Description,
+		ImageURL:    shop.ImageURL,
+		Address:     shop.Address,
+		IsActive:    shop.IsActive,
+	}, nil
 }
 
 func (u *shopUsecase) ListShops(ctx context.Context, req *entity.ShopListRequest) (*entity.ShopListResponse, error) {
@@ -80,7 +114,20 @@ func (u *shopUsecase) ListShops(ctx context.Context, req *entity.ShopListRequest
 		return nil, err
 	}
 
-	return &entity.ShopListResponse{Items: shops, Total: total}, nil
+	items := make([]*entity.ShopResponse, 0, len(shops))
+	for _, shop := range shops {
+		items = append(items, &entity.ShopResponse{
+			ID:          shop.ID,
+			UserID:      shop.UserID,
+			Name:        shop.Name,
+			Description: shop.Description,
+			ImageURL:    shop.ImageURL,
+			Address:     shop.Address,
+			IsActive:    shop.IsActive,
+		})
+	}
+
+	return &entity.ShopListResponse{Items: items, Total: total}, nil
 }
 
 func (u *shopUsecase) ActivateShop(ctx context.Context, shopID uuid.UUID) error {

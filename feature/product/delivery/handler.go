@@ -12,7 +12,7 @@ import (
 	"ecommerce-go-api/entity"
 	"ecommerce-go-api/feature/product/repository"
 	"ecommerce-go-api/feature/product/usecase"
-	shopRepoPkg "ecommerce-go-api/feature/shop/repository"
+	shopRepo "ecommerce-go-api/feature/shop/repository"
 	shopUsecase "ecommerce-go-api/feature/shop/usecase"
 	"ecommerce-go-api/internal/errmap"
 	"ecommerce-go-api/internal/response"
@@ -26,16 +26,6 @@ type ProductHandler struct {
 
 func NewProductHandler(u domain.ProductUsecase, su domain.ShopUsecase) *ProductHandler {
 	return &ProductHandler{usecase: u, shopUsecase: su}
-}
-
-func RegisterProductHandler(group *echo.Group, db *gorm.DB) {
-	repo := repository.NewProductRepository(db)
-	shopRepo := shopRepoPkg.NewShopRepository(db)
-	uc := usecase.NewProductUsecase(repo, shopRepo)
-	shopRepository := shopRepoPkg.NewShopRepository(db)
-	shopUC := shopUsecase.NewShopUsecase(shopRepository, repo)
-	h := NewProductHandler(uc, shopUC)
-	RegisterRoutes(group, h)
 }
 
 // ListProducts godoc
@@ -104,7 +94,7 @@ func (h *ProductHandler) GetProduct(c echo.Context) error {
 //	@Description	Get products for the authenticated user's shop
 //	@Accept			json
 //	@Produce		json
-//	@Security		ApiKeyAuth
+//	@Security		BearerAuth
 //	@Success		200	{object}	entity.ProductListResponse
 //	@Failure		400	{object}	response.ResponseError
 //	@Failure		401	{object}	response.ResponseError
@@ -132,7 +122,7 @@ func (h *ProductHandler) ListShopProducts(c echo.Context) error {
 //	@Description	Create a new product for the authenticated user's shop
 //	@Accept			json
 //	@Produce		json
-//	@Security		ApiKeyAuth
+//	@Security		BearerAuth
 //	@Param			body	body		entity.CreateProductRequest	true	"Create Product Request"
 //	@Success		201		{object}	entity.ProductResponse
 //	@Failure		400		{object}	response.ResponseError
@@ -160,8 +150,9 @@ func (h *ProductHandler) CreateShopProduct(c echo.Context) error {
 // GetShopProduct godoc
 //
 //	@Summary		Get product (my shop)
-//	@Tags			Shops
 //	@Description	Get a single product belonging to the authenticated user's shop
+//	@Tags			Shops
+//	@Security		BearerAuth
 //	@Accept			json
 //	@Produce		json
 //	@Param			productId	path		int	true	"Product ID"
@@ -206,6 +197,7 @@ func (h *ProductHandler) GetShopProduct(c echo.Context) error {
 //
 //	@Summary		Update product (my shop)
 //	@Tags			Shops
+//	@Security		BearerAuth
 //	@Description	Update a product belonging to the authenticated user's shop
 //	@Accept			json
 //	@Produce		json
@@ -257,6 +249,7 @@ func (h *ProductHandler) UpdateShopProduct(c echo.Context) error {
 //
 //	@Summary		Delete product (my shop)
 //	@Tags			Shops
+//	@Security		BearerAuth
 //	@Description	Delete a product belonging to the authenticated user's shop
 //	@Accept			json
 //	@Produce		json
@@ -290,4 +283,15 @@ func (h *ProductHandler) DeleteShopProduct(c echo.Context) error {
 	}
 
 	return response.NoContent(c)
+}
+
+func RegisterProductHandler(group *echo.Group, db *gorm.DB) {
+	productRepo := repository.NewProductRepository(db)
+	shopRepository := shopRepo.NewShopRepository(db)
+
+	productUsecase := usecase.NewProductUsecase(productRepo, shopRepository)
+	shopUsecase := shopUsecase.NewShopUsecase(shopRepository, productRepo)
+
+	handler := NewProductHandler(productUsecase, shopUsecase)
+	RegisterRoutes(group, handler)
 }

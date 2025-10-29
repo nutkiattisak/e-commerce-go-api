@@ -92,25 +92,43 @@ func getJWTSecret() string {
 }
 
 func getAccessTokenDuration() time.Duration {
-	duration := os.Getenv("JWT_ACCESS_TOKEN_DURATION")
-	if duration == "" {
-		return 15 * time.Minute
+	const defaultDuration = 15 * time.Minute // 15 minutes
+
+	durationStr := os.Getenv("JWT_ACCESS_TOKEN_DURATION")
+
+	if durationStr == "" {
+		return defaultDuration
 	}
-	d, err := time.ParseDuration(duration)
+
+	d, err := time.ParseDuration(durationStr)
 	if err != nil {
-		return 15 * time.Minute
+		log.Printf(
+			"Warning: Invalid JWT_ACCESS_TOKEN_DURATION format '%s'. Using default 15m.",
+			durationStr,
+		)
+		return defaultDuration
 	}
+
 	return d
 }
 
 func getRefreshTokenDuration() time.Duration {
-	duration := os.Getenv("JWT_REFRESH_TOKEN_DURATION")
-	if duration == "" {
-		return 7 * 24 * time.Hour // 7 days
+	const defaultRefreshDuration = 7 * 24 * time.Hour // 7 days
+
+	durationStr := os.Getenv("JWT_REFRESH_TOKEN_DURATION")
+
+	if durationStr == "" {
+		return defaultRefreshDuration
 	}
-	d, err := time.ParseDuration(duration)
+
+	d, err := time.ParseDuration(durationStr)
 	if err != nil {
-		return 7 * 24 * time.Hour
+		log.Printf(
+			"Warning: Invalid JWT_REFRESH_TOKEN_DURATION format '%s'. Using default 7 days.",
+			durationStr,
+		)
+		return defaultRefreshDuration
 	}
+
 	return d
 }

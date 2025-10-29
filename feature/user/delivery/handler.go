@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
@@ -21,59 +22,6 @@ type UserHandler struct {
 	usecase domain.UserUsecase
 }
 
-func mapAddressToResponse(a *entity.Address) *entity.AddressResponse {
-	if a == nil {
-		return nil
-	}
-	subDistrictNameTh, subDistrictNameEn := "", ""
-	districtNameTh, districtNameEn := "", ""
-	provinceNameTh, provinceNameEn := "", ""
-
-	if a.SubDistrict != (entity.SubDistrict{}) {
-		subDistrictNameTh = a.SubDistrict.NameTH
-		subDistrictNameEn = a.SubDistrict.NameEN
-		if a.SubDistrict.District != nil {
-			districtNameTh = a.SubDistrict.District.NameTH
-			districtNameEn = a.SubDistrict.District.NameEN
-			if a.SubDistrict.District.Province != nil {
-				provinceNameTh = a.SubDistrict.District.Province.NameTH
-				provinceNameEn = a.SubDistrict.District.Province.NameEN
-			}
-		}
-	}
-
-	if districtNameTh == "" && a.District != (entity.District{}) {
-		districtNameTh = a.District.NameTH
-		districtNameEn = a.District.NameEN
-	}
-	if provinceNameTh == "" && a.Province != (entity.Province{}) {
-		provinceNameTh = a.Province.NameTH
-		provinceNameEn = a.Province.NameEN
-	}
-
-	return &entity.AddressResponse{
-		ID:                a.ID,
-		UserID:            a.UserID,
-		Name:              a.Name,
-		Line1:             a.Line1,
-		Line2:             a.Line2,
-		SubDistrictID:     a.SubDistrictID,
-		SubDistrictNameTh: subDistrictNameTh,
-		SubDistrictNameEn: subDistrictNameEn,
-		DistrictNameTh:    districtNameTh,
-		DistrictNameEn:    districtNameEn,
-		DistrictID:        a.DistrictID,
-		ProvinceID:        a.ProvinceID,
-		ProvinceNameTh:    provinceNameTh,
-		ProvinceNameEn:    provinceNameEn,
-		Zipcode:           a.Zipcode,
-		PhoneNumber:       a.PhoneNumber,
-		IsDefault:         a.IsDefault,
-		CreatedAt:         a.CreatedAt,
-		UpdatedAt:         a.UpdatedAt,
-	}
-}
-
 func NewUserHandler(u domain.UserUsecase) *UserHandler {
 	return &UserHandler{usecase: u}
 }
@@ -83,7 +31,7 @@ func NewUserHandler(u domain.UserUsecase) *UserHandler {
 //	@Summary		Get current user's profile
 //	@Description	Get profile of the authenticated user
 //	@Tags			User
-//	@Security		ApiKeyAuth
+//	@Security		BearerAuth
 //	@Produce		json
 //	@Success		200	{object}	entity.UserResponse
 //	@Failure		400	{object}	response.ResponseError
@@ -107,12 +55,12 @@ func (h *UserHandler) GetProfile(c echo.Context) error {
 //
 //	@Summary	Update authenticated user's profile
 //	@Tags		User
-//	@Security	ApiKeyAuth
+//	@Security	BearerAuth
 //	@Accept		json
 //	@Produce	json
 //	@Param		body	body		entity.UpdateProfileRequest	true	"Update profile payload"
-//	@Success	200		{object}	entity.UserResponse
-//	@Failure	400		{object}	object
+//	@Success	204		{object}	object
+//	@Failure	400		{object}	response.ResponseError
 //	@Failure	401		{object}	response.ResponseError
 //	@Failure	404		{object}	response.ResponseError
 //	@Router		/api/profile [patch]
@@ -137,24 +85,24 @@ func (h *UserHandler) UpdateProfile(c echo.Context) error {
 		LastName:    req.LastName,
 		PhoneNumber: req.PhoneNumber,
 		ImageURL:    req.ImageURL,
+		UpdatedAt:   time.Now(),
 	}
 
-	updated, err := h.usecase.UpdateProfile(c.Request().Context(), user)
-	if err != nil {
+	if err := h.usecase.UpdateProfile(c.Request().Context(), user); err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return response.Error(c, http.StatusNotFound, "user not found")
 		}
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
 
-	return response.Success(c, http.StatusOK, "profile updated", updated)
+	return response.NoContent(c)
 }
 
 // GetAddresses godoc
 //
 //	@Summary	Get authenticated user's addresses
 //	@Tags		User
-//	@Security	ApiKeyAuth
+//	@Security	BearerAuth
 //	@Produce	json
 //	@Success	200	{array}		entity.AddressResponse
 //	@Failure	401	{object}	object
@@ -170,19 +118,14 @@ func (h *UserHandler) GetAddresses(c echo.Context) error {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
 
-	var out []*entity.AddressResponse
-	for _, a := range addrs {
-		out = append(out, mapAddressToResponse(a))
-	}
-
-	return response.Success(c, http.StatusOK, "addresses retrieved", out)
+	return response.Success(c, http.StatusOK, "addresses retrieved", addrs)
 }
 
 // GetAddressByID godoc
 //
 //	@Summary	Get address by id for authenticated user
 //	@Tags		User
-//	@Security	ApiKeyAuth
+//	@Security	BearerAuth
 //	@Produce	json
 //	@Param		addressId	path		int	true	"Address ID"
 //	@Success	200			{object}	entity.AddressResponse
@@ -217,18 +160,18 @@ func (h *UserHandler) GetAddressByID(c echo.Context) error {
 		return response.Error(c, http.StatusForbidden, errmap.ErrForbidden.Error())
 	}
 
-	return response.Success(c, http.StatusOK, "address retrieved", mapAddressToResponse(addr))
+	return response.Success(c, http.StatusOK, "address retrieved", addr)
 }
 
 // CreateAddress godoc
 //
 //	@Summary	Create address for authenticated user
 //	@Tags		User
-//	@Security	ApiKeyAuth
+//	@Security	BearerAuth
 //	@Accept		json
 //	@Produce	json
-//	@Param		body	body		entity.Address	true	"Address payload"
-//	@Success	201		{object}	object
+//	@Param		body	body		entity.CreateAddressRequest	true	"Address payload"
+//	@Success	201		{object}	entity.AddressResponse
 //	@Failure	400		{object}	response.ResponseError
 //	@Failure	401		{object}	response.ResponseError
 //	@Router		/api/profile/addresses [post]
@@ -260,12 +203,7 @@ func (h *UserHandler) CreateAddress(c echo.Context) error {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
 
-	full, err := h.usecase.GetAddressByID(c.Request().Context(), added.ID)
-	if err != nil {
-		return response.Success(c, http.StatusCreated, "address created", mapAddressToResponse(added))
-	}
-
-	return response.Success(c, http.StatusCreated, "address created", mapAddressToResponse(full))
+	return response.Success(c, http.StatusCreated, "address created", added)
 }
 
 // UpdateAddress godoc
@@ -275,9 +213,9 @@ func (h *UserHandler) CreateAddress(c echo.Context) error {
 //	@Security	ApiKeyAuth
 //	@Accept		json
 //	@Produce	json
-//	@Param		addressId	path		int				true	"Address ID"
-//	@Param		body		body		entity.Address	true	"Address payload"
-//	@Success	200			{object}	entity.Address
+//	@Param		addressId	path		int							true	"Address ID"
+//	@Param		body		body		entity.UpdateAddressRequest	true	"Address payload"
+//	@Success	200			{object}	entity.AddressResponse
 //	@Failure	400			{object}	response.ResponseError
 //	@Failure	401			{object}	response.ResponseError
 //	@Failure	404			{object}	response.ResponseError
@@ -313,17 +251,21 @@ func (h *UserHandler) UpdateAddress(c echo.Context) error {
 		return response.Error(c, http.StatusForbidden, "forbidden")
 	}
 
-	addr.Name = req.Name
-	addr.Line1 = req.Line1
-	addr.Line2 = req.Line2
-	addr.SubDistrictID = req.SubDistrictID
-	addr.DistrictID = req.DistrictID
-	addr.ProvinceID = req.ProvinceID
-	addr.Zipcode = req.Zipcode
-	addr.PhoneNumber = req.PhoneNumber
-	addr.IsDefault = req.IsDefault
+	addrEntity := &entity.Address{
+		ID:            addressID,
+		UserID:        userID,
+		Name:          req.Name,
+		Line1:         req.Line1,
+		Line2:         req.Line2,
+		SubDistrictID: req.SubDistrictID,
+		DistrictID:    req.DistrictID,
+		ProvinceID:    req.ProvinceID,
+		Zipcode:       req.Zipcode,
+		PhoneNumber:   req.PhoneNumber,
+		IsDefault:     req.IsDefault,
+	}
 
-	_, err = h.usecase.UpdateAddress(c.Request().Context(), addr, userID)
+	_, err = h.usecase.UpdateAddress(c.Request().Context(), addrEntity, userID)
 
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
@@ -336,7 +278,7 @@ func (h *UserHandler) UpdateAddress(c echo.Context) error {
 //
 //	@Summary	Soft delete address for authenticated user
 //	@Tags		User
-//	@Security	ApiKeyAuth
+//	@Security	BearerAuth
 //	@Produce	json
 //	@Param		addressId	path		int	true	"Address ID"
 //	@Success	204			{object}	object

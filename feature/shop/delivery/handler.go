@@ -36,7 +36,7 @@ func NewShopHandler(su domain.ShopUsecase, pu domain.ProductUsecase) *ShopHandle
 //	@Accept			json
 //	@Produce		json
 //	@Param			shopId	path		string	true	"Shop ID"
-//	@Success		200		{object}	entity.Shop
+//	@Success		200		{object}	entity.ShopResponse
 //	@Router			/api/shops/{shopId} [get]
 func (h *ShopHandler) GetShop(c echo.Context) error {
 	id, err := uuid.Parse(c.Param("shopId"))
@@ -61,8 +61,8 @@ func (h *ShopHandler) GetShop(c echo.Context) error {
 //	@Param			perPage		query		int		false	"Number of items per page"	default(10)	minimum(1)	maximum(100)
 //	@Param			searchText	query		string	false	"Search term for shop name"
 //	@Success		200			{object}	entity.ShopListResponse
-//	@Failure		400			{object}	object
-//	@Failure		500			{object}	object
+//	@Failure		400			{object}	response.ResponseError
+//	@Failure		500			{object}	response.ResponseError
 //	@Router			/api/shops [get]
 func (h *ShopHandler) ListShops(c echo.Context) error {
 	var req entity.ShopListRequest
@@ -88,13 +88,14 @@ func (h *ShopHandler) ListShops(c echo.Context) error {
 // GetMyShop godoc
 //
 //	@Summary		Get my shop
-//	@Tags			Shops
 //	@Description	Get the authenticated user's shop
+//	@Tags			Shops
+//	@Security		BearerAuth
 //	@Accept			json
 //	@Produce		json
 //	@Success		200	{object}	entity.ShopResponse
-//	@Failure		401	{object}	object
-//	@Failure		500	{object}	object
+//	@Failure		401	{object}	response.ResponseError
+//	@Failure		500	{object}	response.ResponseError
 //	@Router			/api/shop [get]
 func (h *ShopHandler) GetMyShop(c echo.Context) error {
 	userID, err := middleware.GetUserID(c)
@@ -116,16 +117,17 @@ func (h *ShopHandler) GetMyShop(c echo.Context) error {
 // UpdateMyShop godoc
 //
 //	@Summary		Update my shop
-//	@Tags			Shops
 //	@Description	Update the authenticated user's shop
+//	@Tags			Shops
+//	@Security		BearerAuth
 //	@Accept			json
 //	@Produce		json
 //	@Param			body	body		entity.UpdateShopRequest	true	"Update shop payload"
-//	@Success		200		{object}	entity.Shop
-//	@Failure		400		{object}	object
-//	@Failure		401		{object}	object
-//	@Failure		403		{object}	object
-//	@Failure		500		{object}	object
+//	@Success		200		{object}	entity.ShopResponse
+//	@Failure		400		{object}	response.ResponseError
+//	@Failure		401		{object}	response.ResponseError
+//	@Failure		403		{object}	response.ResponseError
+//	@Failure		500		{object}	response.ResponseError
 //	@Router			/api/shops [put]
 func (h *ShopHandler) UpdateMyShop(c echo.Context) error {
 	userID, err := middleware.GetUserID(c)

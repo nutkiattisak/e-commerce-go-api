@@ -25,4 +25,5 @@ type ProductRepository interface {
 	CreateProduct(ctx context.Context, product *entity.Product) error
 	UpdateProduct(ctx context.Context, product *entity.Product) error
 	DeleteProduct(ctx context.Context, productID int) error
+	RestoreProductStock(ctx context.Context, productID int, qty int) error
 }

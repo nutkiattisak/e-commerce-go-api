@@ -53,10 +53,6 @@ tmp/
 # Docker
 *.env.local
 
-# Documentation generated files
-docs/swagger.json
-docs/swagger.yaml
-
 # Mocks
 mocks/
 
