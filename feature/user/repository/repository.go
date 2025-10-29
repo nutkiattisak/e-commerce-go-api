@@ -50,7 +50,7 @@ func (r *UserRepository) CreateAddress(ctx context.Context, addr *entity.Address
 }
 
 func (r *UserRepository) GetAddressByID(ctx context.Context, id int) (*entity.Address, error) {
-	var a entity.Address
+	var address entity.Address
 
 	err := r.db.WithContext(ctx).
 		Preload("SubDistrict", func(db *gorm.DB) *gorm.DB {
@@ -71,13 +71,13 @@ func (r *UserRepository) GetAddressByID(ctx context.Context, id int) (*entity.Ad
 		Preload("Province", func(db *gorm.DB) *gorm.DB {
 			return db.Select("id, name_th, name_en")
 		}).
-		First(&a, "id = ? AND deleted_at IS NULL", id).Error
+		First(&address, "id = ? AND deleted_at IS NULL", id).Error
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &a, nil
+	return &address, nil
 }
 
 func (r *UserRepository) UpdateAddress(ctx context.Context, addr *entity.Address, userID uuid.UUID) error {

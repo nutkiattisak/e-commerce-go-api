@@ -122,3 +122,17 @@ func (r *productRepository) DeleteProduct(ctx context.Context, productID int) er
 		Delete(&entity.Product{})
 	return res.Error
 }
+
+func (r *productRepository) RestoreProductStock(ctx context.Context, productID int, qty int) error {
+	res := r.db.WithContext(ctx).
+		Model(&entity.Product{}).
+		Where("id = ? AND deleted_at IS NULL", productID).
+		Update("stock_qty", gorm.Expr("stock_qty + ?", qty))
+	if res.Error != nil {
+		return res.Error
+	}
+	if res.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
+}

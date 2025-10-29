@@ -22,6 +22,7 @@ func NewCourierHandler(usecase domain.CourierUsecase) *CourierHandler {
 //	@Summary		List all couriers
 //	@Description	Get a list of all available couriers (shop only)
 //	@Tags			Courier
+//	@Security		BearerAuth
 //	@Produce		json
 //	@Success		200	{array}		entity.CourierListResponse
 //	@Failure		401	{object}	response.ResponseError

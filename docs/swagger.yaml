@@ -1,0 +1,2416 @@
+basePath: /
+definitions:
+  entity.AddShipmentRequest:
+    properties:
+      courierId:
+        type: integer
+      trackingNo:
+        maxLength: 100
+        minLength: 3
+        type: string
+    required:
+    - courierId
+    - trackingNo
+    type: object
+  entity.AddressResponse:
+    properties:
+      createdAt:
+        type: string
+      districtId:
+        type: integer
+      districtNameEn:
+        type: string
+      districtNameTh:
+        type: string
+      id:
+        type: integer
+      isDefault:
+        type: boolean
+      line1:
+        type: string
+      line2:
+        type: string
+      name:
+        type: string
+      phoneNumber:
+        type: string
+      provinceId:
+        type: integer
+      provinceNameEn:
+        type: string
+      provinceNameTh:
+        type: string
+      subDistrictId:
+        type: integer
+      subDistrictNameEn:
+        type: string
+      subDistrictNameTh:
+        type: string
+      updatedAt:
+        type: string
+      userId:
+        type: string
+      zipcode:
+        type: integer
+    type: object
+  entity.AuthResponse:
+    properties:
+      accessToken:
+        type: string
+      refreshToken:
+        type: string
+    type: object
+  entity.CancelOrderRequest:
+    properties:
+      reason:
+        example: สินค้าหมด
+        maxLength: 500
+        minLength: 3
+        type: string
+    required:
+    - reason
+    type: object
+  entity.CartItemRequest:
+    properties:
+      productId:
+        type: integer
+      qty:
+        type: integer
+    required:
+    - productId
+    - qty
+    type: object
+  entity.CartItemResponse:
+    properties:
+      id:
+        type: integer
+      product:
+        $ref: '#/definitions/entity.ProductSummary'
+      qty:
+        type: integer
+      shop:
+        $ref: '#/definitions/entity.CartShopResponse'
+      subtotal:
+        type: number
+      unitPrice:
+        type: number
+    type: object
+  entity.CartItemShop:
+    properties:
+      cartItemId:
+        type: integer
+      productId:
+        type: integer
+      qty:
+        type: integer
+      subtotal:
+        type: number
+      unitPrice:
+        type: number
+    type: object
+  entity.CartResponse:
+    properties:
+      createdAt:
+        type: string
+      id:
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/entity.CartItemResponse'
+        type: array
+      summary:
+        $ref: '#/definitions/entity.CartSummary'
+      updatedAt:
+        type: string
+    type: object
+  entity.CartShippingEstimateResponse:
+    properties:
+      grandTotal:
+        type: number
+      shop:
+        items:
+          $ref: '#/definitions/entity.CartShopEstimate'
+        type: array
+    type: object
+  entity.CartShopEstimate:
+    properties:
+      courier:
+        $ref: '#/definitions/entity.CourierOption'
+      imageUrl:
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/entity.CartItemShop'
+        type: array
+      name:
+        type: string
+      shopId:
+        type: string
+      subtotal:
+        type: number
+    type: object
+  entity.CartShopResponse:
+    properties:
+      description:
+        type: string
+      id:
+        type: string
+      imageUrl:
+        type: string
+      name:
+        type: string
+    type: object
+  entity.CartSummary:
+    properties:
+      subtotal:
+        type: number
+      totalItems:
+        type: integer
+      totalQty:
+        type: integer
+    type: object
+  entity.CourierListResponse:
+    properties:
+      id:
+        type: integer
+      imageUrl:
+        type: string
+      name:
+        type: string
+      rate:
+        type: number
+    type: object
+  entity.CourierOption:
+    properties:
+      courierId:
+        type: integer
+      name:
+        type: string
+      price:
+        type: number
+    type: object
+  entity.CreateAddressRequest:
+    properties:
+      districtId:
+        type: integer
+      isDefault:
+        type: boolean
+      line1:
+        type: string
+      line2:
+        type: string
+      name:
+        type: string
+      phoneNumber:
+        type: string
+      provinceId:
+        type: integer
+      subDistrictId:
+        type: integer
+      zipcode:
+        type: integer
+    required:
+    - districtId
+    - line1
+    - name
+    - phoneNumber
+    - provinceId
+    - subDistrictId
+    type: object
+  entity.CreateOrderRequest:
+    properties:
+      addressId:
+        type: integer
+      cartItemIds:
+        items:
+          type: integer
+        type: array
+      paymentMethodId:
+        enum:
+        - 1
+        - 2
+        - 3
+        - 4
+        example: 1
+        type: integer
+    required:
+    - addressId
+    - cartItemIds
+    - paymentMethodId
+    type: object
+  entity.CreatePaymentRequest:
+    properties:
+      amount:
+        type: number
+      paymentMethodId:
+        enum:
+        - 1
+        - 2
+        - 3
+        - 4
+        type: integer
+    required:
+    - amount
+    - paymentMethodId
+    type: object
+  entity.CreateProductRequest:
+    properties:
+      description:
+        maxLength: 2000
+        type: string
+      imageUrl:
+        type: string
+      name:
+        maxLength: 255
+        minLength: 3
+        type: string
+      price:
+        type: number
+      stockQty:
+        minimum: 0
+        type: integer
+    required:
+    - name
+    - price
+    type: object
+  entity.DistrictResponse:
+    properties:
+      id:
+        type: integer
+      nameEn:
+        type: string
+      nameTh:
+        type: string
+      province:
+        $ref: '#/definitions/entity.ProvinceResponse'
+      provinceId:
+        type: integer
+    type: object
+  entity.EstimateShippingRequest:
+    properties:
+      cartItemIds:
+        items:
+          type: integer
+        minItems: 1
+        type: array
+    required:
+    - cartItemIds
+    type: object
+  entity.LoginRequest:
+    properties:
+      email:
+        example: kiattisak.c@example.com
+        type: string
+      password:
+        example: yourpassword
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  entity.OrderGroupListPaginationResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/entity.OrderResponse'
+        type: array
+      total:
+        type: integer
+    type: object
+  entity.OrderItemResponse:
+    properties:
+      id:
+        type: integer
+      product:
+        $ref: '#/definitions/entity.OrderProductResponse'
+      qty:
+        type: integer
+      subtotal:
+        type: number
+      unitPrice:
+        type: number
+    type: object
+  entity.OrderListPaginationResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/entity.OrderListResponse'
+        type: array
+      total:
+        type: integer
+    type: object
+  entity.OrderListResponse:
+    properties:
+      createdAt:
+        type: string
+      grandTotal:
+        type: number
+      id:
+        type: string
+      orderId:
+        type: string
+      orderItems:
+        items:
+          $ref: '#/definitions/entity.OrderItemResponse'
+        type: array
+      orderNumber:
+        type: string
+      orderStatusId:
+        type: integer
+      paymentMethodId:
+        type: integer
+      shipping:
+        type: number
+      shippingDistrict:
+        type: string
+      shippingLine1:
+        type: string
+      shippingLine2:
+        type: string
+      shippingName:
+        description: CancelReason        string              `json:"cancelReason"`
+        type: string
+      shippingPhone:
+        type: string
+      shippingProvince:
+        type: string
+      shippingSubDistrict:
+        type: string
+      shippingZipcode:
+        type: string
+      shop:
+        $ref: '#/definitions/entity.OrderShopResponse'
+      updatedAt:
+        type: string
+    type: object
+  entity.OrderProductResponse:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      imageUrl:
+        type: string
+      name:
+        type: string
+    type: object
+  entity.OrderResponse:
+    properties:
+      createdAt:
+        type: string
+      grandTotal:
+        type: number
+      id:
+        type: string
+      paymentMethodId:
+        type: integer
+      shippingDistrict:
+        type: string
+      shippingLine1:
+        type: string
+      shippingLine2:
+        type: string
+      shippingName:
+        description: CancelReason        string              `json:"cancelReason"`
+        type: string
+      shippingPhone:
+        type: string
+      shippingProvince:
+        type: string
+      shippingSubDistrict:
+        type: string
+      shippingZipcode:
+        type: string
+      shopOrders:
+        items:
+          $ref: '#/definitions/entity.ShopOrderResponse'
+        type: array
+      updatedAt:
+        type: string
+    type: object
+  entity.OrderShopResponse:
+    properties:
+      description:
+        type: string
+      id:
+        type: string
+      imageUrl:
+        type: string
+      name:
+        type: string
+    type: object
+  entity.PaymentResponse:
+    properties:
+      amount:
+        type: number
+      createdAt:
+        type: string
+      expiresAt:
+        type: string
+      id:
+        type: string
+      orderId:
+        type: string
+      paidAt:
+        type: string
+      paymentMethodId:
+        type: integer
+      paymentStatusId:
+        type: integer
+      transactionId:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  entity.ProductListResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/entity.ProductResponse'
+        type: array
+      total:
+        type: integer
+    type: object
+  entity.ProductResponse:
+    properties:
+      createdAt:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      imageUrl:
+        type: string
+      isActive:
+        type: boolean
+      name:
+        type: string
+      price:
+        type: number
+      shop:
+        $ref: '#/definitions/entity.ProductShopResponse'
+      shopId:
+        type: string
+      stockQty:
+        type: integer
+      updatedAt:
+        type: string
+    type: object
+  entity.ProductShopResponse:
+    properties:
+      id:
+        type: string
+      imageUrl:
+        type: string
+      name:
+        type: string
+    type: object
+  entity.ProductSummary:
+    properties:
+      id:
+        type: integer
+      imageUrl:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+      stockQty:
+        type: integer
+    type: object
+  entity.ProvinceResponse:
+    properties:
+      id:
+        type: integer
+      nameEn:
+        type: string
+      nameTh:
+        type: string
+    type: object
+  entity.RefreshTokenRequest:
+    properties:
+      refreshToken:
+        example: your_refresh_token
+        type: string
+    required:
+    - refreshToken
+    type: object
+  entity.RegisterRequest:
+    properties:
+      email:
+        example: kiattisak.c@example.com
+        type: string
+      firstName:
+        example: Kiattisak
+        type: string
+      imageUrl:
+        example: https://example.com/image.jpg
+        type: string
+      lastName:
+        example: Chantharamaneechote
+        type: string
+      password:
+        example: yourpassword
+        minLength: 8
+        type: string
+      phoneNumber:
+        example: "0900000000"
+        type: string
+    required:
+    - email
+    - firstName
+    - lastName
+    - password
+    - phoneNumber
+    type: object
+  entity.RegisterResponse:
+    properties:
+      createdAt:
+        type: string
+      email:
+        type: string
+      firstName:
+        type: string
+      id:
+        type: string
+      imageUrl:
+        type: string
+      lastName:
+        type: string
+      phoneNumber:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  entity.RegisterShopRequest:
+    properties:
+      email:
+        example: kiattisak.c@example.com
+        type: string
+      firstName:
+        example: Kiattisak
+        type: string
+      imageUrl:
+        type: string
+      lastName:
+        example: Chantharamaneechote
+        type: string
+      password:
+        example: yourpassword
+        minLength: 8
+        type: string
+      phoneNumber:
+        example: "0900000000"
+        type: string
+      shopAddress:
+        example: 321 Moo 4 Suthep Road, Chiang Mai
+        type: string
+      shopDescription:
+        example: The best Nike products available.
+        type: string
+      shopImageUrl:
+        type: string
+      shopName:
+        example: Nike Shop
+        maxLength: 255
+        type: string
+    required:
+    - email
+    - firstName
+    - lastName
+    - password
+    - phoneNumber
+    - shopAddress
+    - shopName
+    type: object
+  entity.RegisterShopResponse:
+    properties:
+      address:
+        type: string
+      createdAt:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      imageUrl:
+        type: string
+      name:
+        type: string
+      updatedAt:
+        type: string
+      user:
+        $ref: '#/definitions/entity.RegisterResponse'
+    type: object
+  entity.ShipmentResponse:
+    properties:
+      courierId:
+        type: integer
+      createdAt:
+        type: string
+      deliveredAt:
+        type: string
+      id:
+        type: string
+      shipmentStatusId:
+        type: integer
+      shippedAt:
+        type: string
+      shopOrderId:
+        type: string
+      trackingNo:
+        type: string
+    type: object
+  entity.ShopListResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/entity.ShopResponse'
+        type: array
+      total:
+        type: integer
+    type: object
+  entity.ShopOrderListPaginationResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/entity.ShopOrderListResponse'
+        type: array
+      total:
+        type: integer
+    type: object
+  entity.ShopOrderListResponse:
+    properties:
+      createdAt:
+        type: string
+      grandTotal:
+        type: number
+      id:
+        type: string
+      orderId:
+        type: string
+      orderItems:
+        items:
+          $ref: '#/definitions/entity.OrderItemResponse'
+        type: array
+      orderNumber:
+        type: string
+      orderStatusId:
+        type: integer
+      paymentMethodId:
+        type: integer
+      shipping:
+        type: number
+      shippingDistrict:
+        type: string
+      shippingLine1:
+        type: string
+      shippingLine2:
+        type: string
+      shippingName:
+        description: CancelReason        string              `json:"cancelReason"`
+        type: string
+      shippingPhone:
+        type: string
+      shippingProvince:
+        type: string
+      shippingSubDistrict:
+        type: string
+      shippingZipcode:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  entity.ShopOrderResponse:
+    properties:
+      createdAt:
+        type: string
+      grandTotal:
+        type: number
+      id:
+        type: string
+      orderId:
+        type: string
+      orderItems:
+        items:
+          $ref: '#/definitions/entity.OrderItemResponse'
+        type: array
+      orderNumber:
+        type: string
+      orderStatusId:
+        type: integer
+      shipping:
+        type: number
+      shop:
+        $ref: '#/definitions/entity.OrderShopResponse'
+      subtotal:
+        type: number
+      updatedAt:
+        type: string
+    type: object
+  entity.ShopResponse:
+    properties:
+      address:
+        type: string
+      createdAt:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      imageUrl:
+        type: string
+      isActive:
+        type: boolean
+      name:
+        type: string
+      updatedAt:
+        type: string
+      userId:
+        type: string
+    type: object
+  entity.SubDistrictResponse:
+    properties:
+      districtId:
+        type: integer
+      id:
+        type: integer
+      nameEn:
+        type: string
+      nameTh:
+        type: string
+      zipcode:
+        type: integer
+    type: object
+  entity.UpdateAddressRequest:
+    properties:
+      districtId:
+        type: integer
+      isDefault:
+        type: boolean
+      line1:
+        maxLength: 500
+        type: string
+      line2:
+        maxLength: 500
+        type: string
+      name:
+        maxLength: 255
+        type: string
+      phoneNumber:
+        maxLength: 20
+        type: string
+      provinceId:
+        type: integer
+      subDistrictId:
+        type: integer
+      zipcode:
+        type: integer
+    required:
+    - districtId
+    - line1
+    - name
+    - phoneNumber
+    - provinceId
+    - subDistrictId
+    type: object
+  entity.UpdateCartItemRequest:
+    properties:
+      qty:
+        type: integer
+    required:
+    - qty
+    type: object
+  entity.UpdateOrderStatusRequest:
+    properties:
+      orderStatusId:
+        enum:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        example: 1
+        type: integer
+    required:
+    - orderStatusId
+    type: object
+  entity.UpdateProductRequest:
+    properties:
+      description:
+        maxLength: 2000
+        type: string
+      imageUrl:
+        type: string
+      name:
+        maxLength: 255
+        minLength: 3
+        type: string
+      price:
+        type: number
+      stockQty:
+        minimum: 0
+        type: integer
+    required:
+    - name
+    - price
+    type: object
+  entity.UpdateProfileRequest:
+    properties:
+      firstName:
+        example: Kiattisak
+        type: string
+      imageUrl:
+        example: https://example.com/image.jpg
+        type: string
+      lastName:
+        example: Chantharamaneechote
+        type: string
+      phoneNumber:
+        example: "0900000000"
+        type: string
+    required:
+    - firstName
+    - lastName
+    - phoneNumber
+    type: object
+  entity.UpdateShopRequest:
+    properties:
+      address:
+        type: string
+      description:
+        type: string
+      imageUrl:
+        type: string
+      name:
+        maxLength: 255
+        type: string
+    required:
+    - name
+    type: object
+  entity.UserResponse:
+    properties:
+      createdAt:
+        type: string
+      email:
+        type: string
+      firstName:
+        type: string
+      id:
+        type: string
+      imageUrl:
+        type: string
+      lastName:
+        type: string
+      phoneNumber:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  response.ResponseError:
+    properties:
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: This is E-commerce API documentation.
+  title: E-commerce API
+  version: 1.0.0
+paths:
+  /api/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user and return access & refresh tokens
+      parameters:
+      - description: Login payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.AuthResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      summary: Login
+      tags:
+      - Auth
+  /api/auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Refresh access token using refresh token
+      parameters:
+      - description: Refresh payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.RefreshTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.AuthResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      summary: Refresh access token
+      tags:
+      - Auth
+  /api/auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user account
+      parameters:
+      - description: Register payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/entity.RegisterResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      summary: Register a new user
+      tags:
+      - Auth
+  /api/auth/register-shop:
+    post:
+      consumes:
+      - application/json
+      description: Create a new shop account (SHOP role)
+      parameters:
+      - description: Register shop payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.RegisterShopRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/entity.RegisterShopResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      summary: Register a new shop
+      tags:
+      - Auth
+  /api/cart:
+    get:
+      description: Retrieves the current user's cart along with items and summary
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.CartResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Get user's cart
+      tags:
+      - Cart
+    post:
+      consumes:
+      - application/json
+      description: Adds a product to the user's cart or updates quantity if it already
+        exists
+      parameters:
+      - description: Cart item payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.CartItemRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated
+          schema:
+            $ref: '#/definitions/entity.CartItemResponse'
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/entity.CartItemResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Add item to cart
+      tags:
+      - Cart
+  /api/cart/estimate:
+    post:
+      consumes:
+      - application/json
+      description: Calculate shipping costs grouped by shop for selected cart items
+      parameters:
+      - description: Cart item IDs to estimate
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.EstimateShippingRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.CartShippingEstimateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Estimate shipping per shop for given cart items
+      tags:
+      - Cart
+  /api/cart/items/{itemId}:
+    delete:
+      parameters:
+      - description: Item ID
+        in: path
+        name: itemId
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Delete cart item
+      tags:
+      - Cart
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Item ID
+        in: path
+        name: itemId
+        required: true
+        type: integer
+      - description: Update quantity payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.UpdateCartItemRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Update cart item quantity
+      tags:
+      - Cart
+  /api/couriers:
+    get:
+      description: Get a list of all available couriers (shop only)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/entity.CourierListResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: List all couriers
+      tags:
+      - Courier
+  /api/locations/districts:
+    get:
+      description: Get list of districts for a given province id
+      parameters:
+      - description: Province ID
+        in: query
+        name: provinceId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/entity.DistrictResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      summary: Get districts by province
+      tags:
+      - Location
+  /api/locations/provinces:
+    get:
+      description: Get list of provinces
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/entity.ProvinceResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      summary: Get provinces
+      tags:
+      - Location
+  /api/locations/sub-districts:
+    get:
+      description: Get list of subdistricts for a given district id
+      parameters:
+      - description: District ID
+        in: query
+        name: districtId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/entity.SubDistrictResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      summary: Get subdistricts by district
+      tags:
+      - Location
+  /api/order-groups:
+    get:
+      description: Get list of order groups (full order with all shop orders)
+      parameters:
+      - description: 'Page number (default: 1)'
+        in: query
+        name: page
+        type: integer
+      - description: 'Items per page (default: 10, max: 100)'
+        in: query
+        name: perPage
+        type: integer
+      - description: Search by payment method or shipping name
+        in: query
+        name: searchText
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.OrderGroupListPaginationResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: List order groups
+      tags:
+      - Order
+  /api/order-groups/{orderGroupId}:
+    get:
+      description: Get details of a specific order group (full order with all shop
+        orders)
+      parameters:
+      - description: Order Group ID (Main Order ID)
+        in: path
+        name: orderGroupId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.OrderResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Get order group detail
+      tags:
+      - Order
+  /api/orders:
+    get:
+      description: Get list of orders
+      parameters:
+      - description: 'Page number (default: 1)'
+        in: query
+        name: page
+        type: integer
+      - description: 'Items per page (default: 10, max: 100)'
+        in: query
+        name: perPage
+        type: integer
+      - description: Search by order number or status
+        in: query
+        name: searchText
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.OrderListPaginationResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: List user orders
+      tags:
+      - Order
+    post:
+      consumes:
+      - application/json
+      description: Create a new order
+      parameters:
+      - description: Order creation payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.CreateOrderRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/entity.OrderResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Create a new order from cart
+      tags:
+      - Order
+  /api/orders/{orderId}:
+    get:
+      description: Get details of a specific shop order
+      parameters:
+      - description: Shop Order ID
+        in: path
+        name: orderId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.OrderListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Get user order
+      tags:
+      - Order
+  /api/orders/{orderId}/payment:
+    post:
+      consumes:
+      - application/json
+      description: Create a payment transaction
+      parameters:
+      - description: Order ID
+        in: path
+        name: orderId
+        required: true
+        type: string
+      - description: Payment payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.CreatePaymentRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/entity.PaymentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Create payment for order
+      tags:
+      - Order
+  /api/products:
+    get:
+      consumes:
+      - application/json
+      description: Get public product listing with filters and pagination
+      parameters:
+      - description: searchText query
+        in: query
+        name: searchText
+        type: string
+      - description: page
+        in: query
+        name: page
+        type: integer
+      - description: perPage
+        in: query
+        name: perPage
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.ProductListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      summary: List products
+      tags:
+      - Products
+  /api/products/{productId}:
+    get:
+      consumes:
+      - application/json
+      description: Get product by ID (public)
+      parameters:
+      - description: Product ID
+        in: path
+        name: productId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.ProductResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      summary: Get product
+      tags:
+      - Products
+  /api/profile:
+    get:
+      description: Get profile of the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.UserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Get current user's profile
+      tags:
+      - User
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Update profile payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.UpdateProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.UserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Update authenticated user's profile
+      tags:
+      - User
+  /api/profile/addresses:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/entity.AddressResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get authenticated user's addresses
+      tags:
+      - User
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Address payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.CreateAddressRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/entity.AddressResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Create address for authenticated user
+      tags:
+      - User
+  /api/profile/addresses/{addressId}:
+    delete:
+      parameters:
+      - description: Address ID
+        in: path
+        name: addressId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Soft delete address for authenticated user
+      tags:
+      - User
+    get:
+      parameters:
+      - description: Address ID
+        in: path
+        name: addressId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.AddressResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Get address by id for authenticated user
+      tags:
+      - User
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Address ID
+        in: path
+        name: addressId
+        required: true
+        type: integer
+      - description: Address payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.UpdateAddressRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.AddressResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      security:
+      - ApiKeyAuth: []
+      summary: Update address for authenticated user
+      tags:
+      - User
+  /api/shop:
+    get:
+      consumes:
+      - application/json
+      description: Get the authenticated user's shop
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.ShopResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Get my shop
+      tags:
+      - Shops
+  /api/shop/orders:
+    get:
+      description: Get list of orders for shop owner
+      parameters:
+      - description: 'Page number (default: 1)'
+        in: query
+        name: page
+        type: integer
+      - description: 'Items per page (default: 10, max: 100)'
+        in: query
+        name: perPage
+        type: integer
+      - description: Search by order number
+        in: query
+        name: searchText
+        type: string
+      - description: Filter by order status
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.ShopOrderListPaginationResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: List shop orders
+      tags:
+      - Order
+  /api/shop/orders/{orderId}:
+    get:
+      description: Get details of a specific order for shop owner
+      parameters:
+      - description: Order ID
+        in: path
+        name: orderId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.ShopOrderResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Get shop order
+      tags:
+      - Order
+  /api/shop/orders/{orderId}/cancel:
+    put:
+      consumes:
+      - application/json
+      description: Cancel a specific order for shop owner
+      parameters:
+      - description: Order ID
+        in: path
+        name: orderId
+        required: true
+        type: string
+      - description: Cancel order payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.CancelOrderRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Cancel shop order
+      tags:
+      - Order
+  /api/shop/orders/{orderId}/shipping:
+    post:
+      consumes:
+      - application/json
+      description: Add shipment details to a order for shop owner
+      parameters:
+      - description: Order ID
+        in: path
+        name: orderId
+        required: true
+        type: string
+      - description: Shipment payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.AddShipmentRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/entity.ShipmentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Add shipment to order
+      tags:
+      - Order
+  /api/shop/orders/{orderId}/status:
+    put:
+      consumes:
+      - application/json
+      description: Update status of a specific order for the authenticated shop owner
+      parameters:
+      - description: Order ID
+        in: path
+        name: orderId
+        required: true
+        type: string
+      - description: Status update payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.UpdateOrderStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Update shop order status
+      tags:
+      - Order
+  /api/shop/products:
+    get:
+      consumes:
+      - application/json
+      description: Get products for the authenticated user's shop
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.ProductListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: List shop products
+      tags:
+      - Products
+    post:
+      consumes:
+      - application/json
+      description: Create a new product for the authenticated user's shop
+      parameters:
+      - description: Create Product Request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.CreateProductRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/entity.ProductResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Create product
+      tags:
+      - Products
+  /api/shop/products/{productId}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a product belonging to the authenticated user's shop
+      parameters:
+      - description: Product ID
+        in: path
+        name: productId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Delete product (my shop)
+      tags:
+      - Shops
+    get:
+      consumes:
+      - application/json
+      description: Get a single product belonging to the authenticated user's shop
+      parameters:
+      - description: Product ID
+        in: path
+        name: productId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.ProductResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Get product (my shop)
+      tags:
+      - Shops
+    put:
+      consumes:
+      - application/json
+      description: Update a product belonging to the authenticated user's shop
+      parameters:
+      - description: Product ID
+        in: path
+        name: productId
+        required: true
+        type: integer
+      - description: Update Product Request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.UpdateProductRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.ProductResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Update product (my shop)
+      tags:
+      - Shops
+  /api/shops:
+    get:
+      consumes:
+      - application/json
+      description: Get a paginated list of shops with optional search and sorting
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Number of items per page
+        in: query
+        maximum: 100
+        minimum: 1
+        name: perPage
+        type: integer
+      - description: Search term for shop name
+        in: query
+        name: searchText
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.ShopListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      summary: List shops
+      tags:
+      - Shops
+    put:
+      consumes:
+      - application/json
+      description: Update the authenticated user's shop
+      parameters:
+      - description: Update shop payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.UpdateShopRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.ShopResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Update my shop
+      tags:
+      - Shops
+  /api/shops/{shopId}:
+    get:
+      consumes:
+      - application/json
+      description: Get shop by ID
+      parameters:
+      - description: Shop ID
+        in: path
+        name: shopId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.ShopResponse'
+      summary: Get shop
+      tags:
+      - Shops
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

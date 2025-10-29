@@ -9,9 +9,9 @@ import (
 )
 
 type ShopUsecase interface {
-	GetShopByID(ctx context.Context, shopID uuid.UUID) (*entity.Shop, error)
-	GetShopByUserID(ctx context.Context, userID uuid.UUID) (*entity.Shop, error)
-	UpdateShop(ctx context.Context, shopID uuid.UUID, userID uuid.UUID, req *entity.UpdateShopRequest) (*entity.Shop, error)
+	GetShopByID(ctx context.Context, shopID uuid.UUID) (*entity.ShopResponse, error)
+	GetShopByUserID(ctx context.Context, userID uuid.UUID) (*entity.ShopResponse, error)
+	UpdateShop(ctx context.Context, shopID uuid.UUID, userID uuid.UUID, req *entity.UpdateShopRequest) (*entity.ShopResponse, error)
 	ListShops(ctx context.Context, req *entity.ShopListRequest) (*entity.ShopListResponse, error)
 	ActivateShop(ctx context.Context, shopID uuid.UUID) error
 	DeactivateShop(ctx context.Context, shopID uuid.UUID) error
