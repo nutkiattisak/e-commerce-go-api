@@ -21,7 +21,7 @@ type Address struct {
 	IsDefault     bool           `gorm:"default:false;uniqueIndex:uq_addresses_user_default,where:is_default = true" json:"isDefault"`
 	CreatedAt     time.Time      `gorm:"not null;default:now()" json:"createdAt"`
 	UpdatedAt     time.Time      `gorm:"not null;default:now()" json:"updatedAt"`
-	DeletedAt     gorm.DeletedAt `gorm:"default:null" json:"deletedAt" swaggerignore:"true"`
+	DeletedAt     gorm.DeletedAt `gorm:"default:null" json:"deletedAt"`
 
 	User        User        `gorm:"foreignKey:UserID;references:ID" json:"user,omitempty"`
 	SubDistrict SubDistrict `gorm:"foreignKey:SubDistrictID;references:ID" json:"subDistrict,omitempty"`
