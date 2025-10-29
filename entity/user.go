@@ -17,16 +17,16 @@ type User struct {
 	ImageURL    *string        `gorm:"type:text" json:"imageUrl,omitempty"`
 	CreatedAt   time.Time      `gorm:"default:now()" json:"createdAt"`
 	UpdatedAt   time.Time      `gorm:"default:now()" json:"updatedAt"`
-	DeletedAt   gorm.DeletedAt `gorm:"default:null" json:"deletedAt" swaggerignore:"true"`
+	DeletedAt   gorm.DeletedAt `gorm:"default:null" json:"deletedAt"`
 }
 
 type RegisterRequest struct {
-	Email       string `json:"email" validate:"required,email"`
-	Password    string `json:"password" validate:"required,min=8"`
-	FirstName   string `json:"firstName" validate:"required"`
-	LastName    string `json:"lastName" validate:"required"`
-	PhoneNumber string `json:"phoneNumber" validate:"required"`
-	ImageURL    string `json:"imageUrl"`
+	Email       string `json:"email" validate:"required,email" example:"kiattisak.c@example.com"`
+	Password    string `json:"password" validate:"required,min=8" example:"yourpassword"`
+	FirstName   string `json:"firstName" validate:"required" example:"Kiattisak"`
+	LastName    string `json:"lastName" validate:"required" example:"Chantharamaneechote"`
+	PhoneNumber string `json:"phoneNumber" validate:"required" example:"0900000000"`
+	ImageURL    string `json:"imageUrl" example:"https://example.com/image.jpg"`
 }
 
 type RegisterResponse struct {
@@ -41,16 +41,16 @@ type RegisterResponse struct {
 }
 
 type RegisterShopRequest struct {
-	Email           string `json:"email" validate:"required,email"`
-	Password        string `json:"password" validate:"required,min=8"`
-	FirstName       string `json:"firstName" validate:"required"`
-	LastName        string `json:"lastName" validate:"required"`
-	PhoneNumber     string `json:"phoneNumber" validate:"required"`
+	Email           string `json:"email" validate:"required,email" example:"kiattisak.c@example.com"`
+	Password        string `json:"password" validate:"required,min=8" example:"yourpassword"`
+	FirstName       string `json:"firstName" validate:"required" example:"Kiattisak"`
+	LastName        string `json:"lastName" validate:"required" example:"Chantharamaneechote"`
+	PhoneNumber     string `json:"phoneNumber" validate:"required" example:"0900000000"`
 	ImageURL        string `json:"imageUrl"`
-	ShopName        string `json:"shopName" validate:"required,max=255"`
-	ShopDescription string `json:"shopDescription"`
+	ShopName        string `json:"shopName" validate:"required,max=255" example:"Nike Shop"`
+	ShopDescription string `json:"shopDescription" example:"The best Nike products available."`
 	ShopImageURL    string `json:"shopImageUrl"`
-	ShopAddress     string `json:"shopAddress" validate:"required"`
+	ShopAddress     string `json:"shopAddress" validate:"required" example:"321 Moo 4 Suthep Road, Chiang Mai"`
 }
 
 type RegisterShopResponse struct {
@@ -66,8 +66,8 @@ type RegisterShopResponse struct {
 }
 
 type LoginRequest struct {
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required"`
+	Email    string `json:"email" validate:"required,email" example:"kiattisak.c@example.com"`
+	Password string `json:"password" validate:"required" example:"yourpassword"`
 }
 
 type AuthResponse struct {
@@ -76,7 +76,7 @@ type AuthResponse struct {
 }
 
 type RefreshTokenRequest struct {
-	RefreshToken string `json:"refreshToken" validate:"required"`
+	RefreshToken string `json:"refreshToken" validate:"required" example:"your_refresh_token"`
 }
 
 type UserResponse struct {
@@ -91,8 +91,8 @@ type UserResponse struct {
 }
 
 type UpdateProfileRequest struct {
-	FirstName   string  `json:"firstName" validate:"required"`
-	LastName    string  `json:"lastName" validate:"required"`
-	PhoneNumber string  `json:"phoneNumber" validate:"required"`
-	ImageURL    *string `json:"imageUrl"`
+	FirstName   string  `json:"firstName" validate:"required" example:"Kiattisak"`
+	LastName    string  `json:"lastName" validate:"required" example:"Chantharamaneechote"`
+	PhoneNumber string  `json:"phoneNumber" validate:"required" example:"0900000000"`
+	ImageURL    *string `json:"imageUrl" example:"https://example.com/image.jpg"`
 }

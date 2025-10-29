@@ -14,7 +14,7 @@ type ShopCourier struct {
 	Rate      float64        `gorm:"type:decimal(10,2)" json:"rate,omitempty"`
 	CreatedAt time.Time      `gorm:"not null;default:now()" json:"createdAt"`
 	UpdatedAt time.Time      `gorm:"not null;default:now()" json:"updatedAt"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"deletedAt,omitempty" swaggerignore:"true"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"deletedAt,omitempty"`
 
 	Shop    *Shop    `gorm:"foreignKey:ShopID;references:ID" json:"shop,omitempty"`
 	Courier *Courier `gorm:"foreignKey:CourierID;references:ID" json:"courier,omitempty"`

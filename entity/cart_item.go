@@ -13,7 +13,7 @@ type CartItem struct {
 	Qty       int            `gorm:"not null;default:1" json:"qty"`
 	CreatedAt time.Time      `gorm:"not null;default:now()" json:"createdAt"`
 	UpdatedAt time.Time      `gorm:"not null;default:now()" json:"updatedAt"`
-	DeletedAt gorm.DeletedAt `gorm:"default:null" json:"deletedAt" swaggerignore:"true"`
+	DeletedAt gorm.DeletedAt `gorm:"default:null" json:"deletedAt"`
 
 	Cart    Cart    `gorm:"foreignKey:CartID;references:ID" json:"cart,omitempty"`
 	Product Product `gorm:"foreignKey:ProductID;references:ID" json:"product,omitempty"`

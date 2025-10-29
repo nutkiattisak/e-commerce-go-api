@@ -18,7 +18,7 @@ type Product struct {
 	ShopID      uuid.UUID      `gorm:"type:uuid;not null;index:idx_products_shop_id" json:"shopId"`
 	CreatedAt   *time.Time     `gorm:"default:now()" json:"createdAt"`
 	UpdatedAt   *time.Time     `gorm:"default:now()" json:"updatedAt"`
-	DeletedAt   gorm.DeletedAt `gorm:"default:null" json:"deletedAt" swaggerignore:"true"`
+	DeletedAt   gorm.DeletedAt `gorm:"default:null" json:"deletedAt"`
 
 	Shop Shop `gorm:"foreignKey:ShopID;references:ID" json:"shop,omitempty"`
 }

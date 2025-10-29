@@ -13,7 +13,7 @@ type Courier struct {
 	Rate      float64        `gorm:"type:decimal(10,2);not null" json:"rate"`
 	CreatedAt time.Time      `gorm:"not null;default:now()" json:"createdAt"`
 	UpdatedAt time.Time      `gorm:"not null;default:now()" json:"updatedAt"`
-	DeletedAt gorm.DeletedAt `gorm:"default:null" json:"deletedAt" swaggerignore:"true"`
+	DeletedAt gorm.DeletedAt `gorm:"default:null" json:"deletedAt"`
 }
 type CourierListResponse struct {
 	ID       int     `json:"id"`
