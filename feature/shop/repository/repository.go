@@ -104,3 +104,24 @@ func (r *shopRepository) ListShopCouriersByShopIDs(ctx context.Context, shopIDs 
 
 	return scs, nil
 }
+
+func (r *shopRepository) GetActiveShopCourier(ctx context.Context, shopID uuid.UUID) (*entity.ShopCourier, error) {
+	var sc entity.ShopCourier
+	if err := r.db.WithContext(ctx).
+		Where("shop_id = ? AND deleted_at IS NULL", shopID).
+		Order("created_at DESC").
+		First(&sc).Error; err != nil {
+		return nil, err
+	}
+	return &sc, nil
+}
+
+func (r *shopRepository) SoftDeleteShopCouriers(ctx context.Context, shopID uuid.UUID) error {
+	return r.db.WithContext(ctx).
+		Where("shop_id = ?", shopID).
+		Delete(&entity.ShopCourier{}).Error
+}
+
+func (r *shopRepository) CreateShopCourier(ctx context.Context, courier *entity.ShopCourier) error {
+	return r.db.WithContext(ctx).Create(courier).Error
+}

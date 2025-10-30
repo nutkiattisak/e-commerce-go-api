@@ -8,15 +8,6 @@ import (
 
 type PaymentStatus string
 
-// const (
-// 	PaymentStatusPending    PaymentStatus = "PENDING"
-// 	PaymentStatusProcessing PaymentStatus = "PROCESSING"
-// 	PaymentStatusCompleted  PaymentStatus = "COMPLETED"
-// 	PaymentStatusFailed     PaymentStatus = "FAILED"
-// 	PaymentStatusCancelled  PaymentStatus = "CANCELLED"
-// 	PaymentStatusRefunded   PaymentStatus = "REFUNDED"
-// )
-
 type Payment struct {
 	ID              uuid.UUID  `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
 	OrderID         uuid.UUID  `gorm:"type:uuid;not null;uniqueIndex:uq_payments_order_id" json:"orderId"`

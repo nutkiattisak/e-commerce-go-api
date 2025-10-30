@@ -15,6 +15,8 @@ type ShopUsecase interface {
 	ListShops(ctx context.Context, req *entity.ShopListRequest) (*entity.ShopListResponse, error)
 	ActivateShop(ctx context.Context, shopID uuid.UUID) error
 	DeactivateShop(ctx context.Context, shopID uuid.UUID) error
+	UpdateShopCouriers(ctx context.Context, userID uuid.UUID, req *entity.UpdateShopCouriersRequest) (*entity.ShopCourierResponse, error)
+	GetShopCouriers(ctx context.Context, userID uuid.UUID) (*entity.ShopCourierResponse, error)
 }
 
 type ShopRepository interface {
@@ -25,4 +27,7 @@ type ShopRepository interface {
 	ListShops(ctx context.Context, req *entity.ShopListRequest) ([]*entity.Shop, int64, error)
 	UpdateStatus(ctx context.Context, id uuid.UUID, isActive bool) error
 	ListShopCouriersByShopIDs(ctx context.Context, shopIDs []uuid.UUID) ([]*entity.ShopCourier, error)
+	GetActiveShopCourier(ctx context.Context, shopID uuid.UUID) (*entity.ShopCourier, error)
+	SoftDeleteShopCouriers(ctx context.Context, shopID uuid.UUID) error
+	CreateShopCourier(ctx context.Context, courier *entity.ShopCourier) error
 }

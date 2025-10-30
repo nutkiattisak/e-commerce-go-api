@@ -137,3 +137,52 @@ func (u *shopUsecase) ActivateShop(ctx context.Context, shopID uuid.UUID) error 
 func (u *shopUsecase) DeactivateShop(ctx context.Context, shopID uuid.UUID) error {
 	return u.shopRepo.UpdateStatus(ctx, shopID, false)
 }
+
+func (u *shopUsecase) UpdateShopCouriers(ctx context.Context, userID uuid.UUID, req *entity.UpdateShopCouriersRequest) (*entity.ShopCourierResponse, error) {
+	shop, err := u.shopRepo.GetShopByUserID(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get shop: %w", err)
+	}
+
+	if err := u.shopRepo.SoftDeleteShopCouriers(ctx, shop.ID); err != nil {
+		return nil, fmt.Errorf("failed to delete existing couriers: %w", err)
+	}
+
+	newCourier := &entity.ShopCourier{
+		ShopID:    shop.ID,
+		CourierID: req.CourierID,
+		Rate:      req.Rate,
+	}
+
+	if err := u.shopRepo.CreateShopCourier(ctx, newCourier); err != nil {
+		return nil, fmt.Errorf("failed to create courier: %w", err)
+	}
+
+	return &entity.ShopCourierResponse{
+		ID:        newCourier.ID,
+		CourierID: newCourier.CourierID,
+		Rate:      newCourier.Rate,
+		CreatedAt: newCourier.CreatedAt,
+		UpdatedAt: newCourier.UpdatedAt,
+	}, nil
+}
+
+func (u *shopUsecase) GetShopCouriers(ctx context.Context, userID uuid.UUID) (*entity.ShopCourierResponse, error) {
+	shop, err := u.shopRepo.GetShopByUserID(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get shop: %w", err)
+	}
+
+	courier, err := u.shopRepo.GetActiveShopCourier(ctx, shop.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get courier: %w", err)
+	}
+
+	return &entity.ShopCourierResponse{
+		ID:        courier.ID,
+		CourierID: courier.CourierID,
+		Rate:      courier.Rate,
+		CreatedAt: courier.CreatedAt,
+		UpdatedAt: courier.UpdatedAt,
+	}, nil
+}

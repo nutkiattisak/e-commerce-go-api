@@ -14,4 +14,6 @@ func (h *ShopHandler) RegisterRoutes(group *echo.Group) {
 	shopGroup.Use(middleware.JWTAuth())
 	shopGroup.GET("/shop", h.GetMyShop)
 	shopGroup.PUT("/shop", h.UpdateMyShop)
+	shopGroup.GET("/shop/couriers", h.GetShopCouriers)
+	shopGroup.PUT("/shop/couriers", h.UpdateShopCouriers)
 }
