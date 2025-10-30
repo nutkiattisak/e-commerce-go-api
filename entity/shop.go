@@ -55,6 +55,17 @@ type ShopResponse struct {
 	ImageURL    string    `json:"imageUrl"`
 	Address     string    `json:"address"`
 	IsActive    bool      `json:"isActive"`
-	// CreatedAt   time.Time `json:"createdAt,omitempty"`
-	// UpdatedAt   time.Time `json:"updatedAt,omitempty"`
+}
+
+type UpdateShopCouriersRequest struct {
+	CourierID int     `json:"courierId" validate:"required,gt=0"`
+	Rate      float64 `json:"rate" validate:"required,gte=0"`
+}
+
+type ShopCourierResponse struct {
+	ID        int       `json:"id"`
+	CourierID int       `json:"courierId"`
+	Rate      float64   `json:"rate"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }

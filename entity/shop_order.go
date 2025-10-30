@@ -6,18 +6,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type ShopOrderStatus string
-
-// const (
-// 	ShopOrderStatusPending    ShopOrderStatus = "PENDING"
-// 	ShopOrderStatusConfirmed  ShopOrderStatus = "CONFIRMED"
-// 	ShopOrderStatusProcessing ShopOrderStatus = "PROCESSING"
-// 	ShopOrderStatusShipped    ShopOrderStatus = "SHIPPED"
-// 	ShopOrderStatusDelivered  ShopOrderStatus = "DELIVERED"
-// 	ShopOrderStatusCancelled  ShopOrderStatus = "CANCELLED"
-// 	ShopOrderStatusRefunded   ShopOrderStatus = "REFUNDED"
-// )
-
 type ShopOrder struct {
 	ID            uuid.UUID    `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
 	OrderID       uuid.UUID    `gorm:"type:uuid;not null;index:idx_shop_orders_order_id;uniqueIndex:uq_shop_orders_order_shop" json:"orderId"`
