@@ -6,6 +6,7 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"ecommerce-go-api/domain"
+	"ecommerce-go-api/internal/errmap"
 	"ecommerce-go-api/internal/response"
 )
 
@@ -33,7 +34,7 @@ func (h *CourierHandler) ListCouriers(c echo.Context) error {
 
 	couriers, err := h.usecase.ListCouriers(ctx)
 	if err != nil {
-		return response.Error(c, http.StatusInternalServerError, "failed to get couriers")
+		return response.Error(c, http.StatusInternalServerError, errmap.ErrFailedToGetCouriers.Error())
 	}
 
 	return response.Success(c, http.StatusOK, "ok", couriers)

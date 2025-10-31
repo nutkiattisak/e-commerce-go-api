@@ -33,7 +33,7 @@ type Order struct {
 type CreateOrderRequest struct {
 	CartItemIDs     []int `json:"cartItemIds" validate:"required"`
 	AddressID       int   `json:"addressId" validate:"required,gt=0"`
-	PaymentMethodID int   `json:"paymentMethodId" validate:"required,oneof=1 2 3 4"`
+	PaymentMethodID int   `json:"paymentMethodId" validate:"required,gt=0"`
 }
 
 type CancelOrderRequest struct {
@@ -41,7 +41,7 @@ type CancelOrderRequest struct {
 }
 
 type UpdateOrderStatusRequest struct {
-	OrderStatusID *int `json:"orderStatusId" validate:"required,oneof=1 2 3 4 5 6"`
+	OrderStatusID *int `json:"orderStatusId" validate:"required,oneof=2 4 5"`
 }
 
 type AddItemToCartRequest struct {

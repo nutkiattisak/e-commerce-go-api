@@ -90,7 +90,7 @@ func (h *UserHandler) UpdateProfile(c echo.Context) error {
 
 	if err := h.usecase.UpdateProfile(c.Request().Context(), user); err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return response.Error(c, http.StatusNotFound, "user not found")
+			return response.Error(c, http.StatusNotFound, errmap.ErrUserNotFound.Error())
 		}
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
@@ -115,7 +115,7 @@ func (h *UserHandler) GetAddresses(c echo.Context) error {
 
 	addrs, err := h.usecase.GetAddresses(c.Request().Context(), userID)
 	if err != nil {
-		return response.Error(c, http.StatusInternalServerError, err.Error())
+		return response.Error(c, http.StatusInternalServerError, errmap.ErrInternalServer.Error())
 	}
 
 	return response.Success(c, http.StatusOK, "addresses retrieved", addrs)
@@ -141,19 +141,19 @@ func (h *UserHandler) GetAddressByID(c echo.Context) error {
 
 	addressID, err := strconv.Atoi(c.Param("addressId"))
 	if err != nil {
-		return response.Error(c, http.StatusBadRequest, "invalid address id")
+		return response.Error(c, http.StatusBadRequest, errmap.ErrInvalidAddressID.Error())
 	}
 
 	addr, err := h.usecase.GetAddressByID(c.Request().Context(), addressID)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return response.Error(c, http.StatusNotFound, "address not found")
+			return response.Error(c, http.StatusNotFound, errmap.ErrAddressNotFound.Error())
 		}
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
 
 	if addr == nil {
-		return response.Error(c, http.StatusNotFound, "address not found")
+		return response.Error(c, http.StatusNotFound, errmap.ErrAddressNotFound.Error())
 	}
 
 	if addr.UserID != userID {
@@ -178,7 +178,7 @@ func (h *UserHandler) GetAddressByID(c echo.Context) error {
 func (h *UserHandler) CreateAddress(c echo.Context) error {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
-		return response.Error(c, http.StatusUnauthorized, "unauthorized")
+		return response.Error(c, http.StatusUnauthorized, errmap.ErrUnauthorized.Error())
 	}
 	var req entity.CreateAddressRequest
 	if err := c.Bind(&req); err != nil {
@@ -223,12 +223,12 @@ func (h *UserHandler) CreateAddress(c echo.Context) error {
 func (h *UserHandler) UpdateAddress(c echo.Context) error {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
-		return response.Error(c, http.StatusUnauthorized, "unauthorized")
+		return response.Error(c, http.StatusUnauthorized, errmap.ErrUnauthorized.Error())
 	}
 
 	addressID, err := strconv.Atoi(c.Param("addressId"))
 	if err != nil {
-		return response.Error(c, http.StatusBadRequest, "invalid address id")
+		return response.Error(c, http.StatusBadRequest, errmap.ErrInvalidAddressID.Error())
 	}
 
 	var req entity.UpdateAddressRequest
@@ -245,10 +245,10 @@ func (h *UserHandler) UpdateAddress(c echo.Context) error {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
 	if addr == nil {
-		return response.Error(c, http.StatusNotFound, "address not found")
+		return response.Error(c, http.StatusNotFound, errmap.ErrAddressNotFound.Error())
 	}
 	if addr.UserID != userID {
-		return response.Error(c, http.StatusForbidden, "forbidden")
+		return response.Error(c, http.StatusForbidden, errmap.ErrForbidden.Error())
 	}
 
 	addrEntity := &entity.Address{
@@ -289,20 +289,20 @@ func (h *UserHandler) UpdateAddress(c echo.Context) error {
 func (h *UserHandler) DeleteAddress(c echo.Context) error {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
-		return response.Error(c, http.StatusUnauthorized, "unauthorized")
+		return response.Error(c, http.StatusUnauthorized, errmap.ErrUnauthorized.Error())
 	}
 
 	addressID, err := strconv.Atoi(c.Param("addressId"))
 	if err != nil {
-		return response.Error(c, http.StatusBadRequest, "invalid address id")
+		return response.Error(c, http.StatusBadRequest, errmap.ErrInvalidAddressID.Error())
 	}
 
 	if err := h.usecase.DeleteAddress(c.Request().Context(), addressID, userID); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return response.Error(c, http.StatusNotFound, "address not found")
+			return response.Error(c, http.StatusNotFound, errmap.ErrAddressNotFound.Error())
 		}
 		if errors.Is(err, errmap.ErrForbidden) {
-			return response.Error(c, http.StatusForbidden, "forbidden")
+			return response.Error(c, http.StatusForbidden, errmap.ErrForbidden.Error())
 		}
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}

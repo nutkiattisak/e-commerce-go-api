@@ -28,11 +28,12 @@ type Refund struct {
 }
 
 type CreateRefundRequest struct {
-	ShopOrderID    uuid.UUID  `json:"shopOrderId" validate:"required"`
-	PaymentID      *uuid.UUID `json:"paymentId,omitempty"`
-	Amount         float64    `json:"amount" validate:"required,gt=0"`
-	RefundMethodID *int       `json:"refundMethodId,omitempty"`
-	Reason         string     `json:"reason,omitempty"`
+	ShopOrderID uuid.UUID `json:"shopOrderId" validate:"required"`
+	Reason      string    `json:"reason" validate:"required,min=3,max=500"`
+}
+
+type ApproveRefundRequest struct {
+	RefundID uuid.UUID `json:"refundId" validate:"required"`
 }
 
 type RefundResponse struct {

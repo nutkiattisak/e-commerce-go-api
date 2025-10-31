@@ -104,7 +104,7 @@ func (h *ProductHandler) GetProduct(c echo.Context) error {
 func (h *ProductHandler) ListShopProducts(c echo.Context) error {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
-		return response.Error(c, http.StatusUnauthorized, "unauthorized")
+		return response.Error(c, http.StatusUnauthorized, errmap.ErrUnauthorized.Error())
 	}
 
 	result, err := h.usecase.GetProductsByUserID(c.Request().Context(), userID)
@@ -264,12 +264,12 @@ func (h *ProductHandler) UpdateShopProduct(c echo.Context) error {
 func (h *ProductHandler) DeleteShopProduct(c echo.Context) error {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
-		return response.Error(c, http.StatusUnauthorized, "unauthorized")
+		return response.Error(c, http.StatusUnauthorized, errmap.ErrUnauthorized.Error())
 	}
 
 	productID, err := strconv.Atoi(c.Param("productId"))
 	if err != nil {
-		return response.Error(c, http.StatusBadRequest, "invalid product id")
+		return response.Error(c, http.StatusBadRequest, errmap.ErrInvalidProductID.Error())
 	}
 
 	if err := h.usecase.DeleteProduct(c.Request().Context(), userID, productID); err != nil {
