@@ -2,7 +2,6 @@ package delivery
 
 import (
 	"errors"
-	"log"
 	"net/http"
 	"strconv"
 
@@ -68,18 +67,17 @@ func (h *CartHandler) AddItem(c echo.Context) error {
 
 	item, created, err := h.cartUsecase.AddItem(c.Request().Context(), userID, req.ProductID, req.Qty)
 	if err != nil {
-		if errors.Is(err, errmap.ErrQuantityMustBeGreaterThanZero) || errors.Is(err, errmap.ErrProductInactive) {
-			return response.Error(c, http.StatusBadRequest, errmap.ErrQuantityMustBeGreaterThanZero.Error())
+		switch {
+		case errors.Is(err, errmap.ErrQuantityMustBeGreaterThanZero),
+			errors.Is(err, errmap.ErrProductInactive):
+			return response.Error(c, http.StatusBadRequest, err.Error())
+		case errors.Is(err, errmap.ErrInsufficientStock):
+			return response.Error(c, http.StatusConflict, err.Error())
+		case errors.Is(err, errmap.ErrProductNotFound):
+			return response.Error(c, http.StatusNotFound, err.Error())
+		default:
+			return response.Error(c, http.StatusInternalServerError, errmap.ErrInternalServer.Error())
 		}
-		if errors.Is(err, errmap.ErrInsufficientStock) {
-			return response.Error(c, http.StatusConflict, errmap.ErrInsufficientStock.Error())
-		}
-		if errors.Is(err, errmap.ErrProductNotFound) {
-			return response.Error(c, http.StatusNotFound, errmap.ErrProductNotFound.Error())
-		}
-
-		log.Printf("CartHandler.AddItem error: %v", err)
-		return response.Error(c, http.StatusInternalServerError, errmap.ErrInternalServer.Error())
 	}
 
 	productSummary := entity.ProductSummary{

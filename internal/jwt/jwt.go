@@ -1,19 +1,13 @@
 package jwt
 
 import (
-	"errors"
+	"ecommerce-go-api/internal/errmap"
 	"log"
 	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
-)
-
-var (
-	ErrInvalidToken         = errors.New("invalid token")
-	ErrExpiredToken         = errors.New("token has expired")
-	ErrInvalidSigningMethod = errors.New("invalid signing method")
 )
 
 type Claims struct {
@@ -62,7 +56,7 @@ func ValidateToken(tokenString string) (*Claims, error) {
 
 	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, ErrInvalidToken
+			return nil, errmap.ErrInvalidToken
 		}
 		return []byte(secret), nil
 	})
@@ -73,11 +67,11 @@ func ValidateToken(tokenString string) (*Claims, error) {
 
 	claims, ok := token.Claims.(*Claims)
 	if !ok || !token.Valid {
-		return nil, ErrInvalidToken
+		return nil, errmap.ErrInvalidToken
 	}
 
 	if claims.ExpiresAt != nil && claims.ExpiresAt.Before(time.Now()) {
-		return nil, ErrExpiredToken
+		return nil, errmap.ErrExpiredToken
 	}
 
 	return claims, nil

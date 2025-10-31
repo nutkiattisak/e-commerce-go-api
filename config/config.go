@@ -51,7 +51,6 @@ func ConnectDatabase() {
 		log.Fatal("Failed to connect to database:", err)
 	}
 
-	log.Println("Successfully connected to PostgreSQL database")
 }
 
 func requiredEnv(key string) string {

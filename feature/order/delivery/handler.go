@@ -1,6 +1,7 @@
 package delivery
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -72,32 +73,32 @@ func (h *OrderHandler) ListOrderGroups(c echo.Context) error {
 //	@Tags			Order
 //	@Security		BearerAuth
 //	@Produce		json
-//	@Param			orderGroupId	path		string	true	"Order Group ID (Main Order ID)"
+//	@Param			orderId	path		string	true	"Order Group ID (Main Order ID)"
 //	@Success		200				{object}	entity.OrderResponse
 //	@Failure		400				{object}	response.ResponseError
 //	@Failure		401				{object}	response.ResponseError
 //	@Failure		403				{object}	response.ResponseError
 //	@Failure		404				{object}	response.ResponseError
 //	@Failure		500				{object}	response.ResponseError
-//	@Router			/api/order-groups/{orderGroupId} [get]
+//	@Router			/api/order-groups/{orderId} [get]
 func (h *OrderHandler) GetOrderGroup(c echo.Context) error {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
 		return response.Error(c, http.StatusUnauthorized, errmap.ErrUnauthorized.Error())
 	}
 
-	orderGroupID, err := uuid.Parse(c.Param("orderGroupId"))
+	orderGroupID, err := uuid.Parse(c.Param("orderId"))
 	if err != nil {
 		return response.Error(c, http.StatusBadRequest, errmap.ErrInvalidOrderID.Error())
 	}
 
 	orderGroup, err := h.usecase.GetOrderGroup(c.Request().Context(), userID, orderGroupID)
 	if err != nil {
-		if err == errmap.ErrForbidden {
+		if errors.Is(err, errmap.ErrForbidden) {
 			return response.Error(c, http.StatusForbidden, errmap.ErrForbidden.Error())
 		}
-		if err == gorm.ErrRecordNotFound {
-			return response.Error(c, http.StatusNotFound, "order group not found")
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return response.Error(c, http.StatusNotFound, errmap.ErrOrderGroupNotFound.Error())
 		}
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
@@ -139,19 +140,23 @@ func (h *OrderHandler) CreateOrderPayment(c echo.Context) error {
 		return response.Error(c, http.StatusBadRequest, errmap.ErrInvalidRequest.Error())
 	}
 
+	if err := c.Validate(&req); err != nil {
+		return response.Error(c, http.StatusBadRequest, err.Error())
+	}
+
 	payment, err := h.usecase.CreateOrderPayment(c.Request().Context(), userID, orderID, req)
 
 	if err != nil {
-		if err == errmap.ErrForbidden {
+		if errors.Is(err, errmap.ErrForbidden) {
 			return response.Error(c, http.StatusForbidden, errmap.ErrForbidden.Error())
 		}
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return response.Error(c, http.StatusNotFound, errmap.ErrOrderNotFound.Error())
 		}
-		if err.Error() == "payment already exists for this order" {
+		if errors.Is(err, errmap.ErrPaymentAlreadyExists) {
 			return response.Error(c, http.StatusConflict, err.Error())
 		}
-		if err.Error() == "payment amount does not match order total" {
+		if errors.Is(err, errmap.ErrPaymentAmountMismatch) {
 			return response.Error(c, http.StatusBadRequest, err.Error())
 		}
 		return response.Error(c, http.StatusInternalServerError, err.Error())
@@ -205,28 +210,32 @@ func (h *OrderHandler) ListOrders(c echo.Context) error {
 //	@Tags			Order
 //	@Security		BearerAuth
 //	@Produce		json
-//	@Param			orderId	path		string	true	"Shop Order ID"
+//	@Param			shopOrderId	path		string	true	"Shop Order ID"
 //	@Success		200		{object}	entity.OrderListResponse
 //	@Failure		400		{object}	response.ResponseError
 //	@Failure		401		{object}	response.ResponseError
 //	@Failure		403		{object}	response.ResponseError
+//	@Failure		404		{object}	response.ResponseError
 //	@Failure		500		{object}	response.ResponseError
-//	@Router			/api/orders/{orderId} [get]
+//	@Router			/api/orders/{shopOrderId} [get]
 func (h *OrderHandler) GetOrder(c echo.Context) error {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
 		return response.Error(c, http.StatusUnauthorized, errmap.ErrUnauthorized.Error())
 	}
 
-	shopOrderID, err := uuid.Parse(c.Param("orderId"))
+	shopOrderID, err := uuid.Parse(c.Param("shopOrderId"))
 	if err != nil {
 		return response.Error(c, http.StatusBadRequest, errmap.ErrInvalidOrderID.Error())
 	}
 
 	order, err := h.usecase.GetOrder(c.Request().Context(), userID, shopOrderID)
 	if err != nil {
-		if err == errmap.ErrForbidden {
+		if errors.Is(err, errmap.ErrForbidden) {
 			return response.Error(c, http.StatusForbidden, errmap.ErrForbidden.Error())
+		}
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return response.Error(c, http.StatusNotFound, errmap.ErrOrderNotFound.Error())
 		}
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
@@ -259,6 +268,10 @@ func (h *OrderHandler) CreateOrder(c echo.Context) error {
 		return response.Error(c, http.StatusBadRequest, errmap.ErrInvalidRequest.Error())
 	}
 
+	if err := c.Validate(&req); err != nil {
+		return response.Error(c, http.StatusBadRequest, err.Error())
+	}
+
 	order, err := h.usecase.CreateOrderFromCart(c.Request().Context(), userID, req)
 
 	if err != nil {
@@ -267,8 +280,12 @@ func (h *OrderHandler) CreateOrder(c echo.Context) error {
 			return response.Error(c, http.StatusUnprocessableEntity, errmap.ErrNoShippingOptions.Error())
 		case errmap.ErrInsufficientStock:
 			return response.Error(c, http.StatusConflict, errmap.ErrInsufficientStock.Error())
+		case errmap.ErrCartIsEmpty:
+			return response.Error(c, http.StatusBadRequest, errmap.ErrCartIsEmpty.Error())
+		case errmap.ErrAddressIDRequired:
+			return response.Error(c, http.StatusBadRequest, errmap.ErrAddressIDRequired.Error())
 		default:
-			return response.Error(c, http.StatusInternalServerError, errmap.ErrInternalServer.Error())
+			return response.Error(c, http.StatusInternalServerError, err.Error())
 		}
 	}
 
@@ -321,26 +338,33 @@ func (h *OrderHandler) ListShopOrders(c echo.Context) error {
 //	@Tags			Order
 //	@Security		BearerAuth
 //	@Produce		json
-//	@Param			orderId	path		string	true	"Order ID"
+//	@Param			shopOrderId	path		string	true	"Shop Order ID"
 //	@Success		200		{object}	entity.ShopOrderResponse
 //	@Failure		400		{object}	response.ResponseError
 //	@Failure		401		{object}	response.ResponseError
 //	@Failure		500		{object}	response.ResponseError
-//	@Router			/api/shop/orders/{orderId} [get]
+//	@Router			/api/shop/orders/{shopOrderId} [get]
 func (h *OrderHandler) GetShopOrder(c echo.Context) error {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
 		return response.Error(c, http.StatusUnauthorized, errmap.ErrUnauthorized.Error())
 	}
 
-	orderID, err := uuid.Parse(c.Param("orderId"))
+	orderID, err := uuid.Parse(c.Param("shopOrderId"))
 	if err != nil {
 		return response.Error(c, http.StatusBadRequest, errmap.ErrInvalidOrderID.Error())
 	}
 
 	shopOrder, err := h.usecase.GetShopOrder(c.Request().Context(), userID, orderID)
 	if err != nil {
-		return response.Error(c, http.StatusInternalServerError, errmap.ErrInternalServer.Error())
+		if errors.Is(err, errmap.ErrForbidden) {
+			return response.Error(c, http.StatusForbidden, errmap.ErrForbidden.Error())
+		}
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return response.Error(c, http.StatusNotFound,
+				errmap.ErrOrderNotFound.Error())
+		}
+		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
 
 	return response.Success(c, http.StatusOK, "ok", shopOrder)
@@ -354,21 +378,21 @@ func (h *OrderHandler) GetShopOrder(c echo.Context) error {
 //	@Security		BearerAuth
 //	@Accept			json
 //	@Produce		json
-//	@Param			orderId	path		string							true	"Order ID"
+//	@Param			shopOrderId	path		string							true	"Shop Order ID"
 //	@Param			body	body		entity.UpdateOrderStatusRequest	true	"Status update payload"
 //	@Success		204		{object}	object
 //	@Failure		400		{object}	response.ResponseError
 //	@Failure		401		{object}	response.ResponseError
 //	@Failure		403		{object}	response.ResponseError
 //	@Failure		500		{object}	response.ResponseError
-//	@Router			/api/shop/orders/{orderId}/status [put]
+//	@Router			/api/shop/orders/{shopOrderId}/status [put]
 func (h *OrderHandler) UpdateShopOrderStatus(c echo.Context) error {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
 		return response.Error(c, http.StatusUnauthorized, errmap.ErrUnauthorized.Error())
 	}
 
-	orderID, err := uuid.Parse(c.Param("orderId"))
+	orderID, err := uuid.Parse(c.Param("shopOrderId"))
 	if err != nil {
 		return response.Error(c, http.StatusBadRequest, errmap.ErrInvalidOrderID.Error())
 	}
@@ -383,13 +407,16 @@ func (h *OrderHandler) UpdateShopOrderStatus(c echo.Context) error {
 	}
 
 	if err := h.usecase.UpdateShopOrderStatus(c.Request().Context(), userID, orderID, req); err != nil {
-		if err.Error() == "cannot cancel order via status update, use cancel endpoint instead" {
+		switch {
+		case errors.Is(err, errmap.ErrInvalidRequest):
 			return response.Error(c, http.StatusBadRequest, err.Error())
+		case errors.Is(err, errmap.ErrCannotCancelOrder):
+			return response.Error(c, http.StatusBadRequest, err.Error())
+		case errors.Is(err, errmap.ErrForbidden):
+			return response.Error(c, http.StatusForbidden, err.Error())
+		default:
+			return response.Error(c, http.StatusInternalServerError, err.Error())
 		}
-		if err == errmap.ErrForbidden {
-			return response.Error(c, http.StatusForbidden, errmap.ErrForbidden.Error())
-		}
-		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
 
 	return response.NoContent(c)
@@ -403,36 +430,47 @@ func (h *OrderHandler) UpdateShopOrderStatus(c echo.Context) error {
 //	@Security		BearerAuth
 //	@Accept			json
 //	@Produce		json
-//	@Param			orderId	path		string						true	"Order ID"
+//	@Param			shopOrderId	path		string						true	"Shop Order ID"
 //	@Param			body	body		entity.CancelOrderRequest	true	"Cancel order payload"
 //	@Success		200		{object}	object
 //	@Failure		400		{object}	response.ResponseError
 //	@Failure		401		{object}	response.ResponseError
 //	@Failure		403		{object}	response.ResponseError
 //	@Failure		500		{object}	response.ResponseError
-//	@Router			/api/shop/orders/{orderId}/cancel [put]
+//	@Router			/api/shop/orders/{shopOrderId}/cancel [put]
 func (h *OrderHandler) CancelShopOrder(c echo.Context) error {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
 		return response.Error(c, http.StatusUnauthorized, errmap.ErrUnauthorized.Error())
 	}
 
-	id, err := uuid.Parse(c.Param("orderId"))
+	id, err := uuid.Parse(c.Param("shopOrderId"))
 	if err != nil {
 		return response.Error(c, http.StatusBadRequest, errmap.ErrInvalidOrderID.Error())
 	}
 
 	var req entity.CancelOrderRequest
 	if err := c.Bind(&req); err != nil {
-		return response.Error(c, http.StatusBadRequest, "invalid request")
+		return response.Error(c, http.StatusBadRequest, errmap.ErrInvalidRequest.Error())
 	}
 
 	if err := c.Validate(&req); err != nil {
 		return response.Error(c, http.StatusBadRequest, err.Error())
 	}
 
-	if err := h.usecase.CancelShopOrder(c.Request().Context(), userID, id, req); err != nil {
-		return response.Error(c, http.StatusInternalServerError, err.Error())
+	if err := h.usecase.CancelShopOrder(c.Request().Context(), userID, id, req); err !=
+		nil {
+		switch {
+		case errors.Is(err, errmap.ErrForbidden):
+			return response.Error(c, http.StatusForbidden, err.Error())
+		case errors.Is(err, errmap.ErrCannotCancelOrder):
+			return response.Error(c, http.StatusBadRequest, err.Error())
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			return response.Error(c, http.StatusNotFound,
+				errmap.ErrOrderNotFound.Error())
+		default:
+			return response.Error(c, http.StatusInternalServerError, err.Error())
+		}
 	}
 
 	return response.Success(c, http.StatusOK, "cancelled", nil)
@@ -446,28 +484,28 @@ func (h *OrderHandler) CancelShopOrder(c echo.Context) error {
 //	@Security		BearerAuth
 //	@Accept			json
 //	@Produce		json
-//	@Param			orderId	path		string						true	"Order ID"
+//	@Param			shopOrderId	path		string						true	"Shop Order ID"
 //	@Param			body	body		entity.AddShipmentRequest	true	"Shipment payload"
 //	@Success		201		{object}	entity.ShipmentResponse
 //	@Failure		400		{object}	response.ResponseError
 //	@Failure		401		{object}	response.ResponseError
 //	@Failure		403		{object}	response.ResponseError
 //	@Failure		500		{object}	response.ResponseError
-//	@Router			/api/shop/orders/{orderId}/shipping [post]
+//	@Router			/api/shop/orders/{shopOrderId}/shipping [post]
 func (h *OrderHandler) AddShipment(c echo.Context) error {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
-		return response.Error(c, http.StatusUnauthorized, "unauthorized")
+		return response.Error(c, http.StatusUnauthorized, errmap.ErrUnauthorized.Error())
 	}
 
-	orderID, err := uuid.Parse(c.Param("orderId"))
+	orderID, err := uuid.Parse(c.Param("shopOrderId"))
 	if err != nil {
-		return response.Error(c, http.StatusBadRequest, "invalid order id")
+		return response.Error(c, http.StatusBadRequest, errmap.ErrInvalidOrderID.Error())
 	}
 
 	var req entity.AddShipmentRequest
 	if err := c.Bind(&req); err != nil {
-		return response.Error(c, http.StatusBadRequest, "invalid request")
+		return response.Error(c, http.StatusBadRequest, errmap.ErrInvalidRequest.Error())
 	}
 
 	if err := c.Validate(&req); err != nil {
@@ -476,10 +514,58 @@ func (h *OrderHandler) AddShipment(c echo.Context) error {
 
 	shipment, err := h.usecase.AddShipment(c.Request().Context(), userID, orderID, req)
 	if err != nil {
-		return response.Error(c, http.StatusInternalServerError, err.Error())
+		switch {
+		case errors.Is(err, errmap.ErrForbidden):
+			return response.Error(c, http.StatusForbidden, err.Error())
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			return response.Error(c, http.StatusNotFound, errmap.ErrOrderNotFound.Error())
+		default:
+			return response.Error(c, http.StatusInternalServerError, err.Error())
+		}
 	}
 
 	return response.Success(c, http.StatusCreated, "created", shipment)
+}
+
+// GetShipmentTracking godoc
+//
+//	@Summary		Get shipment tracking details
+//	@Description	Get tracking information for a specific order (user only)
+//	@Tags			Order
+//	@Security		BearerAuth
+//	@Produce		json
+//	@Param			shopOrderId	path		string	true	"Shop Order ID"
+//	@Success		200		{object}	entity.ShipmentResponse
+//	@Failure		400		{object}	response.ResponseError
+//	@Failure		401		{object}	response.ResponseError
+//	@Failure		403		{object}	response.ResponseError
+//	@Failure		404		{object}	response.ResponseError
+//	@Failure		500		{object}	response.ResponseError
+//	@Router			/api/orders/{shopOrderId}/tracking [get]
+func (h *OrderHandler) GetShipmentTracking(c echo.Context) error {
+	userID, err := middleware.GetUserID(c)
+	if err != nil {
+		return response.Error(c, http.StatusUnauthorized, errmap.ErrUnauthorized.Error())
+	}
+
+	orderID, err := uuid.Parse(c.Param("shopOrderId"))
+	if err != nil {
+		return response.Error(c, http.StatusBadRequest, errmap.ErrInvalidOrderID.Error())
+	}
+
+	shipment, err := h.usecase.GetShipmentTracking(c.Request().Context(), userID, orderID)
+	if err != nil {
+		switch {
+		case errors.Is(err, errmap.ErrForbidden):
+			return response.Error(c, http.StatusForbidden, errmap.ErrForbidden.Error())
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			return response.Error(c, http.StatusNotFound, "shipment not found")
+		default:
+			return response.Error(c, http.StatusInternalServerError, err.Error())
+		}
+	}
+
+	return response.Success(c, http.StatusOK, "ok", shipment)
 }
 
 func RegisterOrderHandler(group *echo.Group, db *gorm.DB) {
