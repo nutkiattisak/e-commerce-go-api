@@ -719,7 +719,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/order-groups/{orderGroupId}": {
+        "/api/order-groups/{orderId}": {
             "get": {
                 "security": [
                     {
@@ -738,7 +738,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Order Group ID (Main Order ID)",
-                        "name": "orderGroupId",
+                        "name": "orderId",
                         "in": "path",
                         "required": true
                     }
@@ -901,64 +901,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/orders/{orderId}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Get details of a specific shop order",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Order"
-                ],
-                "summary": "Get user order",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Shop Order ID",
-                        "name": "orderId",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/entity.OrderListResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.ResponseError"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/response.ResponseError"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/response.ResponseError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.ResponseError"
-                        }
-                    }
-                }
-            }
-        },
         "/api/orders/{orderId}/payment": {
             "post": {
                 "security": [
@@ -1028,6 +970,134 @@ const docTemplate = `{
                     },
                     "409": {
                         "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/response.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/orders/{shopOrderId}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get details of a specific shop order",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Order"
+                ],
+                "summary": "Get user order",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Shop Order ID",
+                        "name": "shopOrderId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.OrderListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ResponseError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/orders/{shopOrderId}/tracking": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get tracking information for a specific order (user only)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Order"
+                ],
+                "summary": "Get shipment tracking details",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Shop Order ID",
+                        "name": "shopOrderId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ShipmentResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ResponseError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/response.ResponseError"
                         }
@@ -1216,16 +1286,16 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "204": {
+                        "description": "No Content",
                         "schema": {
-                            "$ref": "#/definitions/entity.UserResponse"
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/response.ResponseError"
                         }
                     },
                     "401": {
@@ -1525,6 +1595,104 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/shop/couriers": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get active courier settings for the authenticated user's shop (deleted_at IS NULL)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shops"
+                ],
+                "summary": "Get shop courier",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ShopCourierResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ResponseError"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update courier settings for the authenticated user's shop (soft deletes old record and creates new one)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shops"
+                ],
+                "summary": "Update shop courier",
+                "parameters": [
+                    {
+                        "description": "Courier payload",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entity.UpdateShopCouriersRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ShopCourierResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ResponseError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
         "/api/shop/orders": {
             "get": {
                 "security": [
@@ -1594,7 +1762,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/shop/orders/{orderId}": {
+        "/api/shop/orders/{shopOrderId}": {
             "get": {
                 "security": [
                     {
@@ -1612,8 +1780,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Order ID",
-                        "name": "orderId",
+                        "description": "Shop Order ID",
+                        "name": "shopOrderId",
                         "in": "path",
                         "required": true
                     }
@@ -1646,7 +1814,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/shop/orders/{orderId}/cancel": {
+        "/api/shop/orders/{shopOrderId}/cancel": {
             "put": {
                 "security": [
                     {
@@ -1667,8 +1835,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Order ID",
-                        "name": "orderId",
+                        "description": "Shop Order ID",
+                        "name": "shopOrderId",
                         "in": "path",
                         "required": true
                     },
@@ -1716,7 +1884,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/shop/orders/{orderId}/shipping": {
+        "/api/shop/orders/{shopOrderId}/shipping": {
             "post": {
                 "security": [
                     {
@@ -1737,8 +1905,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Order ID",
-                        "name": "orderId",
+                        "description": "Shop Order ID",
+                        "name": "shopOrderId",
                         "in": "path",
                         "required": true
                     },
@@ -1786,7 +1954,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/shop/orders/{orderId}/status": {
+        "/api/shop/orders/{shopOrderId}/status": {
             "put": {
                 "security": [
                     {
@@ -1807,8 +1975,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Order ID",
-                        "name": "orderId",
+                        "description": "Shop Order ID",
+                        "name": "shopOrderId",
                         "in": "path",
                         "required": true
                     },
@@ -1874,6 +2042,26 @@ const docTemplate = `{
                     "Products"
                 ],
                 "summary": "List shop products",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page",
+                        "name": "perPage",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search text",
+                        "name": "searchText",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -2175,6 +2363,142 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/shop/refunds": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a refund request for a cancelled shop order",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Refund"
+                ],
+                "summary": "Create refund for shop order",
+                "parameters": [
+                    {
+                        "description": "Refund creation payload",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entity.CreateRefundRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/entity.RefundResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ResponseError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/shop/refunds/{refundId}/approve": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Approve a refund request for shop owner",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Refund"
+                ],
+                "summary": "Approve refund",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Refund ID",
+                        "name": "refundId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.RefundResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ResponseError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
         "/api/shops": {
             "get": {
                 "description": "Get a paginated list of shops with optional search and sorting",
@@ -2326,6 +2650,82 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/api/v1/refunds/{refundId}/bank-account": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Customer submits bank account information to receive refund",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Refund"
+                ],
+                "summary": "Submit bank account for refund",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Refund ID",
+                        "name": "refundId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Bank account information",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entity.SubmitRefundBankAccountRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.RefundResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ResponseError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ResponseError"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -2428,8 +2828,7 @@ const docTemplate = `{
                 "reason": {
                     "type": "string",
                     "maxLength": 500,
-                    "minLength": 3,
-                    "example": "สินค้าหมด"
+                    "minLength": 3
                 }
             }
         },
@@ -2674,14 +3073,7 @@ const docTemplate = `{
                     }
                 },
                 "paymentMethodId": {
-                    "type": "integer",
-                    "enum": [
-                        1,
-                        2,
-                        3,
-                        4
-                    ],
-                    "example": 1
+                    "type": "integer"
                 }
             }
         },
@@ -2731,6 +3123,23 @@ const docTemplate = `{
                 "stockQty": {
                     "type": "integer",
                     "minimum": 0
+                }
+            }
+        },
+        "entity.CreateRefundRequest": {
+            "type": "object",
+            "required": [
+                "reason",
+                "shopOrderId"
+            ],
+            "properties": {
+                "reason": {
+                    "type": "string",
+                    "maxLength": 500,
+                    "minLength": 3
+                },
+                "shopOrderId": {
+                    "type": "string"
                 }
             }
         },
@@ -2877,7 +3286,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "shippingName": {
-                    "description": "CancelReason        string              ` + "`" + `json:\"cancelReason\"` + "`" + `",
                     "type": "string"
                 },
                 "shippingPhone": {
@@ -2894,6 +3302,12 @@ const docTemplate = `{
                 },
                 "shop": {
                     "$ref": "#/definitions/entity.OrderShopResponse"
+                },
+                "timeline": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.OrderTimelineItem"
+                    }
                 },
                 "updatedAt": {
                     "type": "string"
@@ -2920,9 +3334,6 @@ const docTemplate = `{
         "entity.OrderResponse": {
             "type": "object",
             "properties": {
-                "createdAt": {
-                    "type": "string"
-                },
                 "grandTotal": {
                     "type": "number"
                 },
@@ -2942,7 +3353,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "shippingName": {
-                    "description": "CancelReason        string              ` + "`" + `json:\"cancelReason\"` + "`" + `",
                     "type": "string"
                 },
                 "shippingPhone": {
@@ -2963,8 +3373,11 @@ const docTemplate = `{
                         "$ref": "#/definitions/entity.ShopOrderResponse"
                     }
                 },
-                "updatedAt": {
-                    "type": "string"
+                "timeline": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.OrderTimelineItem"
+                    }
                 }
             }
         },
@@ -2982,6 +3395,23 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                }
+            }
+        },
+        "entity.OrderTimelineItem": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "createdBy": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "statusId": {
+                    "type": "integer"
                 }
             }
         },
@@ -3132,6 +3562,50 @@ const docTemplate = `{
                 }
             }
         },
+        "entity.RefundResponse": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "bankAccount": {
+                    "type": "string"
+                },
+                "bankName": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "paymentId": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "refundMethodId": {
+                    "type": "integer"
+                },
+                "refundStatusId": {
+                    "type": "integer"
+                },
+                "refundedAt": {
+                    "type": "string"
+                },
+                "shopOrderId": {
+                    "type": "string"
+                },
+                "transactionId": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
         "entity.RegisterRequest": {
             "type": "object",
             "required": [
@@ -3143,8 +3617,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "email": {
-                    "type": "string",
-                    "example": "kiattisak.c@example.com"
+                    "type": "string"
                 },
                 "firstName": {
                     "type": "string",
@@ -3290,9 +3763,6 @@ const docTemplate = `{
                 "createdAt": {
                     "type": "string"
                 },
-                "deliveredAt": {
-                    "type": "string"
-                },
                 "id": {
                     "type": "string"
                 },
@@ -3306,6 +3776,26 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "trackingNo": {
+                    "type": "string"
+                }
+            }
+        },
+        "entity.ShopCourierResponse": {
+            "type": "object",
+            "properties": {
+                "courierId": {
+                    "type": "integer"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "rate": {
+                    "type": "number"
+                },
+                "updatedAt": {
                     "type": "string"
                 }
             }
@@ -3381,7 +3871,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "shippingName": {
-                    "description": "CancelReason        string              ` + "`" + `json:\"cancelReason\"` + "`" + `",
                     "type": "string"
                 },
                 "shippingPhone": {
@@ -3395,6 +3884,12 @@ const docTemplate = `{
                 },
                 "shippingZipcode": {
                     "type": "string"
+                },
+                "timeline": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.OrderTimelineItem"
+                    }
                 },
                 "updatedAt": {
                     "type": "string"
@@ -3437,6 +3932,12 @@ const docTemplate = `{
                 "subtotal": {
                     "type": "number"
                 },
+                "timeline": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.OrderTimelineItem"
+                    }
+                },
                 "updatedAt": {
                     "type": "string"
                 }
@@ -3446,9 +3947,6 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "address": {
-                    "type": "string"
-                },
-                "createdAt": {
                     "type": "string"
                 },
                 "description": {
@@ -3464,9 +3962,6 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "name": {
-                    "type": "string"
-                },
-                "updatedAt": {
                     "type": "string"
                 },
                 "userId": {
@@ -3491,6 +3986,25 @@ const docTemplate = `{
                 },
                 "zipcode": {
                     "type": "integer"
+                }
+            }
+        },
+        "entity.SubmitRefundBankAccountRequest": {
+            "type": "object",
+            "required": [
+                "bankAccount",
+                "bankName"
+            ],
+            "properties": {
+                "bankAccount": {
+                    "type": "string",
+                    "maxLength": 20,
+                    "minLength": 10
+                },
+                "bankName": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 2
                 }
             }
         },
@@ -3558,14 +4072,10 @@ const docTemplate = `{
                 "orderStatusId": {
                     "type": "integer",
                     "enum": [
-                        1,
                         2,
-                        3,
                         4,
-                        5,
-                        6
-                    ],
-                    "example": 1
+                        5
+                    ]
                 }
             }
         },
@@ -3599,14 +4109,10 @@ const docTemplate = `{
         },
         "entity.UpdateProfileRequest": {
             "type": "object",
-            "required": [
-                "firstName",
-                "lastName",
-                "phoneNumber"
-            ],
             "properties": {
                 "firstName": {
                     "type": "string",
+                    "minLength": 1,
                     "example": "Kiattisak"
                 },
                 "imageUrl": {
@@ -3615,11 +4121,29 @@ const docTemplate = `{
                 },
                 "lastName": {
                     "type": "string",
+                    "minLength": 1,
                     "example": "Chantharamaneechote"
                 },
                 "phoneNumber": {
                     "type": "string",
+                    "minLength": 10,
                     "example": "0900000000"
+                }
+            }
+        },
+        "entity.UpdateShopCouriersRequest": {
+            "type": "object",
+            "required": [
+                "courierId",
+                "rate"
+            ],
+            "properties": {
+                "courierId": {
+                    "type": "integer"
+                },
+                "rate": {
+                    "type": "number",
+                    "minimum": 0
                 }
             }
         },
@@ -3698,7 +4222,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0.0",
-	Host:             "localhost:8080",
+	Host:             "",
 	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "E-commerce API",

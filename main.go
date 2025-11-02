@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
 	"ecommerce-go-api/config"
 	resp "ecommerce-go-api/internal/response"
 	"ecommerce-go-api/utils"
+	"log"
 	"net/http"
 	"os"
 	"time"
@@ -20,23 +22,25 @@ import (
 	locationDelivery "ecommerce-go-api/feature/location/delivery"
 	orderDelivery "ecommerce-go-api/feature/order/delivery"
 	productDelivery "ecommerce-go-api/feature/product/delivery"
+	refundDelivery "ecommerce-go-api/feature/refund/delivery"
 	shopDelivery "ecommerce-go-api/feature/shop/delivery"
 	userDelivery "ecommerce-go-api/feature/user/delivery"
+
+	orderRepo "ecommerce-go-api/feature/order/repository"
+	productRepo "ecommerce-go-api/feature/product/repository"
+	"ecommerce-go-api/internal/cron"
 
 	echoSwagger "github.com/swaggo/echo-swagger"
 )
 
 // @title						E-commerce API
-// @version						1.0.0
-// @description					This is E-commerce API documentation.
-//
-// @host						localhost:8080
+// @version					1.0.0
+// @description				This is E-commerce API documentation.
 // @BasePath					/
-//
 // @securityDefinitions.apikey	BearerAuth
 // @in							header
 // @name						Authorization
-// @description					Type "Bearer" followed by a space and JWT token.
+// @description				Type "Bearer" followed by a space and JWT token.
 func init() {
 	config.InitialENV()
 	config.ConnectDatabase()
@@ -65,20 +69,36 @@ func main() {
 	}
 
 	e.GET("/health", func(c echo.Context) error {
-		started := time.Now()
-		duration := time.Since(started)
+		ctx, cancel := context.WithTimeout(c.Request().Context(), 5*time.Second)
+		defer cancel()
 
-		if duration.Seconds() > 10 {
-			return resp.Error(c, http.StatusInternalServerError, "service unhealthy")
+		db := config.DB
+		sqlDB, err := db.DB()
+		if err != nil {
+			return resp.Error(c, http.StatusInternalServerError, "service unhealthy (db error)")
+		}
+
+		if err := sqlDB.PingContext(ctx); err != nil {
+			return resp.Error(c, http.StatusInternalServerError, "service unhealthy (db ping failed)")
 		}
 
 		return resp.Success(c, http.StatusOK, "healthy", map[string]interface{}{
-			"duration": duration.String(),
 			"database": "connected",
 		})
 	})
 
 	db := config.DB
+
+	oRepo := orderRepo.NewOrderRepository(db)
+	pRepo := productRepo.NewProductRepository(db)
+	scheduler, err := cron.NewScheduler(oRepo, pRepo)
+	if err != nil {
+		log.Fatalf("Failed to create scheduler: %v", err)
+	}
+	if err := scheduler.Start(); err != nil {
+		log.Fatalf("Failed to start scheduler: %v", err)
+	}
+	defer scheduler.Stop()
 
 	api := e.Group("/api")
 	{
@@ -90,6 +110,7 @@ func main() {
 		cartDelivery.RegisterCartHandler(api, db)
 		orderDelivery.RegisterOrderHandler(api, db)
 		courierDelivery.RegisterCourierHandler(api, db)
+		refundDelivery.RegisterRefundHandler(api, db)
 	}
 
 	utils.ServeGracefulShutdown(e)

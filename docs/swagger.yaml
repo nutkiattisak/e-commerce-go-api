@@ -63,7 +63,6 @@ definitions:
   entity.CancelOrderRequest:
     properties:
       reason:
-        example: สินค้าหมด
         maxLength: 500
         minLength: 3
         type: string
@@ -226,12 +225,6 @@ definitions:
           type: integer
         type: array
       paymentMethodId:
-        enum:
-        - 1
-        - 2
-        - 3
-        - 4
-        example: 1
         type: integer
     required:
     - addressId
@@ -272,6 +265,18 @@ definitions:
     required:
     - name
     - price
+    type: object
+  entity.CreateRefundRequest:
+    properties:
+      reason:
+        maxLength: 500
+        minLength: 3
+        type: string
+      shopOrderId:
+        type: string
+    required:
+    - reason
+    - shopOrderId
     type: object
   entity.DistrictResponse:
     properties:
@@ -368,7 +373,6 @@ definitions:
       shippingLine2:
         type: string
       shippingName:
-        description: CancelReason        string              `json:"cancelReason"`
         type: string
       shippingPhone:
         type: string
@@ -380,6 +384,10 @@ definitions:
         type: string
       shop:
         $ref: '#/definitions/entity.OrderShopResponse'
+      timeline:
+        items:
+          $ref: '#/definitions/entity.OrderTimelineItem'
+        type: array
       updatedAt:
         type: string
     type: object
@@ -396,8 +404,6 @@ definitions:
     type: object
   entity.OrderResponse:
     properties:
-      createdAt:
-        type: string
       grandTotal:
         type: number
       id:
@@ -411,7 +417,6 @@ definitions:
       shippingLine2:
         type: string
       shippingName:
-        description: CancelReason        string              `json:"cancelReason"`
         type: string
       shippingPhone:
         type: string
@@ -425,8 +430,10 @@ definitions:
         items:
           $ref: '#/definitions/entity.ShopOrderResponse'
         type: array
-      updatedAt:
-        type: string
+      timeline:
+        items:
+          $ref: '#/definitions/entity.OrderTimelineItem'
+        type: array
     type: object
   entity.OrderShopResponse:
     properties:
@@ -438,6 +445,17 @@ definitions:
         type: string
       name:
         type: string
+    type: object
+  entity.OrderTimelineItem:
+    properties:
+      createdAt:
+        type: string
+      createdBy:
+        type: string
+      note:
+        type: string
+      statusId:
+        type: integer
     type: object
   entity.PaymentResponse:
     properties:
@@ -535,10 +553,38 @@ definitions:
     required:
     - refreshToken
     type: object
+  entity.RefundResponse:
+    properties:
+      amount:
+        type: number
+      bankAccount:
+        type: string
+      bankName:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: string
+      paymentId:
+        type: string
+      reason:
+        type: string
+      refundMethodId:
+        type: integer
+      refundStatusId:
+        type: integer
+      refundedAt:
+        type: string
+      shopOrderId:
+        type: string
+      transactionId:
+        type: string
+      updatedAt:
+        type: string
+    type: object
   entity.RegisterRequest:
     properties:
       email:
-        example: kiattisak.c@example.com
         type: string
       firstName:
         example: Kiattisak
@@ -648,8 +694,6 @@ definitions:
         type: integer
       createdAt:
         type: string
-      deliveredAt:
-        type: string
       id:
         type: string
       shipmentStatusId:
@@ -659,6 +703,19 @@ definitions:
       shopOrderId:
         type: string
       trackingNo:
+        type: string
+    type: object
+  entity.ShopCourierResponse:
+    properties:
+      courierId:
+        type: integer
+      createdAt:
+        type: string
+      id:
+        type: integer
+      rate:
+        type: number
+      updatedAt:
         type: string
     type: object
   entity.ShopListResponse:
@@ -708,7 +765,6 @@ definitions:
       shippingLine2:
         type: string
       shippingName:
-        description: CancelReason        string              `json:"cancelReason"`
         type: string
       shippingPhone:
         type: string
@@ -718,6 +774,10 @@ definitions:
         type: string
       shippingZipcode:
         type: string
+      timeline:
+        items:
+          $ref: '#/definitions/entity.OrderTimelineItem'
+        type: array
       updatedAt:
         type: string
     type: object
@@ -745,14 +805,16 @@ definitions:
         $ref: '#/definitions/entity.OrderShopResponse'
       subtotal:
         type: number
+      timeline:
+        items:
+          $ref: '#/definitions/entity.OrderTimelineItem'
+        type: array
       updatedAt:
         type: string
     type: object
   entity.ShopResponse:
     properties:
       address:
-        type: string
-      createdAt:
         type: string
       description:
         type: string
@@ -763,8 +825,6 @@ definitions:
       isActive:
         type: boolean
       name:
-        type: string
-      updatedAt:
         type: string
       userId:
         type: string
@@ -781,6 +841,20 @@ definitions:
         type: string
       zipcode:
         type: integer
+    type: object
+  entity.SubmitRefundBankAccountRequest:
+    properties:
+      bankAccount:
+        maxLength: 20
+        minLength: 10
+        type: string
+      bankName:
+        maxLength: 100
+        minLength: 2
+        type: string
+    required:
+    - bankAccount
+    - bankName
     type: object
   entity.UpdateAddressRequest:
     properties:
@@ -825,13 +899,9 @@ definitions:
     properties:
       orderStatusId:
         enum:
-        - 1
         - 2
-        - 3
         - 4
         - 5
-        - 6
-        example: 1
         type: integer
     required:
     - orderStatusId
@@ -860,20 +930,30 @@ definitions:
     properties:
       firstName:
         example: Kiattisak
+        minLength: 1
         type: string
       imageUrl:
         example: https://example.com/image.jpg
         type: string
       lastName:
         example: Chantharamaneechote
+        minLength: 1
         type: string
       phoneNumber:
         example: "0900000000"
+        minLength: 10
         type: string
+    type: object
+  entity.UpdateShopCouriersRequest:
+    properties:
+      courierId:
+        type: integer
+      rate:
+        minimum: 0
+        type: number
     required:
-    - firstName
-    - lastName
-    - phoneNumber
+    - courierId
+    - rate
     type: object
   entity.UpdateShopRequest:
     properties:
@@ -915,7 +995,6 @@ definitions:
       status:
         type: string
     type: object
-host: localhost:8080
 info:
   contact: {}
   description: This is E-commerce API documentation.
@@ -1376,14 +1455,14 @@ paths:
       summary: List order groups
       tags:
       - Order
-  /api/order-groups/{orderGroupId}:
+  /api/order-groups/{orderId}:
     get:
       description: Get details of a specific order group (full order with all shop
         orders)
       parameters:
       - description: Order Group ID (Main Order ID)
         in: path
-        name: orderGroupId
+        name: orderId
         required: true
         type: string
       produces:
@@ -1493,43 +1572,6 @@ paths:
       summary: Create a new order from cart
       tags:
       - Order
-  /api/orders/{orderId}:
-    get:
-      description: Get details of a specific shop order
-      parameters:
-      - description: Shop Order ID
-        in: path
-        name: orderId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/entity.OrderListResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/response.ResponseError'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/response.ResponseError'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/response.ResponseError'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.ResponseError'
-      security:
-      - BearerAuth: []
-      summary: Get user order
-      tags:
-      - Order
   /api/orders/{orderId}/payment:
     post:
       consumes:
@@ -1581,6 +1623,88 @@ paths:
       security:
       - BearerAuth: []
       summary: Create payment for order
+      tags:
+      - Order
+  /api/orders/{shopOrderId}:
+    get:
+      description: Get details of a specific shop order
+      parameters:
+      - description: Shop Order ID
+        in: path
+        name: shopOrderId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.OrderListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Get user order
+      tags:
+      - Order
+  /api/orders/{shopOrderId}/tracking:
+    get:
+      description: Get tracking information for a specific order (user only)
+      parameters:
+      - description: Shop Order ID
+        in: path
+        name: shopOrderId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.ShipmentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Get shipment tracking details
       tags:
       - Order
   /api/products:
@@ -1692,14 +1816,14 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "204":
+          description: No Content
           schema:
-            $ref: '#/definitions/entity.UserResponse'
+            type: object
         "400":
           description: Bad Request
           schema:
-            type: object
+            $ref: '#/definitions/response.ResponseError'
         "401":
           description: Unauthorized
           schema:
@@ -1890,6 +2014,70 @@ paths:
       summary: Get my shop
       tags:
       - Shops
+  /api/shop/couriers:
+    get:
+      description: Get active courier settings for the authenticated user's shop (deleted_at
+        IS NULL)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.ShopCourierResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Get shop courier
+      tags:
+      - Shops
+    put:
+      consumes:
+      - application/json
+      description: Update courier settings for the authenticated user's shop (soft
+        deletes old record and creates new one)
+      parameters:
+      - description: Courier payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.UpdateShopCouriersRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.ShopCourierResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Update shop courier
+      tags:
+      - Shops
   /api/shop/orders:
     get:
       description: Get list of orders for shop owner
@@ -1934,13 +2122,13 @@ paths:
       summary: List shop orders
       tags:
       - Order
-  /api/shop/orders/{orderId}:
+  /api/shop/orders/{shopOrderId}:
     get:
       description: Get details of a specific order for shop owner
       parameters:
-      - description: Order ID
+      - description: Shop Order ID
         in: path
-        name: orderId
+        name: shopOrderId
         required: true
         type: string
       produces:
@@ -1967,15 +2155,15 @@ paths:
       summary: Get shop order
       tags:
       - Order
-  /api/shop/orders/{orderId}/cancel:
+  /api/shop/orders/{shopOrderId}/cancel:
     put:
       consumes:
       - application/json
       description: Cancel a specific order for shop owner
       parameters:
-      - description: Order ID
+      - description: Shop Order ID
         in: path
-        name: orderId
+        name: shopOrderId
         required: true
         type: string
       - description: Cancel order payload
@@ -2012,15 +2200,15 @@ paths:
       summary: Cancel shop order
       tags:
       - Order
-  /api/shop/orders/{orderId}/shipping:
+  /api/shop/orders/{shopOrderId}/shipping:
     post:
       consumes:
       - application/json
       description: Add shipment details to a order for shop owner
       parameters:
-      - description: Order ID
+      - description: Shop Order ID
         in: path
-        name: orderId
+        name: shopOrderId
         required: true
         type: string
       - description: Shipment payload
@@ -2057,15 +2245,15 @@ paths:
       summary: Add shipment to order
       tags:
       - Order
-  /api/shop/orders/{orderId}/status:
+  /api/shop/orders/{shopOrderId}/status:
     put:
       consumes:
       - application/json
       description: Update status of a specific order for the authenticated shop owner
       parameters:
-      - description: Order ID
+      - description: Shop Order ID
         in: path
-        name: orderId
+        name: shopOrderId
         required: true
         type: string
       - description: Status update payload
@@ -2107,6 +2295,19 @@ paths:
       consumes:
       - application/json
       description: Get products for the authenticated user's shop
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: perPage
+        type: integer
+      - description: Search text
+        in: query
+        name: searchText
+        type: string
       produces:
       - application/json
       responses:
@@ -2307,6 +2508,93 @@ paths:
       summary: Update product (my shop)
       tags:
       - Shops
+  /api/shop/refunds:
+    post:
+      consumes:
+      - application/json
+      description: Create a refund request for a cancelled shop order
+      parameters:
+      - description: Refund creation payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.CreateRefundRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/entity.RefundResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Create refund for shop order
+      tags:
+      - Refund
+  /api/shop/refunds/{refundId}/approve:
+    put:
+      consumes:
+      - application/json
+      description: Approve a refund request for shop owner
+      parameters:
+      - description: Refund ID
+        in: path
+        name: refundId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.RefundResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Approve refund
+      tags:
+      - Refund
   /api/shops:
     get:
       consumes:
@@ -2407,6 +2695,55 @@ paths:
       summary: Get shop
       tags:
       - Shops
+  /api/v1/refunds/{refundId}/bank-account:
+    post:
+      consumes:
+      - application/json
+      description: Customer submits bank account information to receive refund
+      parameters:
+      - description: Refund ID
+        in: path
+        name: refundId
+        required: true
+        type: string
+      - description: Bank account information
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/entity.SubmitRefundBankAccountRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.RefundResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Submit bank account for refund
+      tags:
+      - Refund
 securityDefinitions:
   BearerAuth:
     description: Type "Bearer" followed by a space and JWT token.
