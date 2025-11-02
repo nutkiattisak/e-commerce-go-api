@@ -35,5 +35,4 @@ type ShipmentResponse struct {
 	ShipmentStatusID int        `json:"shipmentStatusId"`
 	CreatedAt        time.Time  `json:"createdAt"`
 	ShippedAt        *time.Time `json:"shippedAt"`
-	DeliveredAt      *time.Time `json:"deliveredAt"`
 }

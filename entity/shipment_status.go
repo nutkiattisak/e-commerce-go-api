@@ -1,13 +1,9 @@
 package entity
 
 const (
-	ShipmentStatusPending        int = 1
-	ShipmentStatusReadyToShip    int = 2
-	ShipmentStatusInTransit      int = 3
-	ShipmentStatusDelivered      int = 4
-	ShipmentStatusFailedDelivery int = 5
-	ShipmentStatusReturned       int = 6
-	ShipmentStatusCancelled      int = 7
+	ShipmentStatusInTransit      int = 1
+	ShipmentStatusDelivered      int = 2
+	ShipmentStatusFailedDelivery int = 3
 )
 
 type ShipmentStatus struct {

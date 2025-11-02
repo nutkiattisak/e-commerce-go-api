@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/google/uuid"
@@ -63,8 +64,101 @@ func mapToShipmentResponse(s *entity.Shipment) *entity.ShipmentResponse {
 		ShipmentStatusID: s.ShipmentStatusID,
 		CreatedAt:        s.CreatedAt,
 		ShippedAt:        s.ShippedAt,
-		DeliveredAt:      s.DeliveredAt,
 	}
+}
+
+func createTimeline(logs []*entity.OrderLog) []entity.OrderTimelineItem {
+	if len(logs) == 0 {
+		return []entity.OrderTimelineItem{}
+	}
+
+	timeline := make([]entity.OrderTimelineItem, 0, len(logs))
+	for _, log := range logs {
+		timeline = append(timeline, entity.OrderTimelineItem{
+			StatusID:  log.OrderStatusID,
+			Note:      log.Note,
+			CreatedAt: log.CreatedAt,
+			CreatedBy: log.CreatedBy,
+		})
+	}
+
+	return timeline
+}
+
+func (u *orderUsecase) toOrderResponseWithTimeline(ctx context.Context, order *entity.Order) *entity.OrderResponse {
+	resp := &entity.OrderResponse{
+		ID:                  order.ID,
+		GrandTotal:          order.GrandTotal,
+		ShippingName:        order.ShippingName,
+		ShippingPhone:       order.ShippingPhone,
+		ShippingLine1:       order.ShippingLine1,
+		ShippingLine2:       order.ShippingLine2,
+		ShippingSubDistrict: order.ShippingSubDistrict,
+		ShippingDistrict:    order.ShippingDistrict,
+		ShippingProvince:    order.ShippingProvince,
+		ShippingZipcode:     order.ShippingZipcode,
+		PaymentMethodID:     order.PaymentMethodID,
+		ShopOrders:          make([]entity.ShopOrderResponse, 0),
+	}
+
+	logs, err := u.repo.GetOrderLogsByOrderID(ctx, order.ID)
+	if err == nil {
+		resp.Timeline = createTimeline(logs)
+	}
+
+	for _, so := range order.ShopOrders {
+		shopOrderResp := u.toShopOrderResponseWithTimeline(ctx, &so)
+		resp.ShopOrders = append(resp.ShopOrders, *shopOrderResp)
+	}
+
+	return resp
+}
+
+func (u *orderUsecase) toShopOrderResponseWithTimeline(ctx context.Context, shopOrder *entity.ShopOrder) *entity.ShopOrderResponse {
+	resp := &entity.ShopOrderResponse{
+		ID:            shopOrder.ID,
+		OrderID:       shopOrder.OrderID,
+		OrderNumber:   shopOrder.OrderNumber,
+		OrderStatusID: shopOrder.OrderStatusID,
+		Subtotal:      shopOrder.Subtotal,
+		Shipping:      shopOrder.Shipping,
+		GrandTotal:    shopOrder.GrandTotal,
+		CreatedAt:     shopOrder.CreatedAt,
+		UpdatedAt:     shopOrder.UpdatedAt,
+		OrderItems:    make([]entity.OrderItemResponse, 0),
+	}
+
+	if shopOrder.Shop.ID != uuid.Nil {
+		resp.Shop = entity.OrderShopResponse{
+			ID:          shopOrder.Shop.ID,
+			Name:        shopOrder.Shop.Name,
+			Description: shopOrder.Shop.Description,
+			ImageURL:    &shopOrder.Shop.ImageURL,
+		}
+	}
+
+	logs, err := u.repo.GetOrderLogsByShopOrderID(ctx, shopOrder.ID)
+	if err == nil {
+		resp.Timeline = createTimeline(logs)
+	}
+
+	for _, oi := range shopOrder.OrderItems {
+		itemResp := entity.OrderItemResponse{
+			ID:        oi.ID,
+			Qty:       oi.Qty,
+			UnitPrice: oi.UnitPrice,
+			Subtotal:  oi.Subtotal,
+			Product: entity.OrderProductResponse{
+				ID:          oi.Product.ID,
+				Name:        oi.Product.Name,
+				Description: oi.Product.Description,
+				ImageURL:    oi.Product.ImageURL,
+			},
+		}
+		resp.OrderItems = append(resp.OrderItems, itemResp)
+	}
+
+	return resp
 }
 
 func (u *orderUsecase) AddItemToCart(ctx context.Context, userID uuid.UUID, req entity.AddItemToCartRequest) (*entity.CartItemResponse, error) {
@@ -97,71 +191,6 @@ func (u *orderUsecase) AddItemToCart(ctx context.Context, userID uuid.UUID, req 
 	}
 
 	return mapToCartItemResponse(updated), nil
-}
-
-func toOrderResponse(order *entity.Order) *entity.OrderResponse {
-	resp := &entity.OrderResponse{
-		ID:                  order.ID,
-		GrandTotal:          order.GrandTotal,
-		ShippingName:        order.ShippingName,
-		ShippingPhone:       order.ShippingPhone,
-		ShippingLine1:       order.ShippingLine1,
-		ShippingLine2:       order.ShippingLine2,
-		ShippingSubDistrict: order.ShippingSubDistrict,
-		ShippingDistrict:    order.ShippingDistrict,
-		ShippingProvince:    order.ShippingProvince,
-		ShippingZipcode:     order.ShippingZipcode,
-		PaymentMethodID:     order.PaymentMethodID,
-		ShopOrders:          make([]entity.ShopOrderResponse, 0),
-	}
-
-	for _, so := range order.ShopOrders {
-		resp.ShopOrders = append(resp.ShopOrders, *toShopOrderResponse(&so))
-	}
-
-	return resp
-}
-
-func toShopOrderResponse(shopOrder *entity.ShopOrder) *entity.ShopOrderResponse {
-	resp := &entity.ShopOrderResponse{
-		ID:            shopOrder.ID,
-		OrderID:       shopOrder.OrderID,
-		OrderNumber:   shopOrder.OrderNumber,
-		OrderStatusID: shopOrder.OrderStatusID,
-		Subtotal:      shopOrder.Subtotal,
-		Shipping:      shopOrder.Shipping,
-		GrandTotal:    shopOrder.GrandTotal,
-		CreatedAt:     shopOrder.CreatedAt,
-		UpdatedAt:     shopOrder.UpdatedAt,
-		OrderItems:    make([]entity.OrderItemResponse, 0),
-	}
-
-	if shopOrder.Shop.ID != uuid.Nil {
-		resp.Shop = entity.OrderShopResponse{
-			ID:          shopOrder.Shop.ID,
-			Name:        shopOrder.Shop.Name,
-			Description: shopOrder.Shop.Description,
-			ImageURL:    &shopOrder.Shop.ImageURL,
-		}
-	}
-
-	for _, oi := range shopOrder.OrderItems {
-		itemResp := entity.OrderItemResponse{
-			ID:        oi.ID,
-			Qty:       oi.Qty,
-			UnitPrice: oi.UnitPrice,
-			Subtotal:  oi.Subtotal,
-			Product: entity.OrderProductResponse{
-				ID:          oi.Product.ID,
-				Name:        oi.Product.Name,
-				Description: oi.Product.Description,
-				ImageURL:    oi.Product.ImageURL,
-			},
-		}
-		resp.OrderItems = append(resp.OrderItems, itemResp)
-	}
-
-	return resp
 }
 
 func (u *orderUsecase) CreateOrderFromCart(ctx context.Context, userID uuid.UUID, req entity.CreateOrderRequest) (*entity.OrderResponse, error) {
@@ -243,7 +272,7 @@ func (u *orderUsecase) CreateOrderFromCart(ctx context.Context, userID uuid.UUID
 		sid, _ := uuid.Parse(shopIDStr)
 		so.ShopID = sid
 		so.OrderNumber = fmt.Sprintf("%s-%d", constant.OrderPrefix, time.Now().Unix())
-		so.OrderStatusID = 1
+		so.OrderStatusID = entity.OrderStatusPending
 
 		scs := shopCouriersMap[sid]
 		if len(scs) == 0 {
@@ -273,32 +302,19 @@ func (u *orderUsecase) CreateOrderFromCart(ctx context.Context, userID uuid.UUID
 
 	order.GrandTotal = grandTotal
 
-	if err := u.repo.CreateFullOrder(ctx, order, shopOrders, orderItemsByShop, cart.ID); err != nil {
+	transactionID := fmt.Sprintf("TXN-%d-%s", time.Now().Unix(), uuid.New().String()[:8])
+
+	expiresAt := time.Now().Add(24 * time.Hour)
+	payment := &entity.Payment{
+		TransactionID:   transactionID,
+		PaymentMethodID: req.PaymentMethodID,
+		PaymentStatusID: entity.PaymentStatusPending,
+		Amount:          grandTotal,
+		ExpiresAt:       &expiresAt,
+	}
+
+	if err := u.repo.CreateFullOrder(ctx, order, shopOrders, orderItemsByShop, payment, cart.ID, userID); err != nil {
 		return nil, err
-	}
-
-	now := time.Now()
-	orderLog := &entity.OrderLog{
-		OrderID:   order.ID,
-		Note:      "Order created",
-		CreatedBy: &userID,
-		CreatedAt: &now,
-	}
-	if err := u.repo.CreateOrderLog(ctx, orderLog); err != nil {
-		fmt.Printf("Failed to create order log: %v\n", err)
-	}
-
-	for _, so := range shopOrders {
-		shopOrderLog := &entity.OrderLog{
-			OrderID:     order.ID,
-			ShopOrderID: &so.ID,
-			Note:        "Shop order created",
-			CreatedBy:   &userID,
-			CreatedAt:   &now,
-		}
-		if err := u.repo.CreateOrderLog(ctx, shopOrderLog); err != nil {
-			fmt.Printf("Failed to create shop order log: %v\n", err)
-		}
 	}
 
 	fullOrder, err := u.repo.GetOrderByID(ctx, order.ID)
@@ -306,7 +322,7 @@ func (u *orderUsecase) CreateOrderFromCart(ctx context.Context, userID uuid.UUID
 		return nil, err
 	}
 
-	return toOrderResponse(fullOrder), nil
+	return u.toOrderResponseWithTimeline(ctx, fullOrder), nil
 }
 
 func (u *orderUsecase) ListOrders(ctx context.Context, userID uuid.UUID, req entity.OrderListRequest) (*entity.OrderListPaginationResponse, error) {
@@ -318,13 +334,12 @@ func (u *orderUsecase) ListOrders(ctx context.Context, userID uuid.UUID, req ent
 	result := make([]*entity.OrderListResponse, 0, len(shopOrders))
 	for _, so := range shopOrders {
 		orderListResp := &entity.OrderListResponse{
-			ID:            so.ID,
-			OrderID:       so.OrderID,
-			OrderNumber:   so.OrderNumber,
-			OrderStatusID: so.OrderStatusID,
-			Shipping:      so.Shipping,
-			GrandTotal:    so.GrandTotal,
-			// CancelReason:        so.Order.CancelReason,
+			ID:                  so.ID,
+			OrderID:             so.OrderID,
+			OrderNumber:         so.OrderNumber,
+			OrderStatusID:       so.OrderStatusID,
+			Shipping:            so.Shipping,
+			GrandTotal:          so.GrandTotal,
 			ShippingName:        so.Order.ShippingName,
 			ShippingPhone:       so.Order.ShippingPhone,
 			ShippingLine1:       so.Order.ShippingLine1,
@@ -347,10 +362,6 @@ func (u *orderUsecase) ListOrders(ctx context.Context, userID uuid.UUID, req ent
 				ImageURL:    &so.Shop.ImageURL,
 			}
 		}
-
-		// if so.Order.PaymentMethodID != nil {
-		// 	orderListResp.PaymentMethodID = so.Order.PaymentMethodID
-		// }
 
 		for _, oi := range so.OrderItems {
 			itemResp := entity.OrderItemResponse{
@@ -388,13 +399,12 @@ func (u *orderUsecase) GetOrder(ctx context.Context, userID uuid.UUID, shopOrder
 	}
 
 	orderListResp := &entity.OrderListResponse{
-		ID:            so.ID,
-		OrderID:       so.OrderID,
-		OrderNumber:   so.OrderNumber,
-		OrderStatusID: so.OrderStatusID,
-		Shipping:      so.Shipping,
-		GrandTotal:    so.GrandTotal,
-		// CancelReason:        so.Order.CancelReason,
+		ID:                  so.ID,
+		OrderID:             so.OrderID,
+		OrderNumber:         so.OrderNumber,
+		OrderStatusID:       so.OrderStatusID,
+		Shipping:            so.Shipping,
+		GrandTotal:          so.GrandTotal,
 		ShippingName:        so.Order.ShippingName,
 		ShippingPhone:       so.Order.ShippingPhone,
 		ShippingLine1:       so.Order.ShippingLine1,
@@ -438,22 +448,12 @@ func (u *orderUsecase) GetOrder(ctx context.Context, userID uuid.UUID, shopOrder
 		orderListResp.OrderItems = append(orderListResp.OrderItems, itemResp)
 	}
 
+	logs, err := u.repo.GetOrderLogsByShopOrderID(ctx, shopOrderID)
+	if err == nil {
+		orderListResp.Timeline = createTimeline(logs)
+	}
+
 	return orderListResp, nil
-}
-
-func (u *orderUsecase) CancelOrder(ctx context.Context, userID uuid.UUID, orderID uuid.UUID, req entity.CancelOrderRequest) error {
-	order, err := u.repo.GetOrderByID(ctx, orderID)
-	if err != nil {
-		return err
-	}
-
-	if order.UserID != userID {
-		return errmap.ErrForbidden
-	}
-
-	_ = req.Reason
-
-	return nil
 }
 
 func (u *orderUsecase) ListOrderGroups(ctx context.Context, userID uuid.UUID, req entity.OrderListRequest) (*entity.OrderGroupListPaginationResponse, error) {
@@ -464,7 +464,7 @@ func (u *orderUsecase) ListOrderGroups(ctx context.Context, userID uuid.UUID, re
 
 	result := make([]*entity.OrderResponse, 0, len(orders))
 	for _, order := range orders {
-		result = append(result, toOrderResponse(order))
+		result = append(result, u.toOrderResponseWithTimeline(ctx, order))
 	}
 
 	return &entity.OrderGroupListPaginationResponse{
@@ -483,7 +483,8 @@ func (u *orderUsecase) GetOrderGroup(ctx context.Context, userID uuid.UUID, orde
 		return nil, errmap.ErrForbidden
 	}
 
-	return toOrderResponse(order), nil
+	resp := u.toOrderResponseWithTimeline(ctx, order)
+	return resp, nil
 }
 
 func (u *orderUsecase) CreateOrderPayment(ctx context.Context, userID uuid.UUID, orderID uuid.UUID, req entity.CreatePaymentRequest) (*entity.PaymentResponse, error) {
@@ -496,46 +497,40 @@ func (u *orderUsecase) CreateOrderPayment(ctx context.Context, userID uuid.UUID,
 		return nil, errmap.ErrForbidden
 	}
 
-	existingPayment, _ := u.repo.GetPaymentByOrderID(ctx, orderID)
-	if existingPayment != nil && existingPayment.PaymentStatusID != 4 && existingPayment.PaymentStatusID != 5 {
-		return nil, fmt.Errorf("payment already exists for this order")
+	existingPayment, err := u.repo.GetPaymentByOrderID(ctx, orderID)
+	if err != nil {
+		return nil, fmt.Errorf("payment not found for this order")
+	}
+
+	if existingPayment.PaymentStatusID == entity.PaymentStatusProcessing || existingPayment.PaymentStatusID == entity.PaymentStatusCompleted {
+		return nil, fmt.Errorf("payment already completed for this order")
 	}
 
 	if req.Amount != order.GrandTotal {
 		return nil, fmt.Errorf("payment amount does not match order total")
 	}
 
-	transactionID := fmt.Sprintf("TXN-%d-%s", time.Now().Unix(), uuid.New().String()[:8])
-
-	expiresAt := time.Now().Add(30 * time.Minute)
-
-	paidAt := time.Now()
-
-	payment := &entity.Payment{
-		OrderID:         orderID,
-		TransactionID:   transactionID,
-		PaymentMethodID: req.PaymentMethodID,
-		PaymentStatusID: 1,
-		Amount:          req.Amount,
-		PaidAt:          &paidAt,
-		ExpiresAt:       &expiresAt,
+	now := time.Now()
+	if err := u.repo.UpdatePaymentStatus(ctx, existingPayment.ID, entity.PaymentStatusProcessing, &now); err != nil {
+		return nil, fmt.Errorf("failed to update payment status: %w", err)
 	}
 
-	if err := u.repo.CreatePayment(ctx, payment); err != nil {
-		return nil, fmt.Errorf("failed to create payment: %w", err)
+	updatedPayment, err := u.repo.GetPaymentByOrderID(ctx, orderID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get updated payment: %w", err)
 	}
 
 	response := &entity.PaymentResponse{
-		ID:              payment.ID,
-		OrderID:         payment.OrderID,
-		TransactionID:   payment.TransactionID,
-		PaymentMethodID: payment.PaymentMethodID,
-		PaymentStatusID: payment.PaymentStatusID,
-		Amount:          payment.Amount,
-		PaidAt:          payment.PaidAt,
-		ExpiresAt:       payment.ExpiresAt,
-		CreatedAt:       payment.CreatedAt,
-		UpdatedAt:       payment.UpdatedAt,
+		ID:              updatedPayment.ID,
+		OrderID:         updatedPayment.OrderID,
+		TransactionID:   updatedPayment.TransactionID,
+		PaymentMethodID: updatedPayment.PaymentMethodID,
+		PaymentStatusID: updatedPayment.PaymentStatusID,
+		Amount:          updatedPayment.Amount,
+		PaidAt:          updatedPayment.PaidAt,
+		ExpiresAt:       updatedPayment.ExpiresAt,
+		CreatedAt:       updatedPayment.CreatedAt,
+		UpdatedAt:       updatedPayment.UpdatedAt,
 	}
 
 	return response, nil
@@ -617,12 +612,25 @@ func (u *orderUsecase) GetShopOrder(ctx context.Context, userID uuid.UUID, shopO
 		return nil, errmap.ErrForbidden
 	}
 
-	return toShopOrderResponse(so), nil
+	resp := u.toShopOrderResponseWithTimeline(ctx, so)
+	return resp, nil
 }
 
 func (u *orderUsecase) UpdateShopOrderStatus(ctx context.Context, userID uuid.UUID, shopOrderID uuid.UUID, req entity.UpdateOrderStatusRequest) error {
-	if req.OrderStatusID == nil || *req.OrderStatusID == 6 {
-		return fmt.Errorf("cannot cancel order via status update, use cancel endpoint instead")
+	if req.OrderStatusID == nil {
+		return errmap.ErrInvalidRequest
+	}
+
+	statusID := *req.OrderStatusID
+
+	if statusID == entity.OrderStatusCancelled {
+		return fmt.Errorf("cannot cancel order")
+	}
+
+	if statusID != entity.OrderStatusProcessing &&
+		statusID != entity.OrderStatusDelivered &&
+		statusID != entity.OrderStatusCompleted {
+		return errmap.ErrInvalidRequest
 	}
 
 	so, err := u.repo.GetShopOrderByID(ctx, shopOrderID)
@@ -641,16 +649,22 @@ func (u *orderUsecase) UpdateShopOrderStatus(ctx context.Context, userID uuid.UU
 		return err
 	}
 
+	if statusID == entity.OrderStatusDelivered {
+		if err := u.repo.UpdateShipmentStatusByShopOrderID(ctx, shopOrderID, entity.ShipmentStatusDelivered); err != nil {
+			log.Printf("[ERROR] Failed to update shipment status for shop_order_id=%s: %v", shopOrderID, err)
+		}
+	}
+
 	now := time.Now()
 	orderLog := &entity.OrderLog{
-		OrderID:     so.OrderID,
-		ShopOrderID: &shopOrderID,
-		Note:        fmt.Sprintf("Status updated to %d", *req.OrderStatusID),
-		CreatedBy:   &userID,
-		CreatedAt:   &now,
+		OrderID:       so.OrderID,
+		ShopOrderID:   &shopOrderID,
+		OrderStatusID: statusID,
+		CreatedBy:     &userID,
+		CreatedAt:     &now,
 	}
 	if err := u.repo.CreateOrderLog(ctx, orderLog); err != nil {
-		fmt.Printf("Failed to create order log: %v\n", err)
+		log.Printf("[ERROR] Failed to create order log for shop_order_id=%s, order_id=%s: %v", shopOrderID, so.OrderID, err)
 	}
 
 	return nil
@@ -672,7 +686,7 @@ func (u *orderUsecase) CancelShopOrder(ctx context.Context, userID uuid.UUID, sh
 
 	for _, oi := range so.OrderItems {
 		if err := u.productRepo.RestoreProductStock(ctx, oi.ProductID, oi.Qty); err != nil {
-			fmt.Printf("Failed to restore stock for product %d: %v\n", oi.ProductID, err)
+			log.Printf("[ERROR] Failed to restore stock for product_id=%d, quantity=%d, shop_order_id=%s: %v", oi.ProductID, oi.Qty, shopOrderID, err)
 		}
 	}
 
@@ -681,19 +695,16 @@ func (u *orderUsecase) CancelShopOrder(ctx context.Context, userID uuid.UUID, sh
 	}
 
 	now := time.Now()
-	note := "Order cancelled"
-	if req.Reason != "" {
-		note = fmt.Sprintf("Order cancelled: %s", req.Reason)
-	}
+
 	orderLog := &entity.OrderLog{
 		OrderID:     so.OrderID,
 		ShopOrderID: &shopOrderID,
-		Note:        note,
+		Note:        req.Reason,
 		CreatedBy:   &userID,
 		CreatedAt:   &now,
 	}
 	if err := u.repo.CreateOrderLog(ctx, orderLog); err != nil {
-		fmt.Printf("Failed to create order log: %v\n", err)
+		log.Printf("[ERROR] Failed to create order log for cancelled order, shop_order_id=%s, order_id=%s: %v", shopOrderID, so.OrderID, err)
 	}
 
 	return nil
@@ -712,16 +723,58 @@ func (u *orderUsecase) AddShipment(ctx context.Context, userID uuid.UUID, shopOr
 		return nil, errmap.ErrForbidden
 	}
 
+	existingShipment, err := u.repo.GetShipmentByShopOrderID(ctx, shopOrderID)
+	if err == nil && existingShipment != nil {
+		return nil, errmap.ErrShipmentAlreadyExists
+	}
+
+	now := time.Now()
 	s := &entity.Shipment{
 		ShopOrderID:      shopOrderID,
 		CourierID:        req.CourierID,
 		TrackingNo:       req.TrackingNo,
-		ShipmentStatusID: 1,
+		ShipmentStatusID: entity.ShipmentStatusInTransit,
+		ShippedAt:        &now,
+		CreatedAt:        now,
+		UpdatedAt:        now,
 	}
 
 	if err := u.repo.AddShipment(ctx, s); err != nil {
 		return nil, err
 	}
 
+	if err := u.repo.UpdateShopOrderStatus(ctx, shopOrderID, entity.OrderStatusShipped); err != nil {
+		log.Printf("[WARN] Failed to update shop order status to shipped (status=3) for shop_order_id=%s: %v", shopOrderID, err)
+	}
+
+	orderLog := &entity.OrderLog{
+		OrderID:       so.OrderID,
+		ShopOrderID:   &shopOrderID,
+		OrderStatusID: entity.OrderStatusShipped,
+		CreatedBy:     &userID,
+		CreatedAt:     &now,
+	}
+	if err := u.repo.CreateOrderLog(ctx, orderLog); err != nil {
+		log.Printf("[ERROR] Failed to create order log for shipment, shop_order_id=%s, order_id=%s, tracking_no=%s: %v", shopOrderID, so.OrderID, req.TrackingNo, err)
+	}
+
 	return mapToShipmentResponse(s), nil
+}
+
+func (u *orderUsecase) GetShipmentTracking(ctx context.Context, userID uuid.UUID, shopOrderID uuid.UUID) (*entity.ShipmentResponse, error) {
+	so, err := u.repo.GetShopOrderByID(ctx, shopOrderID)
+	if err != nil {
+		return nil, err
+	}
+
+	if so.Order.UserID != userID {
+		return nil, errmap.ErrForbidden
+	}
+
+	shipment, err := u.repo.GetShipmentByShopOrderID(ctx, shopOrderID)
+	if err != nil {
+		return nil, err
+	}
+
+	return mapToShipmentResponse(shipment), nil
 }

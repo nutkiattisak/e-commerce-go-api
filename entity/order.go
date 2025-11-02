@@ -83,6 +83,7 @@ type ShopOrderResponse struct {
 	UpdatedAt     time.Time           `json:"updatedAt"`
 	Shop          OrderShopResponse   `json:"shop"`
 	OrderItems    []OrderItemResponse `json:"orderItems"`
+	Timeline      []OrderTimelineItem `json:"timeline,omitempty"`
 }
 
 type OrderResponse struct {
@@ -98,6 +99,7 @@ type OrderResponse struct {
 	ShippingZipcode     string              `json:"shippingZipcode"`
 	PaymentMethodID     int                 `json:"paymentMethodId"`
 	ShopOrders          []ShopOrderResponse `json:"shopOrders"`
+	Timeline            []OrderTimelineItem `json:"timeline,omitempty"`
 }
 
 type OrderListResponse struct {
@@ -120,6 +122,7 @@ type OrderListResponse struct {
 	UpdatedAt           time.Time           `json:"updatedAt"`
 	Shop                OrderShopResponse   `json:"shop"`
 	OrderItems          []OrderItemResponse `json:"orderItems"`
+	Timeline            []OrderTimelineItem `json:"timeline,omitempty"`
 }
 
 type ShopOrderListResponse struct {
@@ -141,6 +144,7 @@ type ShopOrderListResponse struct {
 	CreatedAt           time.Time           `json:"createdAt"`
 	UpdatedAt           time.Time           `json:"updatedAt"`
 	OrderItems          []OrderItemResponse `json:"orderItems"`
+	Timeline            []OrderTimelineItem `json:"timeline,omitempty"`
 }
 
 type OrderListPaginationResponse struct {

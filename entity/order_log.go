@@ -10,7 +10,7 @@ type OrderLog struct {
 	ID            int        `gorm:"primaryKey;autoIncrement" json:"id"`
 	OrderID       uuid.UUID  `gorm:"type:uuid;not null;index:idx_order_logs_order_id" json:"orderId"`
 	ShopOrderID   *uuid.UUID `gorm:"type:uuid" json:"shopOrderId"`
-	OrderStatusID *int       `json:"orderStatusId,omitempty"`
+	OrderStatusID int        `json:"orderStatusId,omitempty"`
 	Note          string     `gorm:"type:text" json:"note"`
 	CreatedBy     *uuid.UUID `gorm:"type:uuid" json:"createdBy"`
 	CreatedAt     *time.Time `gorm:"default:now();index:idx_order_logs_created_at" json:"createdAt"`
@@ -19,4 +19,12 @@ type OrderLog struct {
 	ShopOrder   *ShopOrder   `gorm:"foreignKey:ShopOrderID;references:ID" json:"shopOrder,omitempty"`
 	Creator     *User        `gorm:"foreignKey:CreatedBy;references:ID" json:"creator,omitempty"`
 	OrderStatus *OrderStatus `gorm:"foreignKey:OrderStatusID;references:ID" json:"orderStatus,omitempty"`
+}
+
+// OrderTimelineItem represents a single timeline event in order history
+type OrderTimelineItem struct {
+	StatusID  int        `json:"statusId"`
+	Note      string     `json:"note,omitempty"`
+	CreatedAt *time.Time `json:"createdAt"`
+	CreatedBy *uuid.UUID `json:"createdBy,omitempty"`
 }
