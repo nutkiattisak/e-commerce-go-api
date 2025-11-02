@@ -187,16 +187,6 @@ func (r *orderRepository) CreateFullOrder(ctx context.Context, order *entity.Ord
 		}
 	}
 
-	// orderLog := &entity.OrderLog{
-	// 	OrderID:   order.ID,
-	// 	CreatedBy: &userID,
-	// 	CreatedAt: &now,
-	// }
-	// if err := tx.Create(orderLog).Error; err != nil {
-	// 	tx.Rollback()
-	// 	return err
-	// }
-
 	for _, so := range shopOrders {
 		shopOrderLog := &entity.OrderLog{
 			OrderID:       order.ID,
