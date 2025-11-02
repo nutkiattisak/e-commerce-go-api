@@ -74,12 +74,12 @@ func (h *OrderHandler) ListOrderGroups(c echo.Context) error {
 //	@Security		BearerAuth
 //	@Produce		json
 //	@Param			orderId	path		string	true	"Order Group ID (Main Order ID)"
-//	@Success		200				{object}	entity.OrderResponse
-//	@Failure		400				{object}	response.ResponseError
-//	@Failure		401				{object}	response.ResponseError
-//	@Failure		403				{object}	response.ResponseError
-//	@Failure		404				{object}	response.ResponseError
-//	@Failure		500				{object}	response.ResponseError
+//	@Success		200		{object}	entity.OrderResponse
+//	@Failure		400		{object}	response.ResponseError
+//	@Failure		401		{object}	response.ResponseError
+//	@Failure		403		{object}	response.ResponseError
+//	@Failure		404		{object}	response.ResponseError
+//	@Failure		500		{object}	response.ResponseError
 //	@Router			/api/order-groups/{orderId} [get]
 func (h *OrderHandler) GetOrderGroup(c echo.Context) error {
 	userID, err := middleware.GetUserID(c)
@@ -211,12 +211,12 @@ func (h *OrderHandler) ListOrders(c echo.Context) error {
 //	@Security		BearerAuth
 //	@Produce		json
 //	@Param			shopOrderId	path		string	true	"Shop Order ID"
-//	@Success		200		{object}	entity.OrderListResponse
-//	@Failure		400		{object}	response.ResponseError
-//	@Failure		401		{object}	response.ResponseError
-//	@Failure		403		{object}	response.ResponseError
-//	@Failure		404		{object}	response.ResponseError
-//	@Failure		500		{object}	response.ResponseError
+//	@Success		200			{object}	entity.OrderListResponse
+//	@Failure		400			{object}	response.ResponseError
+//	@Failure		401			{object}	response.ResponseError
+//	@Failure		403			{object}	response.ResponseError
+//	@Failure		404			{object}	response.ResponseError
+//	@Failure		500			{object}	response.ResponseError
 //	@Router			/api/orders/{shopOrderId} [get]
 func (h *OrderHandler) GetOrder(c echo.Context) error {
 	userID, err := middleware.GetUserID(c)
@@ -339,10 +339,10 @@ func (h *OrderHandler) ListShopOrders(c echo.Context) error {
 //	@Security		BearerAuth
 //	@Produce		json
 //	@Param			shopOrderId	path		string	true	"Shop Order ID"
-//	@Success		200		{object}	entity.ShopOrderResponse
-//	@Failure		400		{object}	response.ResponseError
-//	@Failure		401		{object}	response.ResponseError
-//	@Failure		500		{object}	response.ResponseError
+//	@Success		200			{object}	entity.ShopOrderResponse
+//	@Failure		400			{object}	response.ResponseError
+//	@Failure		401			{object}	response.ResponseError
+//	@Failure		500			{object}	response.ResponseError
 //	@Router			/api/shop/orders/{shopOrderId} [get]
 func (h *OrderHandler) GetShopOrder(c echo.Context) error {
 	userID, err := middleware.GetUserID(c)
@@ -379,12 +379,12 @@ func (h *OrderHandler) GetShopOrder(c echo.Context) error {
 //	@Accept			json
 //	@Produce		json
 //	@Param			shopOrderId	path		string							true	"Shop Order ID"
-//	@Param			body	body		entity.UpdateOrderStatusRequest	true	"Status update payload"
-//	@Success		204		{object}	object
-//	@Failure		400		{object}	response.ResponseError
-//	@Failure		401		{object}	response.ResponseError
-//	@Failure		403		{object}	response.ResponseError
-//	@Failure		500		{object}	response.ResponseError
+//	@Param			body		body		entity.UpdateOrderStatusRequest	true	"Status update payload"
+//	@Success		204			{object}	object
+//	@Failure		400			{object}	response.ResponseError
+//	@Failure		401			{object}	response.ResponseError
+//	@Failure		403			{object}	response.ResponseError
+//	@Failure		500			{object}	response.ResponseError
 //	@Router			/api/shop/orders/{shopOrderId}/status [put]
 func (h *OrderHandler) UpdateShopOrderStatus(c echo.Context) error {
 	userID, err := middleware.GetUserID(c)
@@ -431,12 +431,12 @@ func (h *OrderHandler) UpdateShopOrderStatus(c echo.Context) error {
 //	@Accept			json
 //	@Produce		json
 //	@Param			shopOrderId	path		string						true	"Shop Order ID"
-//	@Param			body	body		entity.CancelOrderRequest	true	"Cancel order payload"
-//	@Success		200		{object}	object
-//	@Failure		400		{object}	response.ResponseError
-//	@Failure		401		{object}	response.ResponseError
-//	@Failure		403		{object}	response.ResponseError
-//	@Failure		500		{object}	response.ResponseError
+//	@Param			body		body		entity.CancelOrderRequest	true	"Cancel order payload"
+//	@Success		200			{object}	object
+//	@Failure		400			{object}	response.ResponseError
+//	@Failure		401			{object}	response.ResponseError
+//	@Failure		403			{object}	response.ResponseError
+//	@Failure		500			{object}	response.ResponseError
 //	@Router			/api/shop/orders/{shopOrderId}/cancel [put]
 func (h *OrderHandler) CancelShopOrder(c echo.Context) error {
 	userID, err := middleware.GetUserID(c)
@@ -485,12 +485,12 @@ func (h *OrderHandler) CancelShopOrder(c echo.Context) error {
 //	@Accept			json
 //	@Produce		json
 //	@Param			shopOrderId	path		string						true	"Shop Order ID"
-//	@Param			body	body		entity.AddShipmentRequest	true	"Shipment payload"
-//	@Success		201		{object}	entity.ShipmentResponse
-//	@Failure		400		{object}	response.ResponseError
-//	@Failure		401		{object}	response.ResponseError
-//	@Failure		403		{object}	response.ResponseError
-//	@Failure		500		{object}	response.ResponseError
+//	@Param			body		body		entity.AddShipmentRequest	true	"Shipment payload"
+//	@Success		201			{object}	entity.ShipmentResponse
+//	@Failure		400			{object}	response.ResponseError
+//	@Failure		401			{object}	response.ResponseError
+//	@Failure		403			{object}	response.ResponseError
+//	@Failure		500			{object}	response.ResponseError
 //	@Router			/api/shop/orders/{shopOrderId}/shipping [post]
 func (h *OrderHandler) AddShipment(c echo.Context) error {
 	userID, err := middleware.GetUserID(c)
@@ -535,12 +535,12 @@ func (h *OrderHandler) AddShipment(c echo.Context) error {
 //	@Security		BearerAuth
 //	@Produce		json
 //	@Param			shopOrderId	path		string	true	"Shop Order ID"
-//	@Success		200		{object}	entity.ShipmentResponse
-//	@Failure		400		{object}	response.ResponseError
-//	@Failure		401		{object}	response.ResponseError
-//	@Failure		403		{object}	response.ResponseError
-//	@Failure		404		{object}	response.ResponseError
-//	@Failure		500		{object}	response.ResponseError
+//	@Success		200			{object}	entity.ShipmentResponse
+//	@Failure		400			{object}	response.ResponseError
+//	@Failure		401			{object}	response.ResponseError
+//	@Failure		403			{object}	response.ResponseError
+//	@Failure		404			{object}	response.ResponseError
+//	@Failure		500			{object}	response.ResponseError
 //	@Router			/api/orders/{shopOrderId}/tracking [get]
 func (h *OrderHandler) GetShipmentTracking(c echo.Context) error {
 	userID, err := middleware.GetUserID(c)
