@@ -95,11 +95,14 @@ func (h *ProductHandler) GetProduct(c echo.Context) error {
 //	@Accept			json
 //	@Produce		json
 //	@Security		BearerAuth
-//	@Success		200	{object}	entity.ProductListResponse
-//	@Failure		400	{object}	response.ResponseError
-//	@Failure		401	{object}	response.ResponseError
-//	@Failure		403	{object}	response.ResponseError
-//	@Failure		500	{object}	response.ResponseError
+//	@Param			page		query		int		false	"Page number"
+//	@Param			perPage		query		int		false	"Items per page"
+//	@Param			searchText	query		string	false	"Search text"
+//	@Success		200			{object}	entity.ProductListResponse
+//	@Failure		400			{object}	response.ResponseError
+//	@Failure		401			{object}	response.ResponseError
+//	@Failure		403			{object}	response.ResponseError
+//	@Failure		500			{object}	response.ResponseError
 //	@Router			/api/shop/products [get]
 func (h *ProductHandler) ListShopProducts(c echo.Context) error {
 	userID, err := middleware.GetUserID(c)
@@ -107,7 +110,12 @@ func (h *ProductHandler) ListShopProducts(c echo.Context) error {
 		return response.Error(c, http.StatusUnauthorized, errmap.ErrUnauthorized.Error())
 	}
 
-	result, err := h.usecase.GetProductsByUserID(c.Request().Context(), userID)
+	var q entity.ProductListRequest
+	if err := c.Bind(&q); err != nil {
+		return response.Error(c, http.StatusBadRequest, "invalid query parameters")
+	}
+
+	result, err := h.usecase.GetProductsByUserID(c.Request().Context(), userID, &q)
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}

@@ -91,8 +91,8 @@ type UserResponse struct {
 }
 
 type UpdateProfileRequest struct {
-	FirstName   string  `json:"firstName" validate:"required" example:"Kiattisak"`
-	LastName    string  `json:"lastName" validate:"required" example:"Chantharamaneechote"`
-	PhoneNumber string  `json:"phoneNumber" validate:"required" example:"0900000000"`
+	FirstName   *string `json:"firstName" validate:"omitempty,min=1" example:"Kiattisak"`
+	LastName    *string `json:"lastName" validate:"omitempty,min=1" example:"Chantharamaneechote"`
+	PhoneNumber *string `json:"phoneNumber" validate:"omitempty,min=10" example:"0900000000"`
 	ImageURL    *string `json:"imageUrl" example:"https://example.com/image.jpg"`
 }

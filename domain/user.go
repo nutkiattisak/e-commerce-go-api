@@ -10,6 +10,7 @@ import (
 
 type UserUsecase interface {
 	GetProfile(ctx context.Context, userID uuid.UUID) (*entity.UserResponse, error)
+	GetUserByID(ctx context.Context, userID uuid.UUID) (*entity.User, error)
 	GetAddresses(ctx context.Context, userID uuid.UUID) ([]*entity.AddressResponse, error)
 	CreateAddress(ctx context.Context, addr *entity.Address) (*entity.AddressResponse, error)
 	GetAddressByID(ctx context.Context, id int) (*entity.AddressResponse, error)

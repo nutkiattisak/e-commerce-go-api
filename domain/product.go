@@ -11,11 +11,11 @@ import (
 type ProductUsecase interface {
 	ListProducts(ctx context.Context, q *entity.ProductListRequest) (*entity.ProductListResponse, error)
 	GetProductByID(ctx context.Context, productID int) (*entity.ProductResponse, error)
-	GetProductsByUserID(ctx context.Context, userID uuid.UUID) (*entity.ProductListResponse, error)
+	GetProductsByUserID(ctx context.Context, userID uuid.UUID, q *entity.ProductListRequest) (*entity.ProductListResponse, error)
 	CreateProduct(ctx context.Context, userID uuid.UUID, req *entity.CreateProductRequest) (*entity.ProductResponse, error)
 	UpdateProduct(ctx context.Context, userID uuid.UUID, productID int, req *entity.UpdateProductRequest) (*entity.ProductResponse, error)
 	DeleteProduct(ctx context.Context, userID uuid.UUID, productID int) error
-	ListProductsByShop(ctx context.Context, shopID uuid.UUID) ([]*entity.ProductResponse, error)
+	ListProductsByShop(ctx context.Context, shopID uuid.UUID, q *entity.ProductListRequest) (*entity.ProductListResponse, error)
 }
 
 type ProductRepository interface {

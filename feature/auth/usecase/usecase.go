@@ -9,6 +9,8 @@ import (
 	"ecommerce-go-api/internal/jwt"
 	"errors"
 	"fmt"
+
+	"gorm.io/gorm"
 )
 
 type authUsecase struct {
@@ -25,14 +27,12 @@ func (u *authUsecase) Register(ctx context.Context, req *entity.RegisterRequest)
 
 	existingUser, err := u.authRepo.GetUserByEmail(ctx, req.Email)
 
-	if err != nil {
-		if !errors.Is(err, errmap.ErrNotFound) {
-			return nil, err
-		}
+	if err == nil && existingUser != nil {
+		return nil, errmap.ErrEmailAlreadyExists
 	}
 
-	if existingUser != nil {
-		return nil, errmap.ErrEmailAlreadyExists
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
 	}
 
 	hashedPassword, err := hash.HashPassword(req.Password)
@@ -82,9 +82,14 @@ func (u *authUsecase) Register(ctx context.Context, req *entity.RegisterRequest)
 
 func (u *authUsecase) RegisterShop(ctx context.Context, req *entity.RegisterShopRequest) (*entity.RegisterShopResponse, error) {
 
-	existingUser, _ := u.authRepo.GetUserByEmail(ctx, req.Email)
-	if existingUser != nil {
+	existingUser, err := u.authRepo.GetUserByEmail(ctx, req.Email)
+
+	if err == nil && existingUser != nil {
 		return nil, errmap.ErrEmailAlreadyExists
+	}
+
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
 	}
 
 	hashedPassword, err := hash.HashPassword(req.Password)

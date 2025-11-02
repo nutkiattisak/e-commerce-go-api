@@ -77,7 +77,7 @@ func (h *ShopHandler) ListShops(c echo.Context) error {
 	resp, err := h.shopUsecase.ListShops(c.Request().Context(), &req)
 	if err != nil {
 		if errors.Is(err, errmap.ErrNotFound) {
-			return response.Error(c, http.StatusNotFound, err.Error())
+			return response.Error(c, http.StatusNotFound, errmap.ErrNotFound.Error())
 		}
 
 		return response.Error(c, http.StatusInternalServerError, errmap.ErrInternalServer.Error())
@@ -106,7 +106,10 @@ func (h *ShopHandler) GetMyShop(c echo.Context) error {
 	shop, err := h.shopUsecase.GetShopByUserID(c.Request().Context(), userID)
 	if err != nil {
 		if errors.Is(err, errmap.ErrNotFound) {
-			return response.Error(c, http.StatusNotFound, err.Error())
+			return response.Error(c, http.StatusNotFound, errmap.ErrNotFound.Error())
+		}
+		if errors.Is(err, errmap.ErrForbidden) {
+			return response.Error(c, http.StatusForbidden, errmap.ErrForbidden.Error())
 		}
 
 		return response.Error(c, http.StatusInternalServerError, errmap.ErrInternalServer.Error())
