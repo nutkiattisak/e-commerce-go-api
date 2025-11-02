@@ -36,6 +36,11 @@ type ApproveRefundRequest struct {
 	RefundID uuid.UUID `json:"refundId" validate:"required"`
 }
 
+type SubmitRefundBankAccountRequest struct {
+	BankAccount string `json:"bankAccount" validate:"required,min=10,max=20"`
+	BankName    string `json:"bankName" validate:"required,min=2,max=100"`
+}
+
 type RefundResponse struct {
 	ID             uuid.UUID  `json:"id"`
 	ShopOrderID    uuid.UUID  `json:"shopOrderId"`
