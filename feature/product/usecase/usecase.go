@@ -155,8 +155,8 @@ func (u *productUsecase) DeleteProduct(ctx context.Context, userID uuid.UUID, pr
 	return nil
 }
 
-func (u *productUsecase) ListProductsByShop(ctx context.Context, shopID uuid.UUID) ([]*entity.ProductResponse, error) {
-	items, _, err := u.repo.ListByShopID(ctx, shopID, nil)
+func (u *productUsecase) ListProductsByShop(ctx context.Context, shopID uuid.UUID, q *entity.ProductListRequest) (*entity.ProductListResponse, error) {
+	items, total, err := u.repo.ListByShopID(ctx, shopID, q)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list products by shop: %w", err)
 	}
@@ -166,15 +166,18 @@ func (u *productUsecase) ListProductsByShop(ctx context.Context, shopID uuid.UUI
 		productResponses[i] = mapToProductResponse(p)
 	}
 
-	return productResponses, nil
+	return &entity.ProductListResponse{
+		Items: productResponses,
+		Total: total,
+	}, nil
 }
 
-func (u *productUsecase) GetProductsByUserID(ctx context.Context, userID uuid.UUID) (*entity.ProductListResponse, error) {
+func (u *productUsecase) GetProductsByUserID(ctx context.Context, userID uuid.UUID, q *entity.ProductListRequest) (*entity.ProductListResponse, error) {
 	shop, err := u.shopRepo.GetShopByUserID(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("shop not found for user: %w", err)
 	}
-	items, total, err := u.repo.ListByShopID(ctx, shop.ID, nil)
+	items, total, err := u.repo.ListByShopID(ctx, shop.ID, q)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list products for shop: %w", err)
 	}

@@ -79,16 +79,30 @@ func (h *UserHandler) UpdateProfile(c echo.Context) error {
 		return response.Error(c, http.StatusBadRequest, err.Error())
 	}
 
-	user := &entity.User{
-		ID:          userID,
-		FirstName:   req.FirstName,
-		LastName:    req.LastName,
-		PhoneNumber: req.PhoneNumber,
-		ImageURL:    req.ImageURL,
-		UpdatedAt:   time.Now(),
+	currentUser, err := h.usecase.GetUserByID(c.Request().Context(), userID)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return response.Error(c, http.StatusNotFound, errmap.ErrUserNotFound.Error())
+		}
+		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
 
-	if err := h.usecase.UpdateProfile(c.Request().Context(), user); err != nil {
+	if req.FirstName != nil {
+		currentUser.FirstName = *req.FirstName
+	}
+	if req.LastName != nil {
+		currentUser.LastName = *req.LastName
+	}
+	if req.PhoneNumber != nil {
+		currentUser.PhoneNumber = *req.PhoneNumber
+	}
+	if req.ImageURL != nil {
+		currentUser.ImageURL = req.ImageURL
+	}
+
+	currentUser.UpdatedAt = time.Now()
+
+	if err := h.usecase.UpdateProfile(c.Request().Context(), currentUser); err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return response.Error(c, http.StatusNotFound, errmap.ErrUserNotFound.Error())
 		}

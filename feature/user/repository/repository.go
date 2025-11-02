@@ -13,15 +13,15 @@ import (
 	"gorm.io/gorm"
 )
 
-type UserRepository struct {
+type userRepository struct {
 	db *gorm.DB
 }
 
 func NewUserRepository(db *gorm.DB) domain.UserRepository {
-	return &UserRepository{db: db}
+	return &userRepository{db: db}
 }
 
-func (r *UserRepository) GetByID(ctx context.Context, id uuid.UUID) (*entity.User, error) {
+func (r *userRepository) GetByID(ctx context.Context, id uuid.UUID) (*entity.User, error) {
 	var u entity.User
 	if err := r.db.WithContext(ctx).First(&u, "id = ?", id).Error; err != nil {
 		return nil, err
@@ -29,7 +29,7 @@ func (r *UserRepository) GetByID(ctx context.Context, id uuid.UUID) (*entity.Use
 	return &u, nil
 }
 
-func (r *UserRepository) GetAddressesByUserID(ctx context.Context, userID uuid.UUID) ([]*entity.Address, error) {
+func (r *userRepository) GetAddressesByUserID(ctx context.Context, userID uuid.UUID) ([]*entity.Address, error) {
 	var addrs []*entity.Address
 	err := r.db.WithContext(ctx).
 		Preload("User").
@@ -42,14 +42,14 @@ func (r *UserRepository) GetAddressesByUserID(ctx context.Context, userID uuid.U
 	return addrs, nil
 }
 
-func (r *UserRepository) CreateAddress(ctx context.Context, addr *entity.Address) error {
+func (r *userRepository) CreateAddress(ctx context.Context, addr *entity.Address) error {
 	if err := r.db.WithContext(ctx).Create(addr).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *UserRepository) GetAddressByID(ctx context.Context, id int) (*entity.Address, error) {
+func (r *userRepository) GetAddressByID(ctx context.Context, id int) (*entity.Address, error) {
 	var address entity.Address
 
 	err := r.db.WithContext(ctx).
@@ -80,7 +80,7 @@ func (r *UserRepository) GetAddressByID(ctx context.Context, id int) (*entity.Ad
 	return &address, nil
 }
 
-func (r *UserRepository) UpdateAddress(ctx context.Context, addr *entity.Address, userID uuid.UUID) error {
+func (r *userRepository) UpdateAddress(ctx context.Context, addr *entity.Address, userID uuid.UUID) error {
 	updates := map[string]interface{}{
 		"name":            addr.Name,
 		"line1":           addr.Line1,
@@ -107,7 +107,7 @@ func (r *UserRepository) UpdateAddress(ctx context.Context, addr *entity.Address
 	return nil
 }
 
-func (r *UserRepository) DeleteAddress(ctx context.Context, id int, userID uuid.UUID) error {
+func (r *userRepository) DeleteAddress(ctx context.Context, id int, userID uuid.UUID) error {
 	res := r.db.WithContext(ctx).
 		Where("id = ? AND user_id = ? AND is_default = false", id, userID).
 		Delete(&entity.Address{})
@@ -123,7 +123,7 @@ func (r *UserRepository) DeleteAddress(ctx context.Context, id int, userID uuid.
 	return errmap.ErrForbidden
 }
 
-func (r *UserRepository) UpdateProfile(ctx context.Context, user *entity.User) error {
+func (r *userRepository) UpdateProfile(ctx context.Context, user *entity.User) error {
 	updates := map[string]interface{}{
 		"first_name":   user.FirstName,
 		"last_name":    user.LastName,
