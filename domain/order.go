@@ -14,7 +14,6 @@ type OrderUsecase interface {
 	AddItemToCart(ctx context.Context, userID uuid.UUID, req entity.AddItemToCartRequest) (*entity.CartItemResponse, error)
 	ListOrders(ctx context.Context, userID uuid.UUID, req entity.OrderListRequest) (*entity.OrderListPaginationResponse, error)
 	GetOrder(ctx context.Context, userID uuid.UUID, shopOrderID uuid.UUID) (*entity.OrderListResponse, error)
-	CancelOrder(ctx context.Context, userID uuid.UUID, orderID uuid.UUID, req entity.CancelOrderRequest) error
 
 	ListOrderGroups(ctx context.Context, userID uuid.UUID, req entity.OrderListRequest) (*entity.OrderGroupListPaginationResponse, error)
 	GetOrderGroup(ctx context.Context, userID uuid.UUID, orderID uuid.UUID) (*entity.OrderResponse, error)
@@ -26,6 +25,7 @@ type OrderUsecase interface {
 	UpdateShopOrderStatus(ctx context.Context, userID uuid.UUID, shopOrderID uuid.UUID, req entity.UpdateOrderStatusRequest) error
 	CancelShopOrder(ctx context.Context, userID uuid.UUID, shopOrderID uuid.UUID, req entity.CancelOrderRequest) error
 	AddShipment(ctx context.Context, userID uuid.UUID, shopOrderID uuid.UUID, req entity.AddShipmentRequest) (*entity.ShipmentResponse, error)
+	GetShipmentTracking(ctx context.Context, userID uuid.UUID, shopOrderID uuid.UUID) (*entity.ShipmentResponse, error)
 }
 
 type OrderRepository interface {
@@ -40,7 +40,7 @@ type OrderRepository interface {
 	CreateOrder(ctx context.Context, order *entity.Order) error
 	CreateShopOrder(ctx context.Context, so *entity.ShopOrder) error
 	CreateOrderItems(ctx context.Context, items []*entity.OrderItem) error
-	CreateFullOrder(ctx context.Context, order *entity.Order, shopOrders []*entity.ShopOrder, orderItemsByShop map[string][]*entity.OrderItem, cartID int) error
+	CreateFullOrder(ctx context.Context, order *entity.Order, shopOrders []*entity.ShopOrder, orderItemsByShop map[string][]*entity.OrderItem, payment *entity.Payment, cartID int, userID uuid.UUID) error
 
 	ListOrdersByUser(ctx context.Context, userID uuid.UUID, req entity.OrderListRequest) ([]*entity.Order, int64, error)
 	ListShopOrdersByUserID(ctx context.Context, userID uuid.UUID, req entity.OrderListRequest) ([]*entity.ShopOrder, int64, error)
@@ -52,13 +52,18 @@ type OrderRepository interface {
 	CancelShopOrder(ctx context.Context, id uuid.UUID, reason string) error
 
 	AddShipment(ctx context.Context, s *entity.Shipment) error
+	GetShipmentByShopOrderID(ctx context.Context, shopOrderID uuid.UUID) (*entity.Shipment, error)
+	UpdateShipmentStatusByShopOrderID(ctx context.Context, shopOrderID uuid.UUID, shipmentStatusID int) error
 
 	// Payment
 	CreatePayment(ctx context.Context, payment *entity.Payment) error
 	GetPaymentByOrderID(ctx context.Context, orderID uuid.UUID) (*entity.Payment, error)
 	GetPaymentByTransactionID(ctx context.Context, transactionID string) (*entity.Payment, error)
 	UpdatePaymentStatus(ctx context.Context, id uuid.UUID, paymentStatusID int, paidAt *time.Time) error
+	ListExpiredPayments(ctx context.Context) ([]*entity.Payment, error)
 
 	// OrderLog
 	CreateOrderLog(ctx context.Context, log *entity.OrderLog) error
+	GetOrderLogsByOrderID(ctx context.Context, orderID uuid.UUID) ([]*entity.OrderLog, error)
+	GetOrderLogsByShopOrderID(ctx context.Context, shopOrderID uuid.UUID) ([]*entity.OrderLog, error)
 }

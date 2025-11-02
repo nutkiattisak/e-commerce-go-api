@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
@@ -58,16 +59,14 @@ func (r *orderRepository) AddCartItem(ctx context.Context, item *entity.CartItem
 
 func (r *orderRepository) UpsertCartItem(ctx context.Context, item *entity.CartItem) (*entity.CartItem, error) {
 	tx := r.db.WithContext(ctx).Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
 
 	var existing entity.CartItem
 	err := tx.Where("cart_id = ? AND product_id = ? AND deleted_at IS NULL", item.CartID, item.ProductID).First(&existing).Error
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			if err := tx.Create(item).Error; err != nil {
 				tx.Rollback()
 				return nil, err
@@ -86,9 +85,11 @@ func (r *orderRepository) UpsertCartItem(ctx context.Context, item *entity.CartI
 		tx.Rollback()
 		return nil, err
 	}
+
 	if err := tx.Commit().Error; err != nil {
 		return nil, err
 	}
+
 	return &existing, nil
 }
 
@@ -129,13 +130,11 @@ func (r *orderRepository) CreateOrderItems(ctx context.Context, items []*entity.
 	return nil
 }
 
-func (r *orderRepository) CreateFullOrder(ctx context.Context, order *entity.Order, shopOrders []*entity.ShopOrder, orderItemsByShop map[string][]*entity.OrderItem, cartID int) error {
+func (r *orderRepository) CreateFullOrder(ctx context.Context, order *entity.Order, shopOrders []*entity.ShopOrder, orderItemsByShop map[string][]*entity.OrderItem, payment *entity.Payment, cartID int, userID uuid.UUID) error {
 	tx := r.db.WithContext(ctx).Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
+	if tx.Error != nil {
+		return tx.Error
+	}
 
 	now := time.Now()
 
@@ -178,13 +177,46 @@ func (r *orderRepository) CreateFullOrder(ctx context.Context, order *entity.Ord
 		}
 	}
 
+	if payment != nil {
+		payment.OrderID = order.ID
+		payment.CreatedAt = now
+		payment.UpdatedAt = now
+		if err := tx.Create(payment).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	// orderLog := &entity.OrderLog{
+	// 	OrderID:   order.ID,
+	// 	CreatedBy: &userID,
+	// 	CreatedAt: &now,
+	// }
+	// if err := tx.Create(orderLog).Error; err != nil {
+	// 	tx.Rollback()
+	// 	return err
+	// }
+
+	for _, so := range shopOrders {
+		shopOrderLog := &entity.OrderLog{
+			OrderID:       order.ID,
+			ShopOrderID:   &so.ID,
+			OrderStatusID: entity.OrderStatusPending,
+			CreatedBy:     &userID,
+			CreatedAt:     &now,
+		}
+		if err := tx.Create(shopOrderLog).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
 	if err := tx.Where("cart_id = ?", cartID).Delete(&entity.CartItem{}).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		tx.Rollback()
 		return err
 	}
 
@@ -201,7 +233,7 @@ func (r *orderRepository) ListOrdersByUser(ctx context.Context, userID uuid.UUID
 	}
 	perPage := req.PerPage
 	if perPage == 0 {
-		perPage = 10
+		perPage = 20
 	}
 	offset := (page - 1) * perPage
 
@@ -237,7 +269,7 @@ func (r *orderRepository) ListShopOrdersByUserID(ctx context.Context, userID uui
 	}
 	perPage := req.PerPage
 	if perPage == 0 {
-		perPage = 10
+		perPage = 20
 	}
 	offset := (page - 1) * perPage
 
@@ -247,11 +279,11 @@ func (r *orderRepository) ListShopOrdersByUserID(ctx context.Context, userID uui
 
 	if req.SearchText != nil {
 		searchPattern := "%" + *req.SearchText + "%"
-		query = query.Where("shop_orders.order_number LIKE ? OR shop_orders.status LIKE ?", searchPattern, searchPattern)
+		query = query.Where("shop_orders.order_number LIKE ?", searchPattern)
 	}
 
 	if req.OrderStatusID != nil {
-		query = query.Where("shop_orders.status = ?", *req.OrderStatusID)
+		query = query.Where("shop_orders.order_status_id = ?", *req.OrderStatusID)
 	}
 
 	if err := query.Count(&total).Error; err != nil {
@@ -299,7 +331,7 @@ func (r *orderRepository) ListShopOrdersByShopID(ctx context.Context, shopID uui
 	}
 	perPage := req.PerPage
 	if perPage == 0 {
-		perPage = 10
+		perPage = 20
 	}
 	offset := (page - 1) * perPage
 
@@ -307,7 +339,7 @@ func (r *orderRepository) ListShopOrdersByShopID(ctx context.Context, shopID uui
 
 	if req.SearchText != nil {
 		searchPattern := "%" + *req.SearchText + "%"
-		query = query.Where("order_number LIKE ? OR status LIKE ?", searchPattern, searchPattern)
+		query = query.Where("order_number LIKE ? ", searchPattern)
 	}
 
 	if req.OrderStatusID != nil {
@@ -357,11 +389,30 @@ func (r *orderRepository) UpdateShopOrderStatus(ctx context.Context, id uuid.UUI
 }
 
 func (r *orderRepository) CancelShopOrder(ctx context.Context, id uuid.UUID, reason string) error {
-	return r.db.WithContext(ctx).Model(&entity.ShopOrder{}).Where("id = ?", id).Updates(map[string]interface{}{"status": "CANCELLED"}).Error
+	return r.db.WithContext(ctx).Model(&entity.ShopOrder{}).Where("id = ?", id).Updates(map[string]interface{}{"order_status_id": entity.OrderStatusCancelled}).Error
 }
 
 func (r *orderRepository) AddShipment(ctx context.Context, s *entity.Shipment) error {
 	return r.db.WithContext(ctx).Create(s).Error
+}
+
+func (r *orderRepository) GetShipmentByShopOrderID(ctx context.Context, shopOrderID uuid.UUID) (*entity.Shipment, error) {
+	var shipment entity.Shipment
+	err := r.db.WithContext(ctx).
+		Preload("Courier").
+		Where("shop_order_id = ?", shopOrderID).
+		First(&shipment).Error
+	if err != nil {
+		return nil, err
+	}
+	return &shipment, nil
+}
+
+func (r *orderRepository) UpdateShipmentStatusByShopOrderID(ctx context.Context, shopOrderID uuid.UUID, shipmentStatusID int) error {
+	return r.db.WithContext(ctx).
+		Model(&entity.Shipment{}).
+		Where("shop_order_id = ?", shopOrderID).
+		Update("shipment_status_id", shipmentStatusID).Error
 }
 
 func (r *orderRepository) CreatePayment(ctx context.Context, payment *entity.Payment) error {
@@ -397,6 +448,39 @@ func (r *orderRepository) UpdatePaymentStatus(ctx context.Context, id uuid.UUID,
 	return r.db.WithContext(ctx).Model(&entity.Payment{}).Where("id = ?", id).Updates(updates).Error
 }
 
+func (r *orderRepository) ListExpiredPayments(ctx context.Context) ([]*entity.Payment, error) {
+	var payments []*entity.Payment
+	err := r.db.WithContext(ctx).
+		Where("payment_status_id = ?", entity.PaymentStatusPending).
+		Where("expires_at < ?", time.Now()).
+		Find(&payments).Error
+	return payments, err
+}
+
 func (r *orderRepository) CreateOrderLog(ctx context.Context, log *entity.OrderLog) error {
 	return r.db.WithContext(ctx).Create(log).Error
+}
+
+func (r *orderRepository) GetOrderLogsByOrderID(ctx context.Context, orderID uuid.UUID) ([]*entity.OrderLog, error) {
+	var logs []*entity.OrderLog
+	err := r.db.WithContext(ctx).
+		Where("order_id = ?", orderID).
+		Order("created_at ASC").
+		Find(&logs).Error
+	if err != nil {
+		return nil, err
+	}
+	return logs, nil
+}
+
+func (r *orderRepository) GetOrderLogsByShopOrderID(ctx context.Context, shopOrderID uuid.UUID) ([]*entity.OrderLog, error) {
+	var logs []*entity.OrderLog
+	err := r.db.WithContext(ctx).
+		Where("shop_order_id = ?", shopOrderID).
+		Order("created_at ASC").
+		Find(&logs).Error
+	if err != nil {
+		return nil, err
+	}
+	return logs, nil
 }
