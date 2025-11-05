@@ -778,3 +778,45 @@ func (u *orderUsecase) GetShipmentTracking(ctx context.Context, userID uuid.UUID
 
 	return mapToShipmentResponse(shipment), nil
 }
+
+func (u *orderUsecase) ApproveOrder(ctx context.Context, userID uuid.UUID, shopOrderID uuid.UUID) error {
+
+	shopOrder, err := u.repo.GetShopOrderByID(ctx, shopOrderID)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return errmap.ErrOrderNotFound
+		}
+		return err
+	}
+
+	order, err := u.repo.GetOrderByID(ctx, shopOrder.OrderID)
+	if err != nil {
+		return err
+	}
+	if order.UserID != userID {
+		return errmap.ErrForbidden
+	}
+
+	if shopOrder.OrderStatusID != entity.OrderStatusDelivered {
+		return fmt.Errorf("can only approve orders with DELIVERED status, current status: %d", shopOrder.OrderStatusID)
+	}
+
+	if err := u.repo.UpdateShopOrderStatus(ctx, shopOrderID, entity.OrderStatusCompleted); err != nil {
+		return err
+	}
+
+	now := time.Now()
+	orderLog := &entity.OrderLog{
+		OrderID:       shopOrder.OrderID,
+		ShopOrderID:   &shopOrderID,
+		OrderStatusID: entity.OrderStatusCompleted,
+		Note:          "Customer confirmed receipt of goods",
+		CreatedBy:     &userID,
+		CreatedAt:     &now,
+	}
+	if err := u.repo.CreateOrderLog(ctx, orderLog); err != nil {
+		log.Printf("[ERROR] Failed to create order log for approved order, shop_order_id=%s, order_id=%s: %v", shopOrderID, shopOrder.OrderID, err)
+	}
+
+	return nil
+}

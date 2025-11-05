@@ -17,6 +17,7 @@ func RegisterRoutes(g *echo.Group, h *OrderHandler) {
 	order.GET("/:shopOrderId", h.GetOrder)
 	order.POST("/:orderId/payment", h.CreateOrderPayment)
 	order.GET("/:shopOrderId/tracking", h.GetShipmentTracking)
+	order.PUT("/:shopOrderId/approved", h.ApproveOrder)
 
 	shopOrder := g.Group("/shop/orders", middleware.JWTAuth(), middleware.ShopOwnerOnly())
 	shopOrder.GET("", h.ListShopOrders)
