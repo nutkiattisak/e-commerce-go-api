@@ -16,11 +16,10 @@ type AuthUsecase interface {
 }
 
 type AuthRepository interface {
-	CreateUser(ctx context.Context, user *entity.User) error
 	GetUserByEmail(ctx context.Context, email string) (*entity.User, error)
 	GetUserByID(ctx context.Context, id uuid.UUID) (*entity.User, error)
-	GetRoleByName(ctx context.Context, name string) (*entity.Role, error)
 	GetRolesByUserID(ctx context.Context, userID uuid.UUID) ([]*entity.Role, error)
 	AssignUserRole(ctx context.Context, userRole *entity.UserRole) error
-	CreateShop(ctx context.Context, shop *entity.Shop) error
+	RegisterUser(ctx context.Context, user *entity.User) error
+	RegisterShop(ctx context.Context, user *entity.User, shop *entity.Shop) error
 }
