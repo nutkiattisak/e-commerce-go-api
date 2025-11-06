@@ -24,13 +24,10 @@ func NewAuthUsecase(authRepo domain.AuthRepository) domain.AuthUsecase {
 }
 
 func (u *authUsecase) Register(ctx context.Context, req *entity.RegisterRequest) (*entity.RegisterResponse, error) {
-
 	existingUser, err := u.authRepo.GetUserByEmail(ctx, req.Email)
-
 	if err == nil && existingUser != nil {
 		return nil, errmap.ErrEmailAlreadyExists
 	}
-
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, err
 	}
@@ -52,19 +49,7 @@ func (u *authUsecase) Register(ctx context.Context, req *entity.RegisterRequest)
 		user.ImageURL = &req.ImageURL
 	}
 
-	if err := u.authRepo.CreateUser(ctx, user); err != nil {
-		return nil, err
-	}
-
-	userRole, err := u.authRepo.GetRoleByName(ctx, "USER")
-	if err != nil {
-		return nil, err
-	}
-
-	if err := u.authRepo.AssignUserRole(ctx, &entity.UserRole{
-		UserID: user.ID,
-		RoleID: userRole.ID,
-	}); err != nil {
+	if err := u.authRepo.RegisterUser(ctx, user); err != nil {
 		return nil, err
 	}
 
@@ -81,13 +66,10 @@ func (u *authUsecase) Register(ctx context.Context, req *entity.RegisterRequest)
 }
 
 func (u *authUsecase) RegisterShop(ctx context.Context, req *entity.RegisterShopRequest) (*entity.RegisterShopResponse, error) {
-
 	existingUser, err := u.authRepo.GetUserByEmail(ctx, req.Email)
-
 	if err == nil && existingUser != nil {
 		return nil, errmap.ErrEmailAlreadyExists
 	}
-
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, err
 	}
@@ -109,24 +91,7 @@ func (u *authUsecase) RegisterShop(ctx context.Context, req *entity.RegisterShop
 		user.ImageURL = &req.ImageURL
 	}
 
-	if err := u.authRepo.CreateUser(ctx, user); err != nil {
-		return nil, err
-	}
-
-	shopRole, err := u.authRepo.GetRoleByName(ctx, "SHOP")
-	if err != nil {
-		return nil, err
-	}
-
-	if err := u.authRepo.AssignUserRole(ctx, &entity.UserRole{
-		UserID: user.ID,
-		RoleID: shopRole.ID,
-	}); err != nil {
-		return nil, err
-	}
-
 	shop := &entity.Shop{
-		UserID:      user.ID,
 		Name:        req.ShopName,
 		Description: req.ShopDescription,
 		ImageURL:    req.ShopImageURL,
@@ -134,12 +99,11 @@ func (u *authUsecase) RegisterShop(ctx context.Context, req *entity.RegisterShop
 		IsActive:    true,
 	}
 
-	if err := u.authRepo.CreateShop(ctx, shop); err != nil {
+	if err := u.authRepo.RegisterShop(ctx, user, shop); err != nil {
 		return nil, err
 	}
 
 	user.Password = ""
-
 	shop.User = user
 
 	return &entity.RegisterShopResponse{
@@ -182,10 +146,14 @@ func (u *authUsecase) Login(ctx context.Context, req *entity.LoginRequest) (*ent
 		return nil, err
 	}
 
-	role := "USER"
+	role := entity.RoleNameUser
 	for _, r := range roles {
-		if r.Name == "SHOP" {
-			role = "SHOP"
+		if r.ID == entity.RoleShop {
+			role = entity.RoleNameShop
+			break
+		}
+		if r.ID == entity.RoleAdmin {
+			role = entity.RoleNameAdmin
 			break
 		}
 	}
@@ -225,10 +193,14 @@ func (u *authUsecase) RefreshToken(ctx context.Context, req *entity.RefreshToken
 		return nil, fmt.Errorf("failed to get roles for refresh: %w", err)
 	}
 
-	role := "USER"
+	role := entity.RoleNameUser
 	for _, r := range roles {
-		if r.Name == "SHOP" {
-			role = "SHOP"
+		if r.ID == entity.RoleShop {
+			role = entity.RoleNameShop
+			break
+		}
+		if r.ID == entity.RoleAdmin {
+			role = entity.RoleNameAdmin
 			break
 		}
 	}

@@ -20,13 +20,6 @@ func NewAuthRepository(db *gorm.DB) domain.AuthRepository {
 	}
 }
 
-func (r *AuthRepository) CreateUser(ctx context.Context, user *entity.User) error {
-	if err := r.db.WithContext(ctx).Create(user).Error; err != nil {
-		return err
-	}
-	return nil
-}
-
 func (r *AuthRepository) GetUserByEmail(ctx context.Context, email string) (*entity.User, error) {
 	var user entity.User
 	if err := r.db.WithContext(ctx).Where("email = ? AND deleted_at IS NULL", email).First(&user).Error; err != nil {
@@ -47,14 +40,6 @@ func (r *AuthRepository) UpdateUser(ctx context.Context, user *entity.User) erro
 	return r.db.WithContext(ctx).Save(user).Error
 }
 
-func (r *AuthRepository) GetRoleByName(ctx context.Context, name string) (*entity.Role, error) {
-	var role entity.Role
-	if err := r.db.WithContext(ctx).Where("name = ?", name).First(&role).Error; err != nil {
-		return nil, err
-	}
-	return &role, nil
-}
-
 func (r *AuthRepository) GetRolesByUserID(ctx context.Context, userID uuid.UUID) ([]*entity.Role, error) {
 	var roles []*entity.Role
 	err := r.db.WithContext(ctx).
@@ -73,6 +58,43 @@ func (r *AuthRepository) AssignUserRole(ctx context.Context, userRole *entity.Us
 	return r.db.WithContext(ctx).Create(userRole).Error
 }
 
-func (r *AuthRepository) CreateShop(ctx context.Context, shop *entity.Shop) error {
-	return r.db.WithContext(ctx).Create(shop).Error
+func (r *AuthRepository) RegisterUser(ctx context.Context, user *entity.User) error {
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(user).Error; err != nil {
+			return err
+		}
+
+		userRole := &entity.UserRole{
+			UserID: user.ID,
+			RoleID: entity.RoleUser,
+		}
+		if err := tx.Create(userRole).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
+func (r *AuthRepository) RegisterShop(ctx context.Context, user *entity.User, shop *entity.Shop) error {
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(user).Error; err != nil {
+			return err
+		}
+
+		userRole := &entity.UserRole{
+			UserID: user.ID,
+			RoleID: entity.RoleShop,
+		}
+		if err := tx.Create(userRole).Error; err != nil {
+			return err
+		}
+
+		shop.UserID = user.ID
+		if err := tx.Create(shop).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
 }
