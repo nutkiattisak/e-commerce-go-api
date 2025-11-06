@@ -3,10 +3,12 @@ package repository
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"ecommerce-go-api/domain"
 	"ecommerce-go-api/entity"
@@ -45,7 +47,7 @@ func (r *orderRepository) EnsureCartForUser(ctx context.Context, userID uuid.UUI
 func (r *orderRepository) ListCartItems(ctx context.Context, cartID int) ([]*entity.CartItem, error) {
 	var items []*entity.CartItem
 	if err := r.db.WithContext(ctx).
-		Preload("Product").
+		Preload("Product", "deleted_at IS NULL").
 		Where("cart_id = ? AND deleted_at IS NULL", cartID).
 		Find(&items).Error; err != nil {
 		return nil, err
@@ -58,39 +60,53 @@ func (r *orderRepository) AddCartItem(ctx context.Context, item *entity.CartItem
 }
 
 func (r *orderRepository) UpsertCartItem(ctx context.Context, item *entity.CartItem) (*entity.CartItem, error) {
-	tx := r.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return nil, tx.Error
-	}
+	var result *entity.CartItem
 
-	var existing entity.CartItem
-	err := tx.Where("cart_id = ? AND product_id = ? AND deleted_at IS NULL", item.CartID, item.ProductID).First(&existing).Error
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			if err := tx.Create(item).Error; err != nil {
-				tx.Rollback()
-				return nil, err
-			}
-			if err := tx.Commit().Error; err != nil {
-				return nil, err
-			}
-			return item, nil
+	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		var product entity.Product
+		if err := tx.Where("id = ?", item.ProductID).First(&product).Error; err != nil {
+			return err
 		}
-		tx.Rollback()
+
+		var existing entity.CartItem
+		err := tx.Where("cart_id = ? AND product_id = ? AND deleted_at IS NULL", item.CartID, item.ProductID).First(&existing).Error
+
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				if product.StockQty < item.Qty {
+					return errmap.ErrInsufficientStock
+				}
+
+				if err := tx.Create(item).Error; err != nil {
+					return err
+				}
+
+				result = item
+				return nil
+			}
+			return err
+		}
+
+		newQty := existing.Qty + item.Qty
+		if product.StockQty < newQty {
+			return errmap.ErrInsufficientStock
+		}
+
+		existing.Qty = newQty
+		existing.UpdatedAt = time.Now()
+		if err := tx.Save(&existing).Error; err != nil {
+			return err
+		}
+
+		result = &existing
+		return nil
+	})
+
+	if err != nil {
 		return nil, err
 	}
 
-	existing.Qty = existing.Qty + item.Qty
-	if err := tx.Save(&existing).Error; err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-
-	if err := tx.Commit().Error; err != nil {
-		return nil, err
-	}
-
-	return &existing, nil
+	return result, nil
 }
 
 func (r *orderRepository) GetCartItemByID(ctx context.Context, id int) (*entity.CartItem, error) {
@@ -131,86 +147,88 @@ func (r *orderRepository) CreateOrderItems(ctx context.Context, items []*entity.
 }
 
 func (r *orderRepository) CreateFullOrder(ctx context.Context, order *entity.Order, shopOrders []*entity.ShopOrder, orderItemsByShop map[string][]*entity.OrderItem, payment *entity.Payment, cartID int, userID uuid.UUID) error {
-	tx := r.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return tx.Error
-	}
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		now := time.Now()
 
-	now := time.Now()
-
-	order.CreatedAt = now
-	order.UpdatedAt = now
-
-	if err := tx.Create(order).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
-
-	for _, so := range shopOrders {
-		so.OrderID = order.ID
-		so.CreatedAt = now
-		so.UpdatedAt = now
-		if err := tx.Create(so).Error; err != nil {
-			tx.Rollback()
+		order.CreatedAt = now
+		order.UpdatedAt = now
+		if err := tx.Create(order).Error; err != nil {
 			return err
 		}
 
-		items, ok := orderItemsByShop[so.ShopID.String()]
-		if ok {
-			for _, it := range items {
-				it.ShopOrderID = so.ID
-				if err := tx.Create(it).Error; err != nil {
-					tx.Rollback()
-					return err
-				}
+		for _, so := range shopOrders {
+			so.OrderID = order.ID
+			so.CreatedAt = now
+			so.UpdatedAt = now
+			if err := tx.Create(so).Error; err != nil {
+				return err
+			}
 
-				res := tx.Exec("UPDATE products SET stock_qty = stock_qty - ? WHERE id = ? AND stock_qty >= ?", it.Qty, it.ProductID, it.Qty)
-				if res.Error != nil {
-					tx.Rollback()
-					return res.Error
-				}
-				if res.RowsAffected == 0 {
-					tx.Rollback()
-					return errmap.ErrInsufficientStock
+			items, ok := orderItemsByShop[so.ShopID.String()]
+			if ok {
+				for _, it := range items {
+					it.ShopOrderID = so.ID
+
+					var product entity.Product
+					if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+						Where("id = ? AND is_active = ?", it.ProductID, true).
+						First(&product).Error; err != nil {
+						return err
+					}
+
+					if product.StockQty < it.Qty {
+						return errmap.ErrInsufficientStock
+					}
+
+					if len(items) > 0 {
+						if err := tx.Create(&items).Error; err != nil {
+							return fmt.Errorf("failed to create order items: %w", err)
+						}
+					}
+
+					res := tx.Model(&entity.Product{}).
+						Where("id = ?", it.ProductID).
+						Update("stock_qty", gorm.Expr("stock_qty - ?", it.Qty))
+
+					if res.Error != nil {
+						return res.Error
+					}
+
+					if res.RowsAffected == 0 {
+						return errmap.ErrInsufficientStock
+					}
 				}
 			}
 		}
-	}
 
-	if payment != nil {
-		payment.OrderID = order.ID
-		payment.CreatedAt = now
-		payment.UpdatedAt = now
-		if err := tx.Create(payment).Error; err != nil {
-			tx.Rollback()
+		if payment != nil {
+			payment.OrderID = order.ID
+			payment.CreatedAt = now
+			payment.UpdatedAt = now
+			if err := tx.Create(payment).Error; err != nil {
+				return err
+			}
+		}
+
+		for _, so := range shopOrders {
+			shopOrderLog := &entity.OrderLog{
+				OrderID:       order.ID,
+				ShopOrderID:   &so.ID,
+				OrderStatusID: entity.OrderStatusPending,
+				CreatedBy:     &userID,
+				CreatedAt:     &now,
+			}
+			if err := tx.Create(shopOrderLog).Error; err != nil {
+				return err
+			}
+		}
+
+		if err := tx.Where("cart_id = ?", cartID).Delete(&entity.CartItem{}).Error; err != nil {
 			return err
 		}
-	}
 
-	for _, so := range shopOrders {
-		shopOrderLog := &entity.OrderLog{
-			OrderID:       order.ID,
-			ShopOrderID:   &so.ID,
-			OrderStatusID: entity.OrderStatusPending,
-			CreatedBy:     &userID,
-			CreatedAt:     &now,
-		}
-		if err := tx.Create(shopOrderLog).Error; err != nil {
-			tx.Rollback()
-			return err
-		}
-	}
-
-	if err := tx.Where("cart_id = ?", cartID).Delete(&entity.CartItem{}).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
-
-	if err := tx.Commit().Error; err != nil {
-		return err
-	}
-
-	return nil
+		return nil
+	})
 }
 
 func (r *orderRepository) ListOrdersByUser(ctx context.Context, userID uuid.UUID, req entity.OrderListRequest) ([]*entity.Order, int64, error) {
@@ -406,6 +424,19 @@ func (r *orderRepository) UpdateShipmentStatusByShopOrderID(ctx context.Context,
 }
 
 func (r *orderRepository) CreatePayment(ctx context.Context, payment *entity.Payment) error {
+	var existing entity.Payment
+	err := r.db.WithContext(ctx).
+		Where("order_id = ? AND payment_status_id != ?", payment.OrderID, entity.PaymentStatusExpired).
+		First(&existing).Error
+
+	if err == nil {
+		return fmt.Errorf("payment already exists for order %s", payment.OrderID)
+	}
+
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return err
+	}
+
 	return r.db.WithContext(ctx).Create(payment).Error
 }
 
@@ -445,6 +476,23 @@ func (r *orderRepository) ListExpiredPayments(ctx context.Context) ([]*entity.Pa
 		Where("expires_at < ?", time.Now()).
 		Find(&payments).Error
 	return payments, err
+}
+
+func (r *orderRepository) ListDeliveredOrdersOlderThan(ctx context.Context, days int) ([]*entity.ShopOrder, error) {
+	var shopOrders []*entity.ShopOrder
+	cutoffTime := time.Now().AddDate(0, 0, -days)
+
+	err := r.db.WithContext(ctx).
+		Preload("Order").
+		Where("order_status_id = ?", entity.OrderStatusDelivered).
+		Where("updated_at < ?", cutoffTime).
+		Find(&shopOrders).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return shopOrders, nil
 }
 
 func (r *orderRepository) CreateOrderLog(ctx context.Context, log *entity.OrderLog) error {
