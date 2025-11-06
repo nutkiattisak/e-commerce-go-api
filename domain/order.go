@@ -67,4 +67,6 @@ type OrderRepository interface {
 	CreateOrderLog(ctx context.Context, log *entity.OrderLog) error
 	GetOrderLogsByOrderID(ctx context.Context, orderID uuid.UUID) ([]*entity.OrderLog, error)
 	GetOrderLogsByShopOrderID(ctx context.Context, shopOrderID uuid.UUID) ([]*entity.OrderLog, error)
+
+	ListDeliveredOrdersOlderThan(ctx context.Context, days int) ([]*entity.ShopOrder, error)
 }

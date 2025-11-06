@@ -67,6 +67,20 @@ func (mr *MockOrderUsecaseMockRecorder) AddShipment(ctx, userID, shopOrderID, re
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddShipment", reflect.TypeOf((*MockOrderUsecase)(nil).AddShipment), ctx, userID, shopOrderID, req)
 }
 
+// ApproveOrder mocks base method.
+func (m *MockOrderUsecase) ApproveOrder(ctx context.Context, userID, shopOrderID uuid.UUID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ApproveOrder", ctx, userID, shopOrderID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ApproveOrder indicates an expected call of ApproveOrder.
+func (mr *MockOrderUsecaseMockRecorder) ApproveOrder(ctx, userID, shopOrderID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ApproveOrder", reflect.TypeOf((*MockOrderUsecase)(nil).ApproveOrder), ctx, userID, shopOrderID)
+}
+
 // CancelShopOrder mocks base method.
 func (m *MockOrderUsecase) CancelShopOrder(ctx context.Context, userID, shopOrderID uuid.UUID, req entity.CancelOrderRequest) error {
 	m.ctrl.T.Helper()
@@ -556,6 +570,21 @@ func (m *MockOrderRepository) ListCartItems(ctx context.Context, cartID int) ([]
 func (mr *MockOrderRepositoryMockRecorder) ListCartItems(ctx, cartID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListCartItems", reflect.TypeOf((*MockOrderRepository)(nil).ListCartItems), ctx, cartID)
+}
+
+// ListDeliveredOrdersOlderThan mocks base method.
+func (m *MockOrderRepository) ListDeliveredOrdersOlderThan(ctx context.Context, days int) ([]*entity.ShopOrder, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListDeliveredOrdersOlderThan", ctx, days)
+	ret0, _ := ret[0].([]*entity.ShopOrder)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListDeliveredOrdersOlderThan indicates an expected call of ListDeliveredOrdersOlderThan.
+func (mr *MockOrderRepositoryMockRecorder) ListDeliveredOrdersOlderThan(ctx, days interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListDeliveredOrdersOlderThan", reflect.TypeOf((*MockOrderRepository)(nil).ListDeliveredOrdersOlderThan), ctx, days)
 }
 
 // ListExpiredPayments mocks base method.
