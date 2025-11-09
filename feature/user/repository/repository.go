@@ -6,8 +6,7 @@ import (
 	"ecommerce-go-api/domain"
 	"ecommerce-go-api/entity"
 	"ecommerce-go-api/internal/errmap"
-
-	"time"
+	"ecommerce-go-api/internal/timeth"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -91,7 +90,7 @@ func (r *userRepository) UpdateAddress(ctx context.Context, addr *entity.Address
 		"zipcode":         addr.Zipcode,
 		"phone_number":    addr.PhoneNumber,
 		"is_default":      addr.IsDefault,
-		"updated_at":      time.Now(),
+		"updated_at":      timeth.Now(),
 	}
 
 	res := r.db.WithContext(ctx).
@@ -129,7 +128,7 @@ func (r *userRepository) UpdateProfile(ctx context.Context, user *entity.User) e
 		"last_name":    user.LastName,
 		"phone_number": user.PhoneNumber,
 		"image_url":    user.ImageURL,
-		"updated_at":   time.Now(),
+		"updated_at":   timeth.Now(),
 	}
 
 	res := r.db.WithContext(ctx).

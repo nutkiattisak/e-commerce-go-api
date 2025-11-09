@@ -4,7 +4,6 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
@@ -15,6 +14,7 @@ import (
 	"ecommerce-go-api/feature/user/usecase"
 	"ecommerce-go-api/internal/errmap"
 	"ecommerce-go-api/internal/response"
+	"ecommerce-go-api/internal/timeth"
 	"ecommerce-go-api/middleware"
 )
 
@@ -100,7 +100,7 @@ func (h *UserHandler) UpdateProfile(c echo.Context) error {
 		currentUser.ImageURL = req.ImageURL
 	}
 
-	currentUser.UpdatedAt = time.Now()
+	currentUser.UpdatedAt = timeth.Now()
 
 	if err := h.usecase.UpdateProfile(c.Request().Context(), currentUser); err != nil {
 		if err == gorm.ErrRecordNotFound {

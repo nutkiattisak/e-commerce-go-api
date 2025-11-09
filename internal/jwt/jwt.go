@@ -2,6 +2,7 @@ package jwt
 
 import (
 	"ecommerce-go-api/internal/errmap"
+	"ecommerce-go-api/internal/timeth"
 	"log"
 	"os"
 	"time"
@@ -24,9 +25,9 @@ func GenerateAccessToken(userID uuid.UUID, role string) (string, error) {
 		UserID: userID,
 		Role:   role,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(duration)),
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
-			NotBefore: jwt.NewNumericDate(time.Now()),
+			ExpiresAt: jwt.NewNumericDate(timeth.Now().Add(duration)),
+			IssuedAt:  jwt.NewNumericDate(timeth.Now()),
+			NotBefore: jwt.NewNumericDate(timeth.Now()),
 		},
 	}
 
@@ -41,9 +42,9 @@ func GenerateRefreshToken(userID uuid.UUID) (string, error) {
 	claims := Claims{
 		UserID: userID,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(duration)),
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
-			NotBefore: jwt.NewNumericDate(time.Now()),
+			ExpiresAt: jwt.NewNumericDate(timeth.Now().Add(duration)),
+			IssuedAt:  jwt.NewNumericDate(timeth.Now()),
+			NotBefore: jwt.NewNumericDate(timeth.Now()),
 		},
 	}
 
@@ -70,7 +71,7 @@ func ValidateToken(tokenString string) (*Claims, error) {
 		return nil, errmap.ErrInvalidToken
 	}
 
-	if claims.ExpiresAt != nil && claims.ExpiresAt.Before(time.Now()) {
+	if claims.ExpiresAt != nil && claims.ExpiresAt.Before(timeth.Now()) {
 		return nil, errmap.ErrExpiredToken
 	}
 

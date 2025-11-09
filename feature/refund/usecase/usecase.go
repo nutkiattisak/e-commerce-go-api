@@ -3,13 +3,13 @@ package usecase
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/google/uuid"
 
 	"ecommerce-go-api/domain"
 	"ecommerce-go-api/entity"
 	"ecommerce-go-api/internal/errmap"
+	"ecommerce-go-api/internal/timeth"
 )
 
 type refundUsecase struct {
@@ -58,7 +58,7 @@ func (u *refundUsecase) CreateRefund(ctx context.Context, userID uuid.UUID, req 
 		refundMethodID = entity.RefundMethodCreditCard
 	}
 
-	now := time.Now()
+	now := timeth.Now()
 	refund := &entity.Refund{
 		ShopOrderID:    req.ShopOrderID,
 		PaymentID:      &payment.ID,

@@ -13,6 +13,7 @@ import (
 	"ecommerce-go-api/domain"
 	"ecommerce-go-api/entity"
 	"ecommerce-go-api/internal/errmap"
+	"ecommerce-go-api/internal/timeth"
 )
 
 type orderRepository struct {
@@ -93,7 +94,7 @@ func (r *orderRepository) UpsertCartItem(ctx context.Context, item *entity.CartI
 		}
 
 		existing.Qty = newQty
-		existing.UpdatedAt = time.Now()
+		existing.UpdatedAt = timeth.Now()
 		if err := tx.Save(&existing).Error; err != nil {
 			return err
 		}
@@ -148,7 +149,7 @@ func (r *orderRepository) CreateOrderItems(ctx context.Context, items []*entity.
 
 func (r *orderRepository) CreateFullOrder(ctx context.Context, order *entity.Order, shopOrders []*entity.ShopOrder, orderItemsByShop map[string][]*entity.OrderItem, payment *entity.Payment, cartID int, userID uuid.UUID) error {
 	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		now := time.Now()
+		now := timeth.Now()
 
 		order.CreatedAt = now
 		order.UpdatedAt = now
@@ -391,7 +392,7 @@ func (r *orderRepository) GetShopOrderByID(ctx context.Context, id uuid.UUID) (*
 func (r *orderRepository) UpdateShopOrderStatus(ctx context.Context, id uuid.UUID, OrderStatusID int) error {
 	updates := map[string]interface{}{
 		"order_status_id": OrderStatusID,
-		"updated_at":      time.Now(),
+		"updated_at":      timeth.Now(),
 	}
 	return r.db.WithContext(ctx).Model(&entity.ShopOrder{}).Where("id = ?", id).Updates(updates).Error
 }
@@ -461,7 +462,7 @@ func (r *orderRepository) GetPaymentByTransactionID(ctx context.Context, transac
 func (r *orderRepository) UpdatePaymentStatus(ctx context.Context, id uuid.UUID, paymentStatusID int, paidAt *time.Time) error {
 	updates := map[string]interface{}{
 		"payment_status_id": paymentStatusID,
-		"updated_at":        time.Now(),
+		"updated_at":        timeth.Now(),
 	}
 	if paidAt != nil {
 		updates["paid_at"] = paidAt
@@ -473,14 +474,14 @@ func (r *orderRepository) ListExpiredPayments(ctx context.Context) ([]*entity.Pa
 	var payments []*entity.Payment
 	err := r.db.WithContext(ctx).
 		Where("payment_status_id = ?", entity.PaymentStatusPending).
-		Where("expires_at < ?", time.Now()).
+		Where("expires_at < ?", timeth.Now()).
 		Find(&payments).Error
 	return payments, err
 }
 
 func (r *orderRepository) ListDeliveredOrdersOlderThan(ctx context.Context, days int) ([]*entity.ShopOrder, error) {
 	var shopOrders []*entity.ShopOrder
-	cutoffTime := time.Now().AddDate(0, 0, -days)
+	cutoffTime := timeth.Now().AddDate(0, 0, -days)
 
 	err := r.db.WithContext(ctx).
 		Preload("Order").
