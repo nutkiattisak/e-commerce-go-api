@@ -2,13 +2,13 @@ package repository
 
 import (
 	"context"
-	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
 	"ecommerce-go-api/domain"
 	"ecommerce-go-api/entity"
+	"ecommerce-go-api/internal/timeth"
 )
 
 type refundRepository struct {
@@ -38,11 +38,11 @@ func (r *refundRepository) GetRefundByID(ctx context.Context, id uuid.UUID) (*en
 func (r *refundRepository) UpdateRefundStatus(ctx context.Context, id uuid.UUID, statusID int) error {
 	updates := map[string]interface{}{
 		"refund_status_id": statusID,
-		"updated_at":       time.Now(),
+		"updated_at":       timeth.Now(),
 	}
 
 	if statusID == entity.RefundStatusCompleted {
-		now := time.Now()
+		now := timeth.Now()
 		updates["refunded_at"] = now
 	}
 
@@ -56,6 +56,6 @@ func (r *refundRepository) UpdateRefundBankAccount(ctx context.Context, id uuid.
 		Updates(map[string]interface{}{
 			"bank_account": bankAccount,
 			"bank_name":    bankName,
-			"updated_at":   time.Now(),
+			"updated_at":   timeth.Now(),
 		}).Error
 }

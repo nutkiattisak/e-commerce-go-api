@@ -9,6 +9,7 @@ import (
 
 	"ecommerce-go-api/domain"
 	"ecommerce-go-api/entity"
+	"ecommerce-go-api/internal/timeth"
 )
 
 type OrderAutoCompleteJob struct {
@@ -23,7 +24,7 @@ func NewOrderAutoCompleteJob(orderRepo domain.OrderRepository) *OrderAutoComplet
 
 func (j *OrderAutoCompleteJob) ProcessDeliveredOrders() {
 	ctx := context.Background()
-	startTime := time.Now()
+	startTime := timeth.Now()
 
 	const autoCompleteDays = 7
 	deliveredOrders, err := j.orderRepo.ListDeliveredOrdersOlderThan(ctx, autoCompleteDays)
@@ -103,7 +104,7 @@ func (j *OrderAutoCompleteJob) autoCompleteOrder(ctx context.Context, shopOrder 
 		logCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		now := time.Now()
+		now := timeth.Now()
 		orderLog := &entity.OrderLog{
 			OrderID:       shopOrder.OrderID,
 			ShopOrderID:   &shopOrder.ID,

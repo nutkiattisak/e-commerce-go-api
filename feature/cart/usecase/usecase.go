@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
@@ -14,6 +13,7 @@ import (
 	"ecommerce-go-api/domain"
 	"ecommerce-go-api/entity"
 	"ecommerce-go-api/internal/errmap"
+	"ecommerce-go-api/internal/timeth"
 )
 
 type cartUsecase struct {
@@ -161,7 +161,7 @@ func (u *cartUsecase) AddItem(ctx context.Context, userID uuid.UUID, productID i
 		return nil, false, errmap.ErrInsufficientStock
 	}
 
-	now := time.Now()
+	now := timeth.Now()
 	item := &entity.CartItem{
 		CartID:    cart.ID,
 		ProductID: productID,
@@ -237,7 +237,7 @@ func (u *cartUsecase) UpdateItem(ctx context.Context, userID uuid.UUID, itemID i
 	}
 
 	ci.Qty = qty
-	ci.UpdatedAt = time.Now()
+	ci.UpdatedAt = timeth.Now()
 
 	if err := u.cartRepo.UpdateCartItem(ctx, ci); err != nil {
 		return nil, fmt.Errorf("failed to update cart item: %w", err)

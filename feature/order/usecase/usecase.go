@@ -13,6 +13,7 @@ import (
 	"ecommerce-go-api/entity"
 	"ecommerce-go-api/internal/constant"
 	"ecommerce-go-api/internal/errmap"
+	"ecommerce-go-api/internal/timeth"
 )
 
 type orderUsecase struct {
@@ -271,7 +272,7 @@ func (u *orderUsecase) CreateOrderFromCart(ctx context.Context, userID uuid.UUID
 
 		sid, _ := uuid.Parse(shopIDStr)
 		so.ShopID = sid
-		so.OrderNumber = fmt.Sprintf("%s-%d", constant.OrderPrefix, time.Now().Unix())
+		so.OrderNumber = fmt.Sprintf("%s-%d", constant.OrderPrefix, timeth.Now().Unix())
 		so.OrderStatusID = entity.OrderStatusPending
 
 		scs := shopCouriersMap[sid]
@@ -302,9 +303,9 @@ func (u *orderUsecase) CreateOrderFromCart(ctx context.Context, userID uuid.UUID
 
 	order.GrandTotal = grandTotal
 
-	transactionID := fmt.Sprintf("TXN-%d-%s", time.Now().Unix(), uuid.New().String()[:8])
+	transactionID := fmt.Sprintf("TXN-%d-%s", timeth.Now().Unix(), uuid.New().String()[:8])
 
-	expiresAt := time.Now().Add(24 * time.Hour)
+	expiresAt := timeth.Now().Add(24 * time.Hour)
 	payment := &entity.Payment{
 		TransactionID:   transactionID,
 		PaymentMethodID: req.PaymentMethodID,
@@ -510,7 +511,7 @@ func (u *orderUsecase) CreateOrderPayment(ctx context.Context, userID uuid.UUID,
 		return nil, fmt.Errorf("payment amount does not match order total")
 	}
 
-	now := time.Now()
+	now := timeth.Now()
 	if err := u.repo.UpdatePaymentStatus(ctx, existingPayment.ID, entity.PaymentStatusProcessing, &now); err != nil {
 		return nil, fmt.Errorf("failed to update payment status: %w", err)
 	}
@@ -655,7 +656,7 @@ func (u *orderUsecase) UpdateShopOrderStatus(ctx context.Context, userID uuid.UU
 		}
 	}
 
-	now := time.Now()
+	now := timeth.Now()
 	orderLog := &entity.OrderLog{
 		OrderID:       so.OrderID,
 		ShopOrderID:   &shopOrderID,
@@ -694,7 +695,7 @@ func (u *orderUsecase) CancelShopOrder(ctx context.Context, userID uuid.UUID, sh
 		return err
 	}
 
-	now := time.Now()
+	now := timeth.Now()
 
 	orderLog := &entity.OrderLog{
 		OrderID:     so.OrderID,
@@ -728,7 +729,7 @@ func (u *orderUsecase) AddShipment(ctx context.Context, userID uuid.UUID, shopOr
 		return nil, errmap.ErrShipmentAlreadyExists
 	}
 
-	now := time.Now()
+	now := timeth.Now()
 	s := &entity.Shipment{
 		ShopOrderID:      shopOrderID,
 		CourierID:        req.CourierID,
@@ -805,7 +806,7 @@ func (u *orderUsecase) ApproveOrder(ctx context.Context, userID uuid.UUID, shopO
 		return err
 	}
 
-	now := time.Now()
+	now := timeth.Now()
 	orderLog := &entity.OrderLog{
 		OrderID:       shopOrder.OrderID,
 		ShopOrderID:   &shopOrderID,
