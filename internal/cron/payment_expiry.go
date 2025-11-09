@@ -9,6 +9,7 @@ import (
 
 	"ecommerce-go-api/domain"
 	"ecommerce-go-api/entity"
+	"ecommerce-go-api/internal/timeth"
 )
 
 type PaymentExpiryJob struct {
@@ -25,7 +26,7 @@ func NewPaymentExpiryJob(orderRepo domain.OrderRepository, productRepo domain.Pr
 
 func (j *PaymentExpiryJob) ProcessExpiredPayments() {
 	ctx := context.Background()
-	startTime := time.Now()
+	startTime := timeth.Now()
 
 	expiredPayments, err := j.orderRepo.ListExpiredPayments(ctx)
 	if err != nil {
@@ -123,7 +124,7 @@ func (j *PaymentExpiryJob) processExpiredPayment(ctx context.Context, payment *e
 				logCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 				defer cancel()
 
-				now := time.Now()
+				now := timeth.Now()
 				shopOrderLog := &entity.OrderLog{
 					OrderID:     order.ID,
 					ShopOrderID: &so.ID,
@@ -147,7 +148,7 @@ func (j *PaymentExpiryJob) processExpiredPayment(ctx context.Context, payment *e
 		logCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		now := time.Now()
+		now := timeth.Now()
 		orderLog := &entity.OrderLog{
 			OrderID:   order.ID,
 			Note:      fmt.Sprintf("Payment expired (Transaction: %s, Expired at: %s)", payment.TransactionID, payment.ExpiresAt.Format(time.RFC3339)),
