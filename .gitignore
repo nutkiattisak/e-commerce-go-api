@@ -39,6 +39,7 @@ Thumbs.db
 
 # Logs
 *.log
+build-errors.log
 
 # Database
 *.db
@@ -49,6 +50,7 @@ dist/
 
 # Air - Live reload
 tmp/
+.air.toml
 
 # Docker
 *.env.local
