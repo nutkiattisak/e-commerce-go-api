@@ -1,0 +1,61 @@
+# Git
+.git
+.gitignore
+.gitlab-ci.yml
+
+# Documentation
+*.md
+README.md
+LICENSE
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Build artifacts
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+main
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test files
+*_test.go
+testdata/
+
+# Deployment files
+deployments/
+docker-compose*.yml
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+database/
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+
+# Documentation
+docs/
+er/

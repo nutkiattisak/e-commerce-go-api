@@ -1,0 +1,36 @@
+-- ===================================
+-- Rollback: Drop All Tables
+-- Version: 000001
+-- ===================================
+
+BEGIN;
+
+-- Drop tables in reverse order (respecting foreign key constraints)
+DROP TABLE IF EXISTS refunds CASCADE;
+DROP TABLE IF EXISTS shipments CASCADE;
+DROP TABLE IF EXISTS shop_couriers CASCADE;
+DROP TABLE IF EXISTS couriers CASCADE;
+DROP TABLE IF EXISTS payments CASCADE;
+DROP TABLE IF EXISTS order_logs CASCADE;
+DROP TABLE IF EXISTS order_items CASCADE;
+DROP TABLE IF EXISTS shop_orders CASCADE;
+DROP TABLE IF EXISTS orders CASCADE;
+DROP TABLE IF EXISTS cart_items CASCADE;
+DROP TABLE IF EXISTS carts CASCADE;
+DROP TABLE IF EXISTS products CASCADE;
+DROP TABLE IF EXISTS shops CASCADE;
+DROP TABLE IF EXISTS addresses CASCADE;
+DROP TABLE IF EXISTS user_roles CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS sub_districts CASCADE;
+DROP TABLE IF EXISTS districts CASCADE;
+DROP TABLE IF EXISTS provinces CASCADE;
+DROP TABLE IF EXISTS roles CASCADE;
+DROP TABLE IF EXISTS shipment_status CASCADE;
+DROP TABLE IF EXISTS refund_methods CASCADE;
+DROP TABLE IF EXISTS refund_status CASCADE;
+DROP TABLE IF EXISTS order_status CASCADE;
+DROP TABLE IF EXISTS payment_methods CASCADE;
+DROP TABLE IF EXISTS payment_status CASCADE;
+
+COMMIT;
