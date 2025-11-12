@@ -33,16 +33,17 @@ func (r *productRepository) ListProducts(ctx context.Context, q *entity.ProductL
 		return nil, 0, err
 	}
 
-	perPage := 20
-	if q != nil && q.PerPage > 0 {
-		perPage = int(q.PerPage)
+	page := q.Page
+	if page == 0 {
+		page = 1
 	}
-	pageIdx := 0
-	if q != nil && q.Page > 0 {
-		pageIdx = int(q.Page) - 1
+	perPage := q.PerPage
+	if perPage == 0 {
+		perPage = 20
 	}
+	offset := (page - 1) * perPage
 
-	if err := base.Preload("Shop").Offset(pageIdx * perPage).Limit(perPage).Find(&products).Error; err != nil {
+	if err := base.Preload("Shop").Offset(int(offset)).Limit(int(perPage)).Find(&products).Error; err != nil {
 		return nil, 0, err
 	}
 
