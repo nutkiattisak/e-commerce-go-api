@@ -20,9 +20,8 @@ type Order struct {
 	ShippingProvince    string    `gorm:"size:100;not null" json:"shippingProvince"`
 	ShippingZipcode     string    `gorm:"size:5;not null" json:"shippingZipcode"`
 	PaymentMethodID     int       `json:"paymentMethodId"`
-
-	CreatedAt time.Time `gorm:"not null;default:now()" json:"createdAt"`
-	UpdatedAt time.Time `gorm:"not null;default:now()" json:"updatedAt"`
+	CreatedAt           time.Time `gorm:"not null;default:now()" json:"createdAt"`
+	UpdatedAt           time.Time `gorm:"not null;default:now()" json:"updatedAt"`
 
 	User          User           `gorm:"foreignKey:UserID;references:ID" json:"user,omitempty"`
 	Address       *Address       `gorm:"foreignKey:AddressID;references:ID" json:"address,omitempty"`

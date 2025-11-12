@@ -46,7 +46,7 @@ func NewProductHandler(u domain.ProductUsecase, su domain.ShopUsecase) *ProductH
 func (h *ProductHandler) ListProducts(c echo.Context) error {
 	var q entity.ProductListRequest
 	if err := c.Bind(&q); err != nil {
-		return response.Error(c, http.StatusBadRequest, "invalid request")
+		return response.Error(c, http.StatusBadRequest, errmap.ErrInvalidRequest.Error())
 	}
 
 	result, err := h.usecase.ListProducts(c.Request().Context(), &q)
@@ -112,7 +112,7 @@ func (h *ProductHandler) ListShopProducts(c echo.Context) error {
 
 	var q entity.ProductListRequest
 	if err := c.Bind(&q); err != nil {
-		return response.Error(c, http.StatusBadRequest, "invalid query parameters")
+		return response.Error(c, http.StatusBadRequest, errmap.ErrInvalidRequest.Error())
 	}
 
 	result, err := h.usecase.GetProductsByUserID(c.Request().Context(), userID, &q)
