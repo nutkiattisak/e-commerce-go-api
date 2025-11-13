@@ -691,12 +691,16 @@ definitions:
     type: object
   entity.ShipmentResponse:
     properties:
+      courier:
+        $ref: '#/definitions/entity.CourierListResponse'
       courierId:
         type: integer
       createdAt:
         type: string
       id:
         type: string
+      shipmentStatus:
+        $ref: '#/definitions/entity.ShipmentStatusResponse'
       shipmentStatusId:
         type: integer
       shippedAt:
@@ -704,6 +708,15 @@ definitions:
       shopOrderId:
         type: string
       trackingNo:
+        type: string
+    type: object
+  entity.ShipmentStatusResponse:
+    properties:
+      code:
+        type: string
+      id:
+        type: integer
+      name:
         type: string
     type: object
   entity.ShopCourierResponse:
@@ -2339,6 +2352,48 @@ paths:
       security:
       - BearerAuth: []
       summary: Update shop order status
+      tags:
+      - Order
+  /api/shop/orders/{shopOrderId}/tracking:
+    get:
+      description: Get tracking information for a specific shop order (shop owner
+        only)
+      parameters:
+      - description: Shop Order ID
+        in: path
+        name: shopOrderId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.ShipmentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Get shipment tracking details (shop)
       tags:
       - Order
   /api/shop/products:
