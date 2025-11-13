@@ -28,11 +28,13 @@ type AddShipmentRequest struct {
 }
 
 type ShipmentResponse struct {
-	ID               uuid.UUID  `json:"id"`
-	ShopOrderID      uuid.UUID  `json:"shopOrderId"`
-	CourierID        int        `json:"courierId"`
-	TrackingNo       string     `json:"trackingNo"`
-	ShipmentStatusID int        `json:"shipmentStatusId"`
-	CreatedAt        time.Time  `json:"createdAt"`
-	ShippedAt        *time.Time `json:"shippedAt"`
+	ID               uuid.UUID               `json:"id"`
+	ShopOrderID      uuid.UUID               `json:"shopOrderId"`
+	CourierID        int                     `json:"courierId"`
+	Courier          *CourierListResponse    `json:"courier,omitempty"`
+	TrackingNo       string                  `json:"trackingNo"`
+	ShipmentStatusID int                     `json:"shipmentStatusId"`
+	ShipmentStatus   *ShipmentStatusResponse `json:"shipmentStatus,omitempty"`
+	CreatedAt        time.Time               `json:"createdAt"`
+	ShippedAt        *time.Time              `json:"shippedAt"`
 }

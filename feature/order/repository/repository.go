@@ -409,6 +409,7 @@ func (r *orderRepository) GetShipmentByShopOrderID(ctx context.Context, shopOrde
 	var shipment entity.Shipment
 	err := r.db.WithContext(ctx).
 		Preload("Courier").
+		Preload("ShipmentStatus").
 		Where("shop_order_id = ?", shopOrderID).
 		First(&shipment).Error
 	if err != nil {

@@ -86,22 +86,16 @@ func (u *cartUsecase) EstimateShipping(ctx context.Context, userID uuid.UUID, ca
 		subtotal := shopSubtotals[shopID]
 
 		var courierOpt entity.CourierOption
-		bestPrice := 0.0
 		if scsForShop, ok := scMap[shopID]; ok && len(scsForShop) > 0 {
-			for i, sc := range scsForShop {
-				price := sc.Rate
-				var courierName string
-				if sc.Courier != nil {
-					courierName = sc.Courier.Name
-				}
-				if i == 0 || price < bestPrice {
-					bestPrice = price
-					courierOpt = entity.CourierOption{
-						CourierID: sc.CourierID,
-						Name:      courierName,
-						Price:     price,
-					}
-				}
+			sc := scsForShop[0]
+			var courierName string
+			if sc.Courier != nil {
+				courierName = sc.Courier.Name
+			}
+			courierOpt = entity.CourierOption{
+				CourierID: sc.CourierID,
+				Name:      courierName,
+				Price:     sc.Rate,
 			}
 		} else {
 			return nil, errmap.ErrNoShippingOptions

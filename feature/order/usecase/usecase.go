@@ -57,7 +57,7 @@ func mapToShipmentResponse(s *entity.Shipment) *entity.ShipmentResponse {
 		return nil
 	}
 
-	return &entity.ShipmentResponse{
+	resp := &entity.ShipmentResponse{
 		ID:               s.ID,
 		ShopOrderID:      s.ShopOrderID,
 		CourierID:        s.CourierID,
@@ -66,6 +66,25 @@ func mapToShipmentResponse(s *entity.Shipment) *entity.ShipmentResponse {
 		CreatedAt:        s.CreatedAt,
 		ShippedAt:        s.ShippedAt,
 	}
+
+	if s.Courier.ID != 0 {
+		resp.Courier = &entity.CourierListResponse{
+			ID:       s.Courier.ID,
+			Name:     s.Courier.Name,
+			ImageURL: s.Courier.ImageURL,
+			Rate:     s.Courier.Rate,
+		}
+	}
+
+	if s.ShipmentStatus != nil {
+		resp.ShipmentStatus = &entity.ShipmentStatusResponse{
+			ID:   s.ShipmentStatus.ID,
+			Code: s.ShipmentStatus.Code,
+			Name: s.ShipmentStatus.Name,
+		}
+	}
+
+	return resp
 }
 
 func createTimeline(logs []*entity.OrderLog) []entity.OrderTimelineItem {
@@ -698,11 +717,12 @@ func (u *orderUsecase) CancelShopOrder(ctx context.Context, userID uuid.UUID, sh
 	now := timeth.Now()
 
 	orderLog := &entity.OrderLog{
-		OrderID:     so.OrderID,
-		ShopOrderID: &shopOrderID,
-		Note:        req.Reason,
-		CreatedBy:   &userID,
-		CreatedAt:   &now,
+		OrderID:       so.OrderID,
+		ShopOrderID:   &shopOrderID,
+		OrderStatusID: entity.OrderStatusCancelled,
+		Note:          req.Reason,
+		CreatedBy:     &userID,
+		CreatedAt:     &now,
 	}
 	if err := u.repo.CreateOrderLog(ctx, orderLog); err != nil {
 		log.Printf("[ERROR] Failed to create order log for cancelled order, shop_order_id=%s, order_id=%s: %v", shopOrderID, so.OrderID, err)
@@ -769,6 +789,29 @@ func (u *orderUsecase) GetShipmentTracking(ctx context.Context, userID uuid.UUID
 	}
 
 	if so.Order.UserID != userID {
+		return nil, errmap.ErrForbidden
+	}
+
+	shipment, err := u.repo.GetShipmentByShopOrderID(ctx, shopOrderID)
+	if err != nil {
+		return nil, err
+	}
+
+	return mapToShipmentResponse(shipment), nil
+}
+
+func (u *orderUsecase) GetShopShipmentTracking(ctx context.Context, userID uuid.UUID, shopOrderID uuid.UUID) (*entity.ShipmentResponse, error) {
+	so, err := u.repo.GetShopOrderByID(ctx, shopOrderID)
+	if err != nil {
+		return nil, err
+	}
+
+	shop, err := u.shopRepo.GetShopByID(ctx, so.ShopID)
+	if err != nil {
+		return nil, err
+	}
+
+	if shop.UserID != userID {
 		return nil, errmap.ErrForbidden
 	}
 
