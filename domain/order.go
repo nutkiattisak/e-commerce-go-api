@@ -26,6 +26,7 @@ type OrderUsecase interface {
 	CancelShopOrder(ctx context.Context, userID uuid.UUID, shopOrderID uuid.UUID, req entity.CancelOrderRequest) error
 	AddShipment(ctx context.Context, userID uuid.UUID, shopOrderID uuid.UUID, req entity.AddShipmentRequest) (*entity.ShipmentResponse, error)
 	GetShipmentTracking(ctx context.Context, userID uuid.UUID, shopOrderID uuid.UUID) (*entity.ShipmentResponse, error)
+	GetShopShipmentTracking(ctx context.Context, userID uuid.UUID, shopOrderID uuid.UUID) (*entity.ShipmentResponse, error)
 	ApproveOrder(ctx context.Context, userID uuid.UUID, shopOrderID uuid.UUID) error
 }
 

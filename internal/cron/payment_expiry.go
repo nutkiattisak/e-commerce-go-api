@@ -126,10 +126,11 @@ func (j *PaymentExpiryJob) processExpiredPayment(ctx context.Context, payment *e
 
 				now := timeth.Now()
 				shopOrderLog := &entity.OrderLog{
-					OrderID:     order.ID,
-					ShopOrderID: &so.ID,
-					Note:        fmt.Sprintf("Order cancelled due to payment expiry (Transaction: %s)", payment.TransactionID),
-					CreatedAt:   &now,
+					OrderID:       order.ID,
+					ShopOrderID:   &so.ID,
+					OrderStatusID: entity.OrderStatusCancelled,
+					Note:          fmt.Sprintf("Order cancelled due to payment expiry (Transaction: %s)", payment.TransactionID),
+					CreatedAt:     &now,
 				}
 				if err := j.orderRepo.CreateOrderLog(logCtx, shopOrderLog); err != nil {
 					log.Printf("[CRON] Warning: Failed to create shop order log for %s: %v", so.ID, err)

@@ -2088,6 +2088,70 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/shop/orders/{shopOrderId}/tracking": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get tracking information for a specific shop order (shop owner only)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Order"
+                ],
+                "summary": "Get shipment tracking details (shop)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Shop Order ID",
+                        "name": "shopOrderId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ShipmentResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ResponseError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
         "/api/shop/products": {
             "get": {
                 "security": [
@@ -3822,6 +3886,9 @@ const docTemplate = `{
         "entity.ShipmentResponse": {
             "type": "object",
             "properties": {
+                "courier": {
+                    "$ref": "#/definitions/entity.CourierListResponse"
+                },
                 "courierId": {
                     "type": "integer"
                 },
@@ -3830,6 +3897,9 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "string"
+                },
+                "shipmentStatus": {
+                    "$ref": "#/definitions/entity.ShipmentStatusResponse"
                 },
                 "shipmentStatusId": {
                     "type": "integer"
@@ -3841,6 +3911,20 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "trackingNo": {
+                    "type": "string"
+                }
+            }
+        },
+        "entity.ShipmentStatusResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
                     "type": "string"
                 }
             }

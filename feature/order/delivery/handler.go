@@ -568,6 +568,47 @@ func (h *OrderHandler) GetShipmentTracking(c echo.Context) error {
 	return response.Success(c, http.StatusOK, "ok", shipment)
 }
 
+// GetShopShipmentTracking godoc
+//
+//	@Summary		Get shipment tracking details (shop)
+//	@Description	Get tracking information for a specific shop order (shop owner only)
+//	@Tags			Order
+//	@Security		BearerAuth
+//	@Produce		json
+//	@Param			shopOrderId	path		string	true	"Shop Order ID"
+//	@Success		200			{object}	entity.ShipmentResponse
+//	@Failure		400			{object}	response.ResponseError
+//	@Failure		401			{object}	response.ResponseError
+//	@Failure		403			{object}	response.ResponseError
+//	@Failure		404			{object}	response.ResponseError
+//	@Failure		500			{object}	response.ResponseError
+//	@Router			/api/shop/orders/{shopOrderId}/tracking [get]
+func (h *OrderHandler) GetShopShipmentTracking(c echo.Context) error {
+	userID, err := middleware.GetUserID(c)
+	if err != nil {
+		return response.Error(c, http.StatusUnauthorized, errmap.ErrUnauthorized.Error())
+	}
+
+	orderID, err := uuid.Parse(c.Param("shopOrderId"))
+	if err != nil {
+		return response.Error(c, http.StatusBadRequest, errmap.ErrInvalidOrderID.Error())
+	}
+
+	shipment, err := h.usecase.GetShopShipmentTracking(c.Request().Context(), userID, orderID)
+	if err != nil {
+		switch {
+		case errors.Is(err, errmap.ErrForbidden):
+			return response.Error(c, http.StatusForbidden, errmap.ErrForbidden.Error())
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			return response.Error(c, http.StatusNotFound, "shipment not found")
+		default:
+			return response.Error(c, http.StatusInternalServerError, err.Error())
+		}
+	}
+
+	return response.Success(c, http.StatusOK, "ok", shipment)
+}
+
 // ApproveOrder godoc
 //
 //	@Summary		Approve order (customer received goods)
