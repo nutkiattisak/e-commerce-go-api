@@ -9,7 +9,7 @@ import (
 type Order struct {
 	ID                  uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
 	UserID              uuid.UUID `gorm:"type:uuid;not null;index:idx_orders_user_id" json:"userId"`
-	AddressID           int       `json:"addressId"`
+	AddressID           uint32    `json:"addressId"`
 	GrandTotal          float64   `gorm:"type:decimal(10,2);not null" json:"grandTotal"`
 	ShippingName        string    `gorm:"size:255;not null" json:"shippingName"`
 	ShippingPhone       string    `gorm:"size:15;not null" json:"shippingPhone"`
@@ -19,7 +19,7 @@ type Order struct {
 	ShippingDistrict    string    `gorm:"size:100;not null" json:"shippingDistrict"`
 	ShippingProvince    string    `gorm:"size:100;not null" json:"shippingProvince"`
 	ShippingZipcode     string    `gorm:"size:5;not null" json:"shippingZipcode"`
-	PaymentMethodID     int       `json:"paymentMethodId"`
+	PaymentMethodID     uint32    `json:"paymentMethodId"`
 	CreatedAt           time.Time `gorm:"not null;default:now()" json:"createdAt"`
 	UpdatedAt           time.Time `gorm:"not null;default:now()" json:"updatedAt"`
 
@@ -30,9 +30,9 @@ type Order struct {
 }
 
 type CreateOrderRequest struct {
-	CartItemIDs     []int `json:"cartItemIds" validate:"required"`
-	AddressID       int   `json:"addressId" validate:"required,gt=0"`
-	PaymentMethodID int   `json:"paymentMethodId" validate:"required,gt=0"`
+	CartItemIDs     []uint32 `json:"cartItemIds" validate:"required"`
+	AddressID       uint32   `json:"addressId" validate:"required,gt=0"`
+	PaymentMethodID uint32   `json:"paymentMethodId" validate:"required,gt=0"`
 }
 
 type CancelOrderRequest struct {
@@ -40,24 +40,24 @@ type CancelOrderRequest struct {
 }
 
 type UpdateOrderStatusRequest struct {
-	OrderStatusID *int `json:"orderStatusId" validate:"required,oneof=2 4 5"`
+	OrderStatusID *uint32 `json:"orderStatusId" validate:"required,oneof=2 4 5"`
 }
 
 type AddItemToCartRequest struct {
-	ProductID int `json:"productId" validate:"required,gt=0" example:"1"`
-	Qty       int `json:"qty" validate:"required,gt=0" example:"2"`
+	ProductID uint32 `json:"productId" validate:"required,gt=0" example:"1"`
+	Qty       uint32 `json:"qty" validate:"required,gt=0" example:"2"`
 }
 
 type OrderProductResponse struct {
-	ID          int     `json:"id"`
+	ID          uint32  `json:"id"`
 	Name        string  `json:"name,omitempty"`
 	Description string  `json:"description,omitempty"`
 	ImageURL    *string `json:"imageUrl,omitempty"`
 }
 
 type OrderItemResponse struct {
-	ID        int                  `json:"id"`
-	Qty       int                  `json:"qty"`
+	ID        uint32               `json:"id"`
+	Qty       uint32               `json:"qty"`
 	UnitPrice float64              `json:"unitPrice"`
 	Subtotal  float64              `json:"subtotal"`
 	Product   OrderProductResponse `json:"product"`
@@ -74,7 +74,7 @@ type ShopOrderResponse struct {
 	ID            uuid.UUID           `json:"id"`
 	OrderID       uuid.UUID           `json:"orderId"`
 	OrderNumber   string              `json:"orderNumber"`
-	OrderStatusID int                 `json:"orderStatusId"`
+	OrderStatusID uint32              `json:"orderStatusId"`
 	Subtotal      float64             `json:"subtotal"`
 	Shipping      float64             `json:"shipping"`
 	GrandTotal    float64             `json:"grandTotal"`
@@ -96,7 +96,7 @@ type OrderResponse struct {
 	ShippingDistrict    string              `json:"shippingDistrict"`
 	ShippingProvince    string              `json:"shippingProvince"`
 	ShippingZipcode     string              `json:"shippingZipcode"`
-	PaymentMethodID     int                 `json:"paymentMethodId"`
+	PaymentMethodID     uint32              `json:"paymentMethodId"`
 	ShopOrders          []ShopOrderResponse `json:"shopOrders"`
 	Timeline            []OrderTimelineItem `json:"timeline,omitempty"`
 }
@@ -105,7 +105,7 @@ type OrderListResponse struct {
 	ID                  uuid.UUID           `json:"id"`
 	OrderID             uuid.UUID           `json:"orderId"`
 	OrderNumber         string              `json:"orderNumber"`
-	OrderStatusID       int                 `json:"orderStatusId"`
+	OrderStatusID       uint32              `json:"orderStatusId"`
 	Shipping            float64             `json:"shipping"`
 	GrandTotal          float64             `json:"grandTotal"`
 	ShippingName        string              `json:"shippingName"`
@@ -116,7 +116,7 @@ type OrderListResponse struct {
 	ShippingDistrict    string              `json:"shippingDistrict"`
 	ShippingProvince    string              `json:"shippingProvince"`
 	ShippingZipcode     string              `json:"shippingZipcode"`
-	PaymentMethodID     int                 `json:"paymentMethodId"`
+	PaymentMethodID     uint32              `json:"paymentMethodId"`
 	CreatedAt           time.Time           `json:"createdAt"`
 	UpdatedAt           time.Time           `json:"updatedAt"`
 	Shop                OrderShopResponse   `json:"shop"`
@@ -128,7 +128,7 @@ type ShopOrderListResponse struct {
 	ID                  uuid.UUID           `json:"id"`
 	OrderID             uuid.UUID           `json:"orderId"`
 	OrderNumber         string              `json:"orderNumber"`
-	OrderStatusID       int                 `json:"orderStatusId"`
+	OrderStatusID       uint32              `json:"orderStatusId"`
 	Shipping            float64             `json:"shipping"`
 	GrandTotal          float64             `json:"grandTotal"`
 	ShippingName        string              `json:"shippingName"`
@@ -139,7 +139,7 @@ type ShopOrderListResponse struct {
 	ShippingDistrict    string              `json:"shippingDistrict"`
 	ShippingProvince    string              `json:"shippingProvince"`
 	ShippingZipcode     string              `json:"shippingZipcode"`
-	PaymentMethodID     int                 `json:"paymentMethodId"`
+	PaymentMethodID     uint32              `json:"paymentMethodId"`
 	CreatedAt           time.Time           `json:"createdAt"`
 	UpdatedAt           time.Time           `json:"updatedAt"`
 	OrderItems          []OrderItemResponse `json:"orderItems"`
@@ -165,5 +165,5 @@ type OrderListRequest struct {
 	Page          uint64  `query:"page" validate:"omitempty,min=1" example:"1"`
 	PerPage       uint64  `query:"perPage" validate:"omitempty,min=1,max=100" example:"10"`
 	SearchText    *string `query:"searchText" example:""`
-	OrderStatusID *int    `query:"orderStatusId"`
+	OrderStatusID *uint32 `query:"orderStatusId"`
 }

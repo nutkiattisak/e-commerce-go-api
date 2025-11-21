@@ -5,7 +5,7 @@ import (
 )
 
 type Province struct {
-	ID        int        `gorm:"primaryKey" json:"id"`
+	ID        uint32     `gorm:"primaryKey" json:"id"`
 	NameTH    string     `gorm:"size:150;not null" json:"nameTh"`
 	NameEN    string     `gorm:"size:150;not null" json:"nameEn"`
 	CreatedAt time.Time  `gorm:"not null;default:now()" json:"createdAt,omitempty"`
@@ -14,7 +14,7 @@ type Province struct {
 }
 
 type ProvinceResponse struct {
-	ID     int    `json:"id"`
+	ID     uint32 `json:"id"`
 	NameTH string `json:"nameTh"`
 	NameEN string `json:"nameEn"`
 }

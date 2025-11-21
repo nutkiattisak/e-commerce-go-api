@@ -158,7 +158,7 @@ func (h *UserHandler) GetAddressByID(c echo.Context) error {
 		return response.Error(c, http.StatusBadRequest, errmap.ErrInvalidAddressID.Error())
 	}
 
-	addr, err := h.usecase.GetAddressByID(c.Request().Context(), addressID)
+	addr, err := h.usecase.GetAddressByID(c.Request().Context(), uint32(addressID))
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return response.Error(c, http.StatusNotFound, errmap.ErrAddressNotFound.Error())
@@ -254,7 +254,7 @@ func (h *UserHandler) UpdateAddress(c echo.Context) error {
 		return response.Error(c, http.StatusBadRequest, err.Error())
 	}
 
-	addr, err := h.usecase.GetAddressByID(c.Request().Context(), addressID)
+	addr, err := h.usecase.GetAddressByID(c.Request().Context(), uint32(addressID))
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err.Error())
 	}
@@ -266,7 +266,7 @@ func (h *UserHandler) UpdateAddress(c echo.Context) error {
 	}
 
 	addrEntity := &entity.Address{
-		ID:            addressID,
+		ID:            uint32(addressID),
 		UserID:        userID,
 		Name:          req.Name,
 		Line1:         req.Line1,
@@ -311,7 +311,7 @@ func (h *UserHandler) DeleteAddress(c echo.Context) error {
 		return response.Error(c, http.StatusBadRequest, errmap.ErrInvalidAddressID.Error())
 	}
 
-	if err := h.usecase.DeleteAddress(c.Request().Context(), addressID, userID); err != nil {
+	if err := h.usecase.DeleteAddress(c.Request().Context(), uint32(addressID), userID); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return response.Error(c, http.StatusNotFound, errmap.ErrAddressNotFound.Error())
 		}

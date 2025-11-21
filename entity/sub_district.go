@@ -5,11 +5,11 @@ import (
 )
 
 type SubDistrict struct {
-	ID         int        `gorm:"primaryKey;autoIncrement" json:"id"`
-	Zipcode    int        `gorm:"not null" json:"zipcode"`
+	ID         uint32     `gorm:"primaryKey;autoIncrement" json:"id"`
+	Zipcode    uint32     `gorm:"not null" json:"zipcode"`
 	NameTH     string     `gorm:"size:150;not null" json:"nameTh"`
 	NameEN     string     `gorm:"size:150;not null" json:"nameEn"`
-	DistrictID int        `gorm:"not null" json:"districtId"`
+	DistrictID uint32     `gorm:"not null" json:"districtId"`
 	CreatedAt  time.Time  `gorm:"not null;default:now()" json:"createdAt,omitempty"`
 	UpdatedAt  time.Time  `gorm:"not null;default:now()" json:"updatedAt,omitempty"`
 	DeletedAt  *time.Time `gorm:"default:null" json:"deletedAt"`
@@ -18,9 +18,9 @@ type SubDistrict struct {
 }
 
 type SubDistrictResponse struct {
-	ID         int    `json:"id"`
-	Zipcode    int    `json:"zipcode"`
+	ID         uint32 `json:"id"`
+	Zipcode    uint32 `json:"zipcode"`
 	NameTH     string `json:"nameTh"`
 	NameEN     string `json:"nameEn"`
-	DistrictID int    `json:"districtId"`
+	DistrictID uint32 `json:"districtId"`
 }

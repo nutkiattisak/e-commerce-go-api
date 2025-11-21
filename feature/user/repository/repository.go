@@ -48,7 +48,7 @@ func (r *userRepository) CreateAddress(ctx context.Context, addr *entity.Address
 	return nil
 }
 
-func (r *userRepository) GetAddressByID(ctx context.Context, id int) (*entity.Address, error) {
+func (r *userRepository) GetAddressByID(ctx context.Context, id uint32) (*entity.Address, error) {
 	var address entity.Address
 
 	err := r.db.WithContext(ctx).
@@ -106,7 +106,7 @@ func (r *userRepository) UpdateAddress(ctx context.Context, addr *entity.Address
 	return nil
 }
 
-func (r *userRepository) DeleteAddress(ctx context.Context, id int, userID uuid.UUID) error {
+func (r *userRepository) DeleteAddress(ctx context.Context, id uint32, userID uuid.UUID) error {
 	res := r.db.WithContext(ctx).
 		Where("id = ? AND user_id = ? AND is_default = false", id, userID).
 		Delete(&entity.Address{})

@@ -1,14 +1,14 @@
 package entity
 
 const (
-	PaymentMethodCreditCard   int = 1
-	PaymentMethodCod          int = 2
-	PaymentMethodBankTransfer int = 3
-	PaymentMethodPromptPay    int = 4
+	PaymentMethodCreditCard   uint32 = 1
+	PaymentMethodCod          uint32 = 2
+	PaymentMethodBankTransfer uint32 = 3
+	PaymentMethodPromptPay    uint32 = 4
 )
 
 type PaymentMethod struct {
-	ID   int    `gorm:"primaryKey" json:"id"`
+	ID   uint32 `gorm:"primaryKey" json:"id"`
 	Code string `gorm:"size:50;not null;uniqueIndex" json:"code"`
 	Name string `gorm:"size:100;not null" json:"name"`
 }

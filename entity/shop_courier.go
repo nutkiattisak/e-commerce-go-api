@@ -8,9 +8,9 @@ import (
 )
 
 type ShopCourier struct {
-	ID        int            `gorm:"primaryKey;autoIncrement" json:"id"`
+	ID        uint32         `gorm:"primaryKey;autoIncrement" json:"id"`
 	ShopID    uuid.UUID      `gorm:"type:uuid;not null;index:idx_shop_couriers_shop_id" json:"shopId"`
-	CourierID int            `gorm:"not null;index:idx_shop_couriers_courier_id" json:"courierId"`
+	CourierID uint32         `gorm:"not null;index:idx_shop_couriers_courier_id" json:"courierId"`
 	Rate      float64        `gorm:"type:decimal(10,2)" json:"rate,omitempty"`
 	CreatedAt time.Time      `gorm:"not null;default:now()" json:"createdAt"`
 	UpdatedAt time.Time      `gorm:"not null;default:now()" json:"updatedAt"`
