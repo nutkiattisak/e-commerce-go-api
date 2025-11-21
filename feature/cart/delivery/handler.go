@@ -214,7 +214,7 @@ func (h *CartHandler) UpdateItem(c echo.Context) error {
 		return response.Error(c, http.StatusBadRequest, err.Error())
 	}
 
-	_, err = h.cartUsecase.UpdateItem(c.Request().Context(), userID, itemID, req.Qty)
+	_, err = h.cartUsecase.UpdateItem(c.Request().Context(), userID, uint32(itemID), req.Qty)
 	if err != nil {
 		if errors.Is(err, errmap.ErrQuantityMustBeGreaterThanZero) {
 			return response.Error(c, http.StatusBadRequest, errmap.ErrQuantityMustBeGreaterThanZero.Error())
@@ -256,7 +256,7 @@ func (h *CartHandler) DeleteItem(c echo.Context) error {
 		return response.Error(c, http.StatusBadRequest, "invalid item id")
 	}
 
-	if err := h.cartUsecase.DeleteItem(c.Request().Context(), userID, itemID); err != nil {
+	if err := h.cartUsecase.DeleteItem(c.Request().Context(), userID, uint32(itemID)); err != nil {
 		if errors.Is(err, errmap.ErrFailedToGetCartItem) {
 			return response.Error(c, http.StatusNotFound, errmap.ErrFailedToGetCartItem.Error())
 		}

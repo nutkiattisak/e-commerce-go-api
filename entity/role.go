@@ -1,9 +1,9 @@
 package entity
 
 const (
-	RoleAdmin int = 1
-	RoleUser  int = 2
-	RoleShop  int = 3
+	RoleAdmin uint32 = 1
+	RoleUser  uint32 = 2
+	RoleShop  uint32 = 3
 )
 
 const (
@@ -13,6 +13,6 @@ const (
 )
 
 type Role struct {
-	ID   int    `gorm:"primaryKey;autoIncrement" json:"id"`
+	ID   uint32 `gorm:"primaryKey;autoIncrement" json:"id"`
 	Name string `gorm:"size:50;not null;uniqueIndex" json:"name"`
 }

@@ -32,7 +32,7 @@ func NewCartUsecase(cartRepo domain.CartRepository, productRepo domain.ProductRe
 	}
 }
 
-func (u *cartUsecase) EstimateShipping(ctx context.Context, userID uuid.UUID, cartItemIDs []int) (*entity.CartShippingEstimateResponse, error) {
+func (u *cartUsecase) EstimateShipping(ctx context.Context, userID uuid.UUID, cartItemIDs []uint32) (*entity.CartShippingEstimateResponse, error) {
 	cartItems, err := u.cartRepo.GetCartItemsByIDs(ctx, cartItemIDs)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get cart items: %w", err)
@@ -124,7 +124,7 @@ func (u *cartUsecase) EstimateShipping(ctx context.Context, userID uuid.UUID, ca
 	return &resp, nil
 }
 
-func (u *cartUsecase) AddItem(ctx context.Context, userID uuid.UUID, productID int, qty int) (*entity.CartItem, bool, error) {
+func (u *cartUsecase) AddItem(ctx context.Context, userID uuid.UUID, productID uint32, qty uint32) (*entity.CartItem, bool, error) {
 	if qty <= 0 {
 		return nil, false, errmap.ErrQuantityMustBeGreaterThanZero
 	}
@@ -146,7 +146,7 @@ func (u *cartUsecase) AddItem(ctx context.Context, userID uuid.UUID, productID i
 	}
 
 	existing, _ := u.cartRepo.GetCartItemByUserAndProduct(ctx, userID, productID)
-	existingQty := 0
+	var existingQty uint32
 	if existing != nil {
 		existingQty = existing.Qty
 	}
@@ -181,8 +181,8 @@ func (u *cartUsecase) GetCart(ctx context.Context, userID uuid.UUID) (*entity.Ca
 		return nil, nil, nil, fmt.Errorf("failed to list cart items: %w", err)
 	}
 
-	var totalItems int
-	var totalQty int
+	var totalItems uint32
+	var totalQty uint32
 	var subtotal float64
 	for _, it := range items {
 		totalItems++
@@ -199,7 +199,7 @@ func (u *cartUsecase) GetCart(ctx context.Context, userID uuid.UUID) (*entity.Ca
 	return cart, items, summary, nil
 }
 
-func (u *cartUsecase) UpdateItem(ctx context.Context, userID uuid.UUID, itemID int, qty int) (*entity.CartItem, error) {
+func (u *cartUsecase) UpdateItem(ctx context.Context, userID uuid.UUID, itemID uint32, qty uint32) (*entity.CartItem, error) {
 	if qty <= 0 {
 		return nil, errmap.ErrQuantityMustBeGreaterThanZero
 	}
@@ -240,7 +240,7 @@ func (u *cartUsecase) UpdateItem(ctx context.Context, userID uuid.UUID, itemID i
 	return ci, nil
 }
 
-func (u *cartUsecase) DeleteItem(ctx context.Context, userID uuid.UUID, itemID int) error {
+func (u *cartUsecase) DeleteItem(ctx context.Context, userID uuid.UUID, itemID uint32) error {
 	ci, err := u.cartRepo.GetCartItemByID(ctx, itemID)
 	if err != nil {
 		return fmt.Errorf("failed to get cart item: %w", err)

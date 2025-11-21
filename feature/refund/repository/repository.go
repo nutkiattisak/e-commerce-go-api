@@ -35,7 +35,7 @@ func (r *refundRepository) GetRefundByID(ctx context.Context, id uuid.UUID) (*en
 	return &refund, nil
 }
 
-func (r *refundRepository) UpdateRefundStatus(ctx context.Context, id uuid.UUID, statusID int) error {
+func (r *refundRepository) UpdateRefundStatus(ctx context.Context, id uuid.UUID, statusID uint32) error {
 	updates := map[string]interface{}{
 		"refund_status_id": statusID,
 		"updated_at":       timeth.Now(),

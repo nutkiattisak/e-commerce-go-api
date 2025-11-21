@@ -45,7 +45,7 @@ func (r *orderRepository) EnsureCartForUser(ctx context.Context, userID uuid.UUI
 	return cart, nil
 }
 
-func (r *orderRepository) ListCartItems(ctx context.Context, cartID int) ([]*entity.CartItem, error) {
+func (r *orderRepository) ListCartItems(ctx context.Context, cartID uint32) ([]*entity.CartItem, error) {
 	var items []*entity.CartItem
 	if err := r.db.WithContext(ctx).
 		Preload("Product", "deleted_at IS NULL").
@@ -110,7 +110,7 @@ func (r *orderRepository) UpsertCartItem(ctx context.Context, item *entity.CartI
 	return result, nil
 }
 
-func (r *orderRepository) GetCartItemByID(ctx context.Context, id int) (*entity.CartItem, error) {
+func (r *orderRepository) GetCartItemByID(ctx context.Context, id uint32) (*entity.CartItem, error) {
 	var it entity.CartItem
 	if err := r.db.WithContext(ctx).First(&it, "id = ? AND deleted_at IS NULL", id).Error; err != nil {
 		return nil, err
@@ -122,11 +122,11 @@ func (r *orderRepository) UpdateCartItem(ctx context.Context, item *entity.CartI
 	return r.db.WithContext(ctx).Save(item).Error
 }
 
-func (r *orderRepository) DeleteCartItem(ctx context.Context, id int) error {
+func (r *orderRepository) DeleteCartItem(ctx context.Context, id uint32) error {
 	return r.db.WithContext(ctx).Where("id = ?", id).Delete(&entity.CartItem{}).Error
 }
 
-func (r *orderRepository) ClearCart(ctx context.Context, cartID int) error {
+func (r *orderRepository) ClearCart(ctx context.Context, cartID uint32) error {
 	return r.db.WithContext(ctx).Where("cart_id = ?", cartID).Delete(&entity.CartItem{}).Error
 }
 
@@ -147,7 +147,7 @@ func (r *orderRepository) CreateOrderItems(ctx context.Context, items []*entity.
 	return nil
 }
 
-func (r *orderRepository) CreateFullOrder(ctx context.Context, order *entity.Order, shopOrders []*entity.ShopOrder, orderItemsByShop map[string][]*entity.OrderItem, payment *entity.Payment, cartID int, userID uuid.UUID) error {
+func (r *orderRepository) CreateFullOrder(ctx context.Context, order *entity.Order, shopOrders []*entity.ShopOrder, orderItemsByShop map[string][]*entity.OrderItem, payment *entity.Payment, cartID uint32, userID uuid.UUID) error {
 	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		now := timeth.Now()
 
@@ -389,7 +389,7 @@ func (r *orderRepository) GetShopOrderByID(ctx context.Context, id uuid.UUID) (*
 	return &so, nil
 }
 
-func (r *orderRepository) UpdateShopOrderStatus(ctx context.Context, id uuid.UUID, OrderStatusID int) error {
+func (r *orderRepository) UpdateShopOrderStatus(ctx context.Context, id uuid.UUID, OrderStatusID uint32) error {
 	updates := map[string]interface{}{
 		"order_status_id": OrderStatusID,
 		"updated_at":      timeth.Now(),
@@ -418,7 +418,7 @@ func (r *orderRepository) GetShipmentByShopOrderID(ctx context.Context, shopOrde
 	return &shipment, nil
 }
 
-func (r *orderRepository) UpdateShipmentStatusByShopOrderID(ctx context.Context, shopOrderID uuid.UUID, shipmentStatusID int) error {
+func (r *orderRepository) UpdateShipmentStatusByShopOrderID(ctx context.Context, shopOrderID uuid.UUID, shipmentStatusID uint32) error {
 	return r.db.WithContext(ctx).
 		Model(&entity.Shipment{}).
 		Where("shop_order_id = ?", shopOrderID).
@@ -460,7 +460,7 @@ func (r *orderRepository) GetPaymentByTransactionID(ctx context.Context, transac
 	return &payment, nil
 }
 
-func (r *orderRepository) UpdatePaymentStatus(ctx context.Context, id uuid.UUID, paymentStatusID int, paidAt *time.Time) error {
+func (r *orderRepository) UpdatePaymentStatus(ctx context.Context, id uuid.UUID, paymentStatusID uint32, paidAt *time.Time) error {
 	updates := map[string]interface{}{
 		"payment_status_id": paymentStatusID,
 		"updated_at":        timeth.Now(),

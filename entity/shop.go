@@ -58,13 +58,13 @@ type ShopResponse struct {
 }
 
 type UpdateShopCouriersRequest struct {
-	CourierID int     `json:"courierId" validate:"required,gt=0"`
+	CourierID uint32  `json:"courierId" validate:"required,gt=0"`
 	Rate      float64 `json:"rate" validate:"required,gte=0"`
 }
 
 type ShopCourierResponse struct {
-	ID        int       `json:"id"`
-	CourierID int       `json:"courierId"`
+	ID        uint32    `json:"id"`
+	CourierID uint32    `json:"courierId"`
 	Rate      float64   `json:"rate"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`

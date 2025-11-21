@@ -50,7 +50,7 @@ func (r *productRepository) ListProducts(ctx context.Context, q *entity.ProductL
 	return products, total, nil
 }
 
-func (r *productRepository) GetProductByID(ctx context.Context, id int) (*entity.Product, error) {
+func (r *productRepository) GetProductByID(ctx context.Context, id uint32) (*entity.Product, error) {
 	var p entity.Product
 	if err := r.db.WithContext(ctx).Preload("Shop").First(&p, "id = ? AND is_active = true AND deleted_at IS NULL", id).Error; err != nil {
 		return nil, err
@@ -117,14 +117,14 @@ func (r *productRepository) UpdateProduct(ctx context.Context, product *entity.P
 	return nil
 }
 
-func (r *productRepository) DeleteProduct(ctx context.Context, productID int) error {
+func (r *productRepository) DeleteProduct(ctx context.Context, productID uint32) error {
 	res := r.db.WithContext(ctx).
 		Where("id = ?", productID).
 		Delete(&entity.Product{})
 	return res.Error
 }
 
-func (r *productRepository) RestoreProductStock(ctx context.Context, productID int, qty int) error {
+func (r *productRepository) RestoreProductStock(ctx context.Context, productID uint32, qty uint32) error {
 	res := r.db.WithContext(ctx).
 		Model(&entity.Product{}).
 		Where("id = ? AND deleted_at IS NULL", productID).
