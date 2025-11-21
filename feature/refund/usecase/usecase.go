@@ -53,7 +53,7 @@ func (u *refundUsecase) CreateRefund(ctx context.Context, userID uuid.UUID, req 
 		return nil, fmt.Errorf("refund can only be created when payment_status = 6")
 	}
 
-	refundMethodID := entity.RefundMethodBankTransfer
+	var refundMethodID uint32 = entity.RefundMethodBankTransfer
 	if payment.PaymentMethodID == entity.PaymentMethodCreditCard {
 		refundMethodID = entity.RefundMethodCreditCard
 	}

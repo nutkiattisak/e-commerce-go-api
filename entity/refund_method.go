@@ -1,12 +1,12 @@
 package entity
 
 const (
-	RefundMethodBankTransfer int = 1
-	RefundMethodCreditCard   int = 2
+	RefundMethodBankTransfer uint32 = 1
+	RefundMethodCreditCard   uint32 = 2
 )
 
 type RefundMethod struct {
-	ID   int    `gorm:"primaryKey" json:"id"`
+	ID   uint32 `gorm:"primaryKey" json:"id"`
 	Code string `gorm:"size:50;not null;uniqueIndex" json:"code"`
 	Name string `gorm:"size:100;not null" json:"name"`
 }

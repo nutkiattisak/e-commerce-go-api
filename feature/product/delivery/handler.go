@@ -76,7 +76,7 @@ func (h *ProductHandler) GetProduct(c echo.Context) error {
 		return response.Error(c, http.StatusBadRequest, errmap.ErrInvalidProductID.Error())
 	}
 
-	product, err := h.usecase.GetProductByID(c.Request().Context(), productId)
+	product, err := h.usecase.GetProductByID(c.Request().Context(), uint32(productId))
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return response.Error(c, http.StatusNotFound, errmap.ErrProductNotFound.Error())
@@ -182,7 +182,7 @@ func (h *ProductHandler) GetShopProduct(c echo.Context) error {
 		return response.Error(c, http.StatusBadRequest, errmap.ErrInvalidProductID.Error())
 	}
 
-	product, err := h.usecase.GetProductByID(c.Request().Context(), productID)
+	product, err := h.usecase.GetProductByID(c.Request().Context(), uint32(productID))
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return response.Error(c, http.StatusNotFound, errmap.ErrProductNotFound.Error())
@@ -238,7 +238,7 @@ func (h *ProductHandler) UpdateShopProduct(c echo.Context) error {
 		return response.Error(c, http.StatusBadRequest, err.Error())
 	}
 
-	product, err := h.usecase.UpdateProduct(c.Request().Context(), userID, productID, &req)
+	product, err := h.usecase.UpdateProduct(c.Request().Context(), userID, uint32(productID), &req)
 	if err != nil {
 		if errors.Is(err, errmap.ErrForbidden) {
 			return response.Error(c, http.StatusForbidden, errmap.ErrForbidden.Error())
@@ -280,7 +280,7 @@ func (h *ProductHandler) DeleteShopProduct(c echo.Context) error {
 		return response.Error(c, http.StatusBadRequest, errmap.ErrInvalidProductID.Error())
 	}
 
-	if err := h.usecase.DeleteProduct(c.Request().Context(), userID, productID); err != nil {
+	if err := h.usecase.DeleteProduct(c.Request().Context(), userID, uint32(productID)); err != nil {
 		if errors.Is(err, errmap.ErrForbidden) {
 			return response.Error(c, http.StatusForbidden, errmap.ErrForbidden.Error())
 		}

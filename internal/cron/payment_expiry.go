@@ -97,7 +97,7 @@ func (j *PaymentExpiryJob) processExpiredPayment(ctx context.Context, payment *e
 		return fmt.Errorf("failed to get order: %w", err)
 	}
 
-	if err := j.orderRepo.UpdatePaymentStatus(ctx, payment.ID, 3, nil); err != nil {
+	if err := j.orderRepo.UpdatePaymentStatus(ctx, payment.ID, entity.PaymentStatusExpired, nil); err != nil {
 		return fmt.Errorf("failed to update payment status: %w", err)
 	}
 
@@ -111,7 +111,7 @@ func (j *PaymentExpiryJob) processExpiredPayment(ctx context.Context, payment *e
 		go func(shopOrder entity.ShopOrder) {
 			defer wg.Done()
 
-			if err := j.orderRepo.UpdateShopOrderStatus(ctx, shopOrder.ID, 6); err != nil {
+			if err := j.orderRepo.UpdateShopOrderStatus(ctx, shopOrder.ID, entity.OrderStatusCancelled); err != nil {
 				mu.Lock()
 				processingErrors = append(processingErrors, fmt.Errorf("failed to cancel shop order %s: %w", shopOrder.ID, err))
 				mu.Unlock()

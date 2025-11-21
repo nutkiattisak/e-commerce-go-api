@@ -67,7 +67,7 @@ func (u *productUsecase) ListProducts(ctx context.Context, q *entity.ProductList
 	}, nil
 }
 
-func (u *productUsecase) GetProductByID(ctx context.Context, productID int) (*entity.ProductResponse, error) {
+func (u *productUsecase) GetProductByID(ctx context.Context, productID uint32) (*entity.ProductResponse, error) {
 	product, err := u.repo.GetProductByID(ctx, productID)
 	if err != nil {
 		return nil, err
@@ -104,7 +104,7 @@ func (u *productUsecase) CreateProduct(ctx context.Context, userID uuid.UUID, re
 	return mapToProductResponse(p), nil
 }
 
-func (u *productUsecase) UpdateProduct(ctx context.Context, userID uuid.UUID, productID int, req *entity.UpdateProductRequest) (*entity.ProductResponse, error) {
+func (u *productUsecase) UpdateProduct(ctx context.Context, userID uuid.UUID, productID uint32, req *entity.UpdateProductRequest) (*entity.ProductResponse, error) {
 	if err := u.validator.Struct(req); err != nil {
 		return nil, fmt.Errorf("invalid input: %w", err)
 	}
@@ -135,7 +135,7 @@ func (u *productUsecase) UpdateProduct(ctx context.Context, userID uuid.UUID, pr
 	return mapToProductResponse(prod), nil
 }
 
-func (u *productUsecase) DeleteProduct(ctx context.Context, userID uuid.UUID, productID int) error {
+func (u *productUsecase) DeleteProduct(ctx context.Context, userID uuid.UUID, productID uint32) error {
 	prod, err := u.repo.GetProductByID(ctx, productID)
 	if err != nil {
 		return err

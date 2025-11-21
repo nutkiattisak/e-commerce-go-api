@@ -17,6 +17,6 @@ type RefundUsecase interface {
 type RefundRepository interface {
 	CreateRefund(ctx context.Context, refund *entity.Refund) error
 	GetRefundByID(ctx context.Context, id uuid.UUID) (*entity.Refund, error)
-	UpdateRefundStatus(ctx context.Context, id uuid.UUID, statusID int) error
+	UpdateRefundStatus(ctx context.Context, id uuid.UUID, statusID uint32) error
 	UpdateRefundBankAccount(ctx context.Context, id uuid.UUID, bankAccount, bankName string) error
 }

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
@@ -32,7 +32,7 @@ func TestCreateOrderFromCart_Success(t *testing.T) {
 	userID := uuid.New()
 	addressID := uint32(123)
 	shopID := uuid.New()
-	productID := 1
+	productID := uint32(1)
 
 	cart := &entity.Cart{
 		ID:     1,

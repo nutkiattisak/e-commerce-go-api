@@ -32,17 +32,17 @@ type OrderUsecase interface {
 
 type OrderRepository interface {
 	GetCartByUserID(ctx context.Context, userID uuid.UUID) (*entity.Cart, error)
-	ListCartItems(ctx context.Context, cartID int) ([]*entity.CartItem, error)
-	ClearCart(ctx context.Context, cartID int) error
+	ListCartItems(ctx context.Context, cartID uint32) ([]*entity.CartItem, error)
+	ClearCart(ctx context.Context, cartID uint32) error
 	EnsureCartForUser(ctx context.Context, userID uuid.UUID) (*entity.Cart, error)
 	AddCartItem(ctx context.Context, item *entity.CartItem) error
 	UpsertCartItem(ctx context.Context, item *entity.CartItem) (*entity.CartItem, error)
-	GetCartItemByID(ctx context.Context, id int) (*entity.CartItem, error)
+	GetCartItemByID(ctx context.Context, id uint32) (*entity.CartItem, error)
 
 	CreateOrder(ctx context.Context, order *entity.Order) error
 	CreateShopOrder(ctx context.Context, so *entity.ShopOrder) error
 	CreateOrderItems(ctx context.Context, items []*entity.OrderItem) error
-	CreateFullOrder(ctx context.Context, order *entity.Order, shopOrders []*entity.ShopOrder, orderItemsByShop map[string][]*entity.OrderItem, payment *entity.Payment, cartID int, userID uuid.UUID) error
+	CreateFullOrder(ctx context.Context, order *entity.Order, shopOrders []*entity.ShopOrder, orderItemsByShop map[string][]*entity.OrderItem, payment *entity.Payment, cartID uint32, userID uuid.UUID) error
 
 	ListOrdersByUser(ctx context.Context, userID uuid.UUID, req entity.OrderListRequest) ([]*entity.Order, int64, error)
 	ListShopOrdersByUserID(ctx context.Context, userID uuid.UUID, req entity.OrderListRequest) ([]*entity.ShopOrder, int64, error)
@@ -50,18 +50,18 @@ type OrderRepository interface {
 
 	ListShopOrdersByShopID(ctx context.Context, shopID uuid.UUID, req entity.OrderListRequest) ([]*entity.ShopOrder, int64, error)
 	GetShopOrderByID(ctx context.Context, id uuid.UUID) (*entity.ShopOrder, error)
-	UpdateShopOrderStatus(ctx context.Context, id uuid.UUID, OrderStatusID int) error
+	UpdateShopOrderStatus(ctx context.Context, id uuid.UUID, OrderStatusID uint32) error
 	CancelShopOrder(ctx context.Context, id uuid.UUID, reason string) error
 
 	AddShipment(ctx context.Context, s *entity.Shipment) error
 	GetShipmentByShopOrderID(ctx context.Context, shopOrderID uuid.UUID) (*entity.Shipment, error)
-	UpdateShipmentStatusByShopOrderID(ctx context.Context, shopOrderID uuid.UUID, shipmentStatusID int) error
+	UpdateShipmentStatusByShopOrderID(ctx context.Context, shopOrderID uuid.UUID, shipmentStatusID uint32) error
 
 	// Payment
 	CreatePayment(ctx context.Context, payment *entity.Payment) error
 	GetPaymentByOrderID(ctx context.Context, orderID uuid.UUID) (*entity.Payment, error)
 	GetPaymentByTransactionID(ctx context.Context, transactionID string) (*entity.Payment, error)
-	UpdatePaymentStatus(ctx context.Context, id uuid.UUID, paymentStatusID int, paidAt *time.Time) error
+	UpdatePaymentStatus(ctx context.Context, id uuid.UUID, paymentStatusID uint32, paidAt *time.Time) error
 	ListExpiredPayments(ctx context.Context) ([]*entity.Payment, error)
 
 	// OrderLog
