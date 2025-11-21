@@ -52,7 +52,7 @@ func (mr *MockUserUsecaseMockRecorder) CreateAddress(ctx, addr interface{}) *gom
 }
 
 // DeleteAddress mocks base method.
-func (m *MockUserUsecase) DeleteAddress(ctx context.Context, id int, userID uuid.UUID) error {
+func (m *MockUserUsecase) DeleteAddress(ctx context.Context, id uint32, userID uuid.UUID) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteAddress", ctx, id, userID)
 	ret0, _ := ret[0].(error)
@@ -66,7 +66,7 @@ func (mr *MockUserUsecaseMockRecorder) DeleteAddress(ctx, id, userID interface{}
 }
 
 // GetAddressByID mocks base method.
-func (m *MockUserUsecase) GetAddressByID(ctx context.Context, id int) (*entity.AddressResponse, error) {
+func (m *MockUserUsecase) GetAddressByID(ctx context.Context, id uint32) (*entity.AddressResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAddressByID", ctx, id)
 	ret0, _ := ret[0].(*entity.AddressResponse)
@@ -177,7 +177,7 @@ func (mr *MockUserRepositoryMockRecorder) CreateAddress(ctx, addr interface{}) *
 }
 
 // DeleteAddress mocks base method.
-func (m *MockUserRepository) DeleteAddress(ctx context.Context, id int, userID uuid.UUID) error {
+func (m *MockUserRepository) DeleteAddress(ctx context.Context, id uint32, userID uuid.UUID) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteAddress", ctx, id, userID)
 	ret0, _ := ret[0].(error)
@@ -191,7 +191,7 @@ func (mr *MockUserRepositoryMockRecorder) DeleteAddress(ctx, id, userID interfac
 }
 
 // GetAddressByID mocks base method.
-func (m *MockUserRepository) GetAddressByID(ctx context.Context, id int) (*entity.Address, error) {
+func (m *MockUserRepository) GetAddressByID(ctx context.Context, id uint32) (*entity.Address, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAddressByID", ctx, id)
 	ret0, _ := ret[0].(*entity.Address)

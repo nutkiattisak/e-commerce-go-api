@@ -30,7 +30,7 @@ func TestCreateOrderFromCart_Success(t *testing.T) {
 	// Test data
 	ctx := context.Background()
 	userID := uuid.New()
-	addressID := 123
+	addressID := uint32(123)
 	shopID := uuid.New()
 	productID := 1
 
@@ -63,7 +63,7 @@ func TestCreateOrderFromCart_Success(t *testing.T) {
 		PhoneNumber: "0812345678",
 		Line1:       "123 Main St",
 		Line2:       "Apt 4B",
-		Zipcode:     10110,
+		Zipcode:     uint32(10110),
 		SubDistrict: entity.SubDistrict{NameTH: "ปทุมวัน"},
 		District:    entity.District{NameTH: "ปทุมวัน"},
 		Province:    entity.Province{NameTH: "กรุงเทพมหานคร"},
@@ -312,7 +312,7 @@ func TestCreateOrderFromCart_NoShippingOptions(t *testing.T) {
 
 	ctx := context.Background()
 	userID := uuid.New()
-	addressID := 123
+	addressID := uint32(123)
 	shopID := uuid.New()
 
 	cart := &entity.Cart{
@@ -392,7 +392,7 @@ func TestCreateOrderFromCart_CreateFullOrderError(t *testing.T) {
 
 	ctx := context.Background()
 	userID := uuid.New()
-	addressID := 123
+	addressID := uint32(123)
 	shopID := uuid.New()
 
 	cart := &entity.Cart{
@@ -420,7 +420,7 @@ func TestCreateOrderFromCart_CreateFullOrderError(t *testing.T) {
 		ID:      addressID,
 		UserID:  userID,
 		Name:    "John Doe",
-		Zipcode: 10110,
+		Zipcode: uint32(10110),
 	}
 
 	shopCouriers := []*entity.ShopCourier{

@@ -7,8 +7,8 @@ import (
 )
 
 type District struct {
-	ID         int            `gorm:"primaryKey;autoIncrement" json:"id"`
-	ProvinceID int            `gorm:"not null" json:"provinceId"`
+	ID         uint32         `gorm:"primaryKey;autoIncrement" json:"id"`
+	ProvinceID uint32         `gorm:"not null" json:"provinceId"`
 	NameTH     string         `gorm:"size:150;not null" json:"nameTh"`
 	NameEN     string         `gorm:"size:150;not null" json:"nameEn"`
 	CreatedAt  time.Time      `gorm:"not null;default:now()" json:"createdAt,omitempty"`
@@ -19,8 +19,8 @@ type District struct {
 }
 
 type DistrictResponse struct {
-	ID         int               `json:"id"`
-	ProvinceID int               `json:"provinceId"`
+	ID         uint32            `json:"id"`
+	ProvinceID uint32            `json:"provinceId"`
 	NameTH     string            `json:"nameTh"`
 	NameEN     string            `json:"nameEn"`
 	Province   *ProvinceResponse `json:"province,omitempty"`

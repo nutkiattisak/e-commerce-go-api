@@ -7,10 +7,10 @@ import (
 )
 
 type CartItem struct {
-	ID        int            `gorm:"primaryKey;autoIncrement" json:"id"`
-	CartID    int            `gorm:"not null;uniqueIndex:uq_cart_items_cart_product" json:"cartId"`
-	ProductID int            `gorm:"not null;uniqueIndex:uq_cart_items_cart_product" json:"productId"`
-	Qty       int            `gorm:"not null;default:1" json:"qty"`
+	ID        uint32         `gorm:"primaryKey;autoIncrement" json:"id"`
+	CartID    uint32         `gorm:"not null;uniqueIndex:uq_cart_items_cart_product" json:"cartId"`
+	ProductID uint32         `gorm:"not null;uniqueIndex:uq_cart_items_cart_product" json:"productId"`
+	Qty       uint32         `gorm:"not null;default:1" json:"qty"`
 	CreatedAt time.Time      `gorm:"not null;default:now()" json:"createdAt"`
 	UpdatedAt time.Time      `gorm:"not null;default:now()" json:"updatedAt"`
 	DeletedAt gorm.DeletedAt `gorm:"default:null" json:"deletedAt"`
@@ -20,14 +20,14 @@ type CartItem struct {
 }
 
 type CartItemRequest struct {
-	ProductID int `json:"productId" validate:"required,gt=0"`
-	Qty       int `json:"qty" validate:"required,gt=0"`
+	ProductID uint32 `json:"productId" validate:"required,gt=0"`
+	Qty       uint32 `json:"qty" validate:"required,gt=0"`
 }
 
 type UpdateCartItemRequest struct {
-	Qty int `json:"qty" validate:"required,gt=0"`
+	Qty uint32 `json:"qty" validate:"required,gt=0"`
 }
 
 type EstimateShippingRequest struct {
-	CartItemIDs []int `json:"cartItemIds" validate:"required,min=1,dive,gt=0"`
+	CartItemIDs []uint32 `json:"cartItemIds" validate:"required,min=1,dive,gt=0"`
 }

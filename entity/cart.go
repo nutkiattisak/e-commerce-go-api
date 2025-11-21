@@ -7,7 +7,7 @@ import (
 )
 
 type Cart struct {
-	ID        int       `gorm:"primaryKey;autoIncrement" json:"id"`
+	ID        uint32    `gorm:"primaryKey;autoIncrement" json:"id"`
 	UserID    uuid.UUID `gorm:"type:uuid;uniqueIndex" json:"userId"`
 	CreatedAt time.Time `gorm:"not null;default:now()" json:"createdAt"`
 	UpdatedAt time.Time `gorm:"not null;default:now()" json:"updatedAt"`
@@ -16,21 +16,21 @@ type Cart struct {
 }
 
 type ProductSummary struct {
-	ID       int     `json:"id"`
+	ID       uint32  `json:"id"`
 	Name     string  `json:"name,omitempty"`
 	ImageURL *string `json:"imageUrl,omitempty"`
 	Price    float64 `json:"price"`
-	StockQty int     `json:"stockQty"`
+	StockQty uint32  `json:"stockQty"`
 }
 
 type CartSummary struct {
-	TotalItems int     `json:"totalItems"`
-	TotalQty   int     `json:"totalQty"`
+	TotalItems uint32  `json:"totalItems"`
+	TotalQty   uint32  `json:"totalQty"`
 	Subtotal   float64 `json:"subtotal"`
 }
 
 type CartResponse struct {
-	ID        int                `json:"id"`
+	ID        uint32             `json:"id"`
 	CreatedAt time.Time          `json:"createdAt"`
 	UpdatedAt time.Time          `json:"updatedAt"`
 	Summary   CartSummary        `json:"summary"`
@@ -38,16 +38,16 @@ type CartResponse struct {
 }
 
 type CartItemResponse struct {
-	ID        int               `json:"id"`
+	ID        uint32            `json:"id"`
 	Product   ProductSummary    `json:"product"`
 	Shop      *CartShopResponse `json:"shop,omitempty"`
-	Qty       int               `json:"qty"`
+	Qty       uint32            `json:"qty"`
 	UnitPrice float64           `json:"unitPrice"`
 	Subtotal  float64           `json:"subtotal"`
 }
 
 type CourierOption struct {
-	CourierID int     `json:"courierId"`
+	CourierID uint32  `json:"courierId"`
 	Name      string  `json:"name,omitempty"`
 	Price     float64 `json:"price"`
 }
@@ -67,9 +67,9 @@ type CartShippingEstimateResponse struct {
 }
 
 type CartItemShop struct {
-	CartItemID int     `json:"cartItemId"`
-	ProductID  int     `json:"productId"`
-	Qty        int     `json:"qty"`
+	CartItemID uint32  `json:"cartItemId"`
+	ProductID  uint32  `json:"productId"`
+	Qty        uint32  `json:"qty"`
 	UnitPrice  float64 `json:"unitPrice"`
 	Subtotal   float64 `json:"subtotal"`
 }

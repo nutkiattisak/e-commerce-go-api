@@ -8,12 +8,12 @@ import (
 )
 
 type Product struct {
-	ID          int            `gorm:"primaryKey;autoIncrement" json:"id"`
+	ID          uint32         `gorm:"primaryKey;autoIncrement" json:"id"`
 	Name        string         `gorm:"size:255;not null" json:"name" validate:"required,min=3,max=255"`
 	Description string         `gorm:"type:text" json:"description" validate:"omitempty,max=2000"`
 	ImageURL    *string        `gorm:"type:text" json:"imageUrl,omitempty" validate:"omitempty,url"`
 	Price       float64        `gorm:"type:decimal(10,2);not null" json:"price" validate:"required,gt=0"`
-	StockQty    int            `gorm:"not null;default:0" json:"stockQty" validate:"gte=0"`
+	StockQty    uint32         `gorm:"not null;default:0" json:"stockQty" validate:"gte=0"`
 	IsActive    bool           `gorm:"default:true;index:idx_products_is_active" json:"isActive"`
 	ShopID      uuid.UUID      `gorm:"type:uuid;not null;index:idx_products_shop_id" json:"shopId"`
 	CreatedAt   *time.Time     `gorm:"default:now()" json:"createdAt"`
@@ -30,12 +30,12 @@ type ProductShopResponse struct {
 }
 
 type ProductResponse struct {
-	ID          int                  `json:"id"`
+	ID          uint32               `json:"id"`
 	Name        string               `json:"name"`
 	Description string               `json:"description"`
 	ImageURL    *string              `json:"imageUrl,omitempty"`
 	Price       float64              `json:"price"`
-	StockQty    int                  `json:"stockQty"`
+	StockQty    uint32               `json:"stockQty"`
 	IsActive    bool                 `json:"isActive,omitempty"`
 	ShopID      uuid.UUID            `json:"shopId"`
 	CreatedAt   *time.Time           `json:"createdAt,omitempty"`
@@ -59,7 +59,7 @@ type CreateProductRequest struct {
 	Description string  `json:"description" validate:"omitempty,max=2000"`
 	ImageURL    *string `json:"imageUrl,omitempty" validate:"omitempty,url"`
 	Price       float64 `json:"price" validate:"required,gt=0"`
-	StockQty    int     `json:"stockQty" validate:"gte=0"`
+	StockQty    uint32  `json:"stockQty" validate:"gte=0"`
 }
 
 type UpdateProductRequest struct {
@@ -67,5 +67,5 @@ type UpdateProductRequest struct {
 	Description string  `json:"description" validate:"omitempty,max=2000"`
 	ImageURL    *string `json:"imageUrl,omitempty" validate:"omitempty,url"`
 	Price       float64 `json:"price" validate:"required,gt=0"`
-	StockQty    int     `json:"stockQty" validate:"gte=0"`
+	StockQty    uint32  `json:"stockQty" validate:"gte=0"`
 }

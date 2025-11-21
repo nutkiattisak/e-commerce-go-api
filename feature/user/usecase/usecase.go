@@ -124,7 +124,7 @@ func (u *userUsecase) CreateAddress(ctx context.Context, addr *entity.Address) (
 	return mapAddressToResponse(created), nil
 }
 
-func (u *userUsecase) GetAddressByID(ctx context.Context, id int) (*entity.AddressResponse, error) {
+func (u *userUsecase) GetAddressByID(ctx context.Context, id uint32) (*entity.AddressResponse, error) {
 	addr, err := u.repo.GetAddressByID(ctx, id)
 	if err != nil {
 		return nil, err
@@ -151,7 +151,7 @@ func (u *userUsecase) UpdateProfile(ctx context.Context, user *entity.User) erro
 	return nil
 }
 
-func (u *userUsecase) DeleteAddress(ctx context.Context, id int, userID uuid.UUID) error {
+func (u *userUsecase) DeleteAddress(ctx context.Context, id uint32, userID uuid.UUID) error {
 	addr, err := u.repo.GetAddressByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
